@@ -1,4 +1,4 @@
-# LociSimiles
+# Loci Similes
 
 **LociSimiles** is a Python package for finding intertextual links in Latin literature using pre-trained language models.
 
