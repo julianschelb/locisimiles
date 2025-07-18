@@ -5,11 +5,9 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from typing import Dict, List, Tuple, Any, Sequence
-
 from sentence_transformers import SentenceTransformer
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
-
-from document import Document, TextSegment
+from locisimiles.document import Document, TextSegment
 
 # ============== UTILITY VARIABLES ==============
 
@@ -39,27 +37,25 @@ class ClassificationPipelineWithCandidategeneration:
     similarity to a query segment, and then classifies these candidates
     as intertextual or not using a pre-trained model.
     """
-
-    POS_CLASS_IDX = 1  # index of the "positive / intertextual" label
-
+    
     def __init__(
         self,
         *,
         classification_name: str = "julian-schelb/xlm-roberta-base-latin-intertextuality",
-        embedding_model_name: str = "bowphs/PhilBerta",
+        embedding_model_name: str = "bowphs/SPhilBerta",
         device: str | int | None = None,
+        pos_class_idx: int = 1, # Index of the positive class in the classifier
     ):
         self.device = device if device is not None else "cpu"
+        self.pos_class_idx = pos_class_idx  
 
-        # -------- Models ----------
-        self.embedder = SentenceTransformer(
-            embedding_model_name, device=self.device)
+        # -------- Load Models ----------
+        self.embedder = SentenceTransformer(embedding_model_name, device=self.device)
         self.clf_tokenizer = AutoTokenizer.from_pretrained(classification_name)
-        self.clf_model = AutoModelForSequenceClassification.from_pretrained(
-            classification_name
-        ).to(self.device).eval()
+        self.clf_model = AutoModelForSequenceClassification.from_pretrained(classification_name)
+        self.clf_model.to(self.device).eval()
 
-        # Last results for inspection
+        # Keep results in memory for later access
         self._last_sim:  SimDict | None = None
         self._last_full: FullDict | None = None
 
@@ -71,11 +67,32 @@ class ClassificationPipelineWithCandidategeneration:
             list(texts),
             convert_to_numpy=True,
             normalize_embeddings=True,
+            batch_size=32,
+            show_progress_bar=False,
         ).astype("float32")
 
     # ---------- Predict Positive Probability ----------
 
-    def _predict_pos(
+    def _predict_batch(
+        self,
+        query_text: str,
+        cand_texts: Sequence[str],
+    ) -> List[ScoreT]:
+        """Predict probabilities for a batch of (query, cand) pairs."""
+        encoding = self.clf_tokenizer(
+            [query_text] * len(cand_texts),  # Repeat query for each candidate
+            cand_texts,  # Candidate texts
+            add_special_tokens=True,
+            padding=True,
+            truncation=True,
+            return_tensors="pt",
+        ).to(self.device)
+
+        with torch.no_grad():
+            logits = self.clf_model(**encoding).logits
+            return F.softmax(logits, dim=1)[:, self.pos_class_idx].cpu().tolist()
+        
+    def _predict(
         self,
         query_text: str,
         cand_texts: Sequence[str],
@@ -84,24 +101,47 @@ class ClassificationPipelineWithCandidategeneration:
     ) -> List[ScoreT]:
         """Return P(positive) for each (query, cand) pair in *cand_texts*."""
         probs: List[ScoreT] = []
+        
+        # Predict in batches between a query and multiple candidates
         for i in range(0, len(cand_texts), batch_size):
             chunk = cand_texts[i: i + batch_size]
-            encoding = self.clf_tokenizer(
-                [query_text] * len(chunk),
-                chunk,
-                add_special_tokens=True,
-                padding=True,
-                truncation=True,
-                return_tensors="pt",
-            ).to(self.device)
-
-            with torch.no_grad():
-                logits = self.clf_model(**encoding).logits
-                chunk_probs = F.softmax(logits, dim=1)[:, self.POS_CLASS_IDX]
-                probs.extend(chunk_probs.cpu().tolist())
+            chunk_probs = self._predict_batch(query_text, chunk)
+            probs.extend(chunk_probs)
         return probs
 
+
+
     # ---------- Stage 1: Retrieval ----------
+    
+    def _compute_similarity(
+        self,
+        query_segments: List[TextSegment],
+        source_segments: List[TextSegment],
+        query_embeddings: np.ndarray,
+        source_embeddings: np.ndarray,
+        top_k: int,
+    ) -> SimDict:
+        """
+        Compute cosine similarity between query and source embeddings
+        and return the top-k similar segments for each query segment.
+        """
+        # Compute cosine similarity matrix (normalised vectors)
+        similarity_matrix = np.matmul(query_embeddings, source_embeddings.T)
+        # Initialize a dictionary to store the top-k similar segments for each query segment
+        similarity_results: SimDict = {}
+
+        # Iterate over each query segment
+        for query_index, query_segment in enumerate(query_segments):
+            # Get indices of top-k source segments sorted by similarity (descending order) 
+            sorted_indices = np.argsort(similarity_matrix[query_index])[::-1]
+            top_indices = sorted_indices[:top_k] if top_k < similarity_matrix.shape[1] else sorted_indices
+            # Store the top-k similar segments and their similarity scores
+            similarity_results[query_segment.id] = [
+                (source_segments[source_index], float(similarity_matrix[query_index, source_index]))
+                for source_index in top_indices
+            ]
+
+        return similarity_results
 
     def generate_candidates(
         self,
@@ -123,23 +163,13 @@ class ClassificationPipelineWithCandidategeneration:
         # Embed query and source segments
         query_embeddings = self._embed([s.text for s in query_segments])
         source_embeddings = self._embed([s.text for s in source_segments])
-
-        # Compute cosine similarity matrix (normalised vectors)
-        similarity_matrix = np.matmul(query_embeddings, source_embeddings.T)
-
-        # Keep only the top-k most similar segments for each query segment
-        similarity_results: SimDict = {}
-        for qi, qseg in enumerate(query_segments):
-            ranked_idx = (
-                np.argsort(similarity_matrix[qi])[::-1][:top_k]
-                if top_k < similarity_matrix.shape[1]
-                else np.argsort(similarity_matrix[qi])[::-1]
-            )
-            similarity_results[qseg.id] = [
-                (source_segments[si], float(similarity_matrix[qi, si]))
-                for si in ranked_idx
-            ]
-
+        
+        # Compute similarity between query and source segments
+        similarity_results = self._compute_similarity(
+            query_segments, source_segments, query_embeddings, source_embeddings, top_k
+        )
+        
+        # Cache the results and return
         self._last_sim = similarity_results
         return similarity_results
 
@@ -161,23 +191,21 @@ class ClassificationPipelineWithCandidategeneration:
         Returns a dictionary mapping query segment IDs to lists of
         (source segment, similarity score, P(positive)) tuples.
         """
-        if candidates is None:
-            candidates = self.generate_candidates(
-                query=query,
-                source=source,
-                **kwargs,
-            )
 
         full_results: FullDict = {}
-        for qid, sim_pairs in candidates.items():
-            cand_texts = [seg.text for seg, _ in sim_pairs]
-            probabilities = self._predict_pos(
-                query[qid].text, cand_texts, batch_size=batch_size
+        
+        for query_id, similarity_pairs in candidates.items():
+            
+            # Predict probabilities for the current query and its candidates
+            candidate_texts = [segment.text for segment, _ in similarity_pairs]
+            predicted_probabilities = self._predict(
+                query[query_id].text, candidate_texts, batch_size=batch_size
             )
-            full_results[qid] = [
-                (seg, sim_score, prob_pos)
-                for (seg, sim_score), prob_pos in zip(sim_pairs, probabilities)
-            ]
+            
+            # Combine segments, similarity scores, and probabilities into results
+            full_results[query_id] = []
+            for (segment, similarity_score), probability in zip(similarity_pairs, predicted_probabilities):
+                full_results[query_id].append((segment, similarity_score, probability))
 
         self._last_full = full_results
         return full_results
@@ -221,7 +249,7 @@ if __name__ == "__main__":
     # Load the pipeline with pre-trained models
     pipeline = ClassificationPipelineWithCandidategeneration(
         classification_name="julian-schelb/xlm-roberta-base-latin-intertextuality",
-        embedding_model_name="bowphs/PhilBerta",
+        embedding_model_name="bowphs/SPhilBerta",
         device="cpu",
     )
     

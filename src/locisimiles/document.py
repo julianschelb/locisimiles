@@ -19,8 +19,8 @@ class TextSegment:
         meta: Dict[str, Any] | None = None,
     ):
         self.text: str = text
-        self.id: ID = seg_id                  # Unique key in parent document
-        self.row_id: int | None = row_id      # Original positional index
+        self.id: ID = seg_id
+        self.row_id: int | None = row_id
         self.meta: Dict[str, Any] = meta or {}
 
     def __repr__(self) -> str:
@@ -30,7 +30,7 @@ class TextSegment:
 # =================== DOCUMENT ===================
 
 class Document:
-    """Container holding text segments built from a plain-text or CSV file."""
+    """Collection of text segments, representing a document."""
 
     def __init__(
         self,
@@ -52,6 +52,7 @@ class Document:
                 self._load_plain(segment_delimiter)
 
     # ---------- DUNDER HELPERS ----------
+    
     def __len__(self) -> int:
         return len(self._segments)
 
@@ -62,9 +63,11 @@ class Document:
         return self._segments[seg_id]
 
     def __repr__(self) -> str:
-        return f"Document({self.path.name!r}, segments={len(self)})"
+        return f"Document({self.path.name!r}, segments={len(self)}, " \
+               f"author={self.author!r}, meta={self.meta})"
 
     # ---------- CONVENIENCE ----------
+    
     def ids(self) -> List[ID]:
         """Return segment IDs in original order."""
         return [s.id for s in self]
@@ -86,9 +89,9 @@ class Document:
         row_id: int | None = None,
         meta: Dict[str, Any] | None = None,
     ) -> None:
+        """Add a new text segment to the document."""
         if seg_id in self._segments:
-            raise ValueError(
-                f"Segment id {seg_id!r} already exists in document")
+            raise ValueError(f"Segment id {seg_id!r} already exists in document")
         if row_id is None:
             row_id = len(self._segments)
         self._segments[seg_id] = TextSegment(
@@ -99,6 +102,7 @@ class Document:
         self._segments.pop(seg_id, None)
 
     # ---------- INTERNAL LOADERS ----------
+    
     def _load_plain(self, delimiter: str) -> None:
         """Load from plain-text file split by delimiter."""
         for row_id, seg_text in enumerate(
@@ -111,9 +115,9 @@ class Document:
         """Load from CSV with columns seg_id,text."""
         with self.path.open(newline="", encoding="utf-8") as f:
             reader = csv.DictReader(f)
-            if {"seg_id", "text"} - set(reader.fieldnames or []):
-                raise ValueError(
-                    "CSV must contain 'seg_id' and 'text' columns")
+            required_columns = {"seg_id", "text"}
+            if not required_columns.issubset(set(reader.fieldnames or [])):
+                raise ValueError("CSV must contain 'seg_id' and 'text' columns")
             for row_id, row in enumerate(reader):
                 self.add_segment(row["text"], row["seg_id"], row_id=row_id)
 
@@ -126,7 +130,8 @@ if __name__ == "__main__":
     print(doc_txt.ids())
     print(doc_txt.get_text("segX"))
 
-    doc_csv = Document("../data/vergil_samples.csv")
+    doc_csv = Document("../data/vergil_samples.csv", author="Vergil")
+    print(doc_csv)
     print(len(doc_csv))
     for seg in doc_csv:
         print(seg)

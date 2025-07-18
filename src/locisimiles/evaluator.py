@@ -1,27 +1,11 @@
 # evaluator.py
 from __future__ import annotations
-
-"""
-IntertextEvaluator
-==================
-Evaluate intertextual-link predictions produced by
-ClassificationPipelineWithCandidategeneration.
-
-Public API
-----------
-evaluate_single_query(query_id)          → dict of metrics for that sentence
-evaluate_all_queries()                   → DataFrame (row per query sentence)
-evaluate(average="macro"|"micro")        → document-level metrics
-confusion_matrix(query_id)               → 2×2 numpy array [[TP,FP],[FN,TN]]
-"""
-
-from typing import Dict, List, Tuple
-
+from typing import Dict, List, Tuple, Union
 import numpy as np
 import pandas as pd
 
-from document import Document
-from pipeline import (
+from locisimiles.document import Document
+from locisimiles.pipeline import (
     ClassificationPipelineWithCandidategeneration,
     FullDict,  # alias exported by pipeline.py
 )
@@ -41,7 +25,26 @@ def _recall(tp: int, fn: int) -> float: return tp / \
 
 def _f1(p: float, r: float) -> float: return 2 * \
     p * r / (p + r) if p + r else 0.0
+    
+def _smr(tp: int, fp: int, fn: int, tn: int) -> float:
+    """SMR (Source Match Rate) — proportion of all pairs that are true positives."""
+    total = tp + fp + fn + tn
+    return (fp + fn) / total
 
+def _fp_rate(tp: int, fp: int, fn: int, tn: int) -> float:
+    """FP / total — proportion of all pairs that are false positives."""
+    total = tp + fp + fn + tn
+    return fp / total
+
+def _fn_rate(tp: int, fp: int, fn: int, tn: int) -> float:
+    """FN / total — proportion of all pairs that are false negatives."""
+    total = tp + fp + fn + tn
+    return fn / total
+
+
+# ────────────────────────────────
+# Evaluation Pipeline
+# ────────────────────────────────
 
 class IntertextEvaluator:
     """Compute sentence- and document-level scores for intertextual link prediction."""
@@ -65,17 +68,7 @@ class IntertextEvaluator:
         self.threshold = threshold
 
         # 1) LOAD GOLD LABELS ────────────────────────────────────────────
-        gold_df = ground_truth_csv if isinstance(ground_truth_csv, pd.DataFrame) \
-            else pd.read_csv(ground_truth_csv)
-        req_cols = {"query_id", "source_id", "label"}
-        if req_cols - set(gold_df.columns):
-            raise ValueError(
-                f"ground-truth file must contain columns {req_cols}")
-        self.gold_labels: Dict[Tuple[str, str], int] = {
-            # type: ignore[attr-defined]
-            (row.query_id, row.source_id): int(row.label)
-            for row in gold_df.itertuples(index=False)
-        }
+        self.gold_labels = self._load_gold_labels(ground_truth_csv)
 
         # 2) RUN PIPELINE ONCE ──────────────────────────────────────────
         self.predictions: FullDict = pipeline.run(
@@ -97,14 +90,16 @@ class IntertextEvaluator:
         self._per_sentence_df: pd.DataFrame | None = None
         self._conf_matrix_cache: Dict[str, Tuple[int, int, int, int]] = {}
 
-    # ─────────── PUBLIC LEVEL A: SINGLE SENTENCE ───────────
+    # ─────────── PUBLIC: EVALUATION ───────────
+    
+    # SINGLE QUERY EVALUATION
     def evaluate_single_query(self, query_id: str) -> Dict[str, float]:
         """Return metrics for one query sentence."""
         df = self.evaluate_all_queries()  # ensures dataframe is built
         row = df.set_index("query_id").loc[query_id]
         return row.to_dict()  # type: ignore[return-value]
 
-    # ─────────── PUBLIC LEVEL B: ALL SENTENCES ────────────
+    # ALL QUERIES EVALUATION
     def evaluate_all_queries(self) -> pd.DataFrame:
         """Compute metrics for every query sentence (cached)."""
         if self._per_sentence_df is not None:
@@ -130,47 +125,85 @@ class IntertextEvaluator:
             fn = int(((gold_vec == 1) & (pred_vec == 0)).sum())
             tn = int(((gold_vec == 0) & (pred_vec == 0)).sum())
 
-            precision = _precision(tp, fp)
-            recall = _recall(tp, fn)
-            f1 = _f1(precision, recall)
-            accuracy = (tp + tn) / len(source_ids) if source_ids else 0.0
+            precision  = _precision(tp, fp)
+            recall     = _recall(tp, fn)
+            f1         = _f1(precision, recall)
+            accuracy   = (tp + tn) / len(source_ids) if source_ids else 0.0
+            total_errs = fp + fn
+            smr        = _smr(tp, fp, fn, tn)
+            fp_rate   = _fp_rate(tp, fp, fn, tn)
+            fn_rate   = _fn_rate(tp, fp, fn, tn)
 
             records.append({
-                "query_id": q_id,
-                "precision": precision,
-                "recall":    recall,
-                "f1":        f1,
-                "accuracy":  accuracy,
+                "query_id":     q_id,
+                "precision":    precision,
+                "recall":       recall,
+                "f1":           f1,
+                "accuracy":     accuracy,
+                "errors":       total_errs,
                 "tp": tp, "fp": fp, "fn": fn, "tn": tn,
+                "fpr":      fp_rate,
+                "fnr":      fn_rate,
+                "smr": smr,
             })
             self._conf_matrix_cache[q_id] = (tp, fp, fn, tn)
 
         self._per_sentence_df = pd.DataFrame(records)
         return self._per_sentence_df.copy()
 
-    # ─────────── PUBLIC LEVEL C: DOCUMENT ────────────
+    # EVALUATE AND REPORT METRICS
     def evaluate(self, *, average: str = "macro") -> Dict[str, float]:
         """
-        Document-level metrics.
-        average="macro" → mean over sentence scores  
-        average="micro" → aggregate TP/FP/FN/TN then derive metrics
+        Aggregate corpus-level metrics.
+
+        average="macro" → unweighted mean of per-sentence scores  
+        average="micro" → pool TP/FP/FN/TN first, then derive metrics
+                        (fpr, fnr, smr use the same pooled totals)
+
+        The returned dict always includes the *global* sums of
+        tp, fp, fn, tn so you can see the raw counts alongside
+        the averaged rates.
         """
         df = self.evaluate_all_queries()
 
+        # global sums (needed for both branches)
+        tp_sum = int(df["tp"].sum())
+        fp_sum = int(df["fp"].sum())
+        fn_sum = int(df["fn"].sum())
+        tn_sum = int(df["tn"].sum())
+        total  = tp_sum + fp_sum + fn_sum + tn_sum
+
+        base_cols = ["precision", "recall", "f1", "accuracy",
+                    "fpr", "fnr", "smr"]
+
+        # ────────── MACRO (uniform) ──────────
         if average == "macro":
-            return {m: float(df[m].mean()) for m in ["precision", "recall", "f1", "accuracy"]}
+            out = {m: float(df[m].mean()) for m in base_cols}
+            out.update({"tp": tp_sum, "fp": fp_sum, "fn": fn_sum, "tn": tn_sum})
+            aggregated_metrics = out
 
+        # ────────── MICRO (pooled) ───────────
         if average == "micro":
-            tp, fp = int(df["tp"].sum()), int(df["fp"].sum())
-            fn, tn = int(df["fn"].sum()), int(df["tn"].sum())
-            precision = _precision(tp, fp)
-            recall = _recall(tp, fn)
-            f1 = _f1(precision, recall)
-            accuracy = (tp + tn) / (tp + fp + fn +
-                                    tn) if (tp + fp + fn + tn) else 0.0
-            return {"precision": precision, "recall": recall, "f1": f1, "accuracy": accuracy}
+            precision = _precision(tp_sum, fp_sum)
+            recall    = _recall(tp_sum, fn_sum)
+            f1        = _f1(precision, recall)
+            accuracy  = (tp_sum + tn_sum) / total if total else 0.0
 
-        raise ValueError("average must be 'macro' or 'micro'")
+            fpr = fp_sum / total if total else 0.0
+            fnr = fn_sum / total if total else 0.0
+            smr = (fp_sum + fn_sum) / total if total else 0.0
+
+            aggregated_metrics = {
+                "precision": precision, "recall": recall, "f1": f1,
+                "accuracy": accuracy,   "fpr": fpr,       "fnr": fnr,
+                "smr": smr,             "tp": tp_sum,     "fp": fp_sum,
+                "fn": fn_sum,           "tn": tn_sum,
+            }
+        
+        if average not in ["macro", "micro"]:
+            raise ValueError("average must be 'macro' or 'micro'")
+        
+        return pd.DataFrame([aggregated_metrics]).reset_index(drop=True)
 
     def confusion_matrix(self, query_id: str) -> np.ndarray:
         """Return 2×2 confusion matrix [[TP,FP],[FN,TN]] for one query sentence."""
@@ -180,6 +213,27 @@ class IntertextEvaluator:
         return np.array([[tp, fp], [fn, tn]], dtype=int)
 
     # ─────────── INTERNAL HELPERS ───────────
+    
+    def _load_gold_labels(self, ground_truth_csv: Union[str, pd.DataFrame]) -> Dict[Tuple[str, str], int]:
+        """ Load ground truth labels from a CSV file or DataFrame. """
+
+        # If a DataFrame is provided, use it directly; otherwise, read from CSV
+        if isinstance(ground_truth_csv, pd.DataFrame):
+            gold_df = ground_truth_csv
+        else:
+            gold_df = pd.read_csv(ground_truth_csv)
+
+        # Ensure required columns are present
+        req_cols = {"query_id", "source_id", "label"}
+        if req_cols - set(gold_df.columns):
+            raise ValueError(f"ground-truth file must contain columns {req_cols}")
+        
+        # Create a dictionary mapping (query_id, source_id) to label
+        return {
+            (row.query_id, row.source_id): int(row.label)
+            for row in gold_df.itertuples(index=False)
+        }
+    
     def _predicted_link_set(self) -> set[Tuple[str, str]]:
         """
         All (query_id, source_id) pairs predicted *positive*.
@@ -214,5 +268,11 @@ if __name__ == "__main__":
 
     print("Single sentence:\n", evaluator.evaluate_single_query("verg. ecl. 4.60"))
     print("\nPer-sentence head:\n", evaluator.evaluate_all_queries().head())
-    print("\nMacro scores:", evaluator.evaluate(average="macro"))
-    print("Micro scores:", evaluator.evaluate(average="micro"))
+ 
+    print("\nMacro scores\n\n")
+    macro_df = evaluator.evaluate(average="macro")
+    print("\n", macro_df.to_string(index=False))
+
+    print("\nMicro scores\n\n")
+    micro_df = evaluator.evaluate(average="micro")
+    print(micro_df.to_string(index=False))
