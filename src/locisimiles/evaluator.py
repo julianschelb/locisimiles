@@ -92,79 +92,74 @@ class IntertextEvaluator:
 
     # ─────────── PUBLIC: EVALUATION ───────────
     
-    # SINGLE QUERY EVALUATION
     def evaluate_single_query(self, query_id: str) -> Dict[str, float]:
-        """Return metrics for one query sentence."""
-        df = self.evaluate_all_queries()  # ensures dataframe is built
-        row = df.set_index("query_id").loc[query_id]
-        return row.to_dict()  # type: ignore[return-value]
+        """Compute metrics for one query sentence."""
+        source_ids       = self.source_doc.ids()
+        predicted_links  = self._predicted_link_set()
+
+        gold_vec = np.array(
+            [self.gold_labels.get((query_id, s_id), 0) for s_id in source_ids],
+            dtype=int,
+        )
+        pred_vec = np.array(
+            [1 if (query_id, s_id) in predicted_links else 0 for s_id in source_ids],
+            dtype=int,
+        )
+
+        # Calculate confusion matrix components
+        tp = int(((gold_vec == 1) & (pred_vec == 1)).sum())
+        fp = int(((gold_vec == 0) & (pred_vec == 1)).sum())
+        fn = int(((gold_vec == 1) & (pred_vec == 0)).sum())
+        tn = int(((gold_vec == 0) & (pred_vec == 0)).sum())
+
+        # Calculate metrics
+        precision  = _precision(tp, fp)
+        recall     = _recall(tp, fn)
+        f1         = _f1(precision, recall)
+        accuracy   = (tp + tn) / len(source_ids) if source_ids else 0.0
+        total_errs = fp + fn
+        smr        = _smr(tp, fp, fn, tn)
+        fp_rate    = _fp_rate(tp, fp, fn, tn)
+        fn_rate    = _fn_rate(tp, fp, fn, tn)
+
+        # cache confusion matrix for this query
+        self._conf_matrix_cache[query_id] = (tp, fp, fn, tn)
+
+        return {
+            "query_id":  query_id,
+            "precision": precision,
+            "recall":    recall,
+            "f1":        f1,
+            "accuracy":  accuracy,
+            "errors":    total_errs,
+            "tp": tp, "fp": fp, "fn": fn, "tn": tn,
+            "fpr": fp_rate,
+            "fnr": fn_rate,
+            "smr": smr,
+        }
+
+    def query_ids_with_match(self) -> List[str]:
+        """Return query IDs that have ground truth labels."""
+        return list({q_id for q_id, _ in self.gold_labels.keys()})
 
     # ALL QUERIES EVALUATION
-    def evaluate_all_queries(self) -> pd.DataFrame:
+    def evaluate_all_queries(self, with_match_only: bool = False) -> pd.DataFrame:
         """Compute metrics for every query sentence (cached)."""
-        if self._per_sentence_df is not None:
-            return self._per_sentence_df.copy()
+        # if self._per_sentence_df is not None:
+        #     return self._per_sentence_df.copy()
+        
+        # Ignore queries without ground truth labels if requested
+        query_ids = self.query_ids_with_match() if with_match_only else self.query_doc.ids()
 
-        source_ids = self.source_doc.ids()
-        predicted_links = self._predicted_link_set()
-
-        records: List[Dict[str, float | int | str]] = []
-        for q_id in self.query_doc.ids():
-            # Gold / predicted vectors for this query sentence
-            gold_vec = np.array(
-                [self.gold_labels.get((q_id, s_id), 0) for s_id in source_ids],
-                dtype=int,
-            )
-            pred_vec = np.array(
-                [1 if (q_id, s_id) in predicted_links else 0 for s_id in source_ids],
-                dtype=int,
-            )
-
-            tp = int(((gold_vec == 1) & (pred_vec == 1)).sum())
-            fp = int(((gold_vec == 0) & (pred_vec == 1)).sum())
-            fn = int(((gold_vec == 1) & (pred_vec == 0)).sum())
-            tn = int(((gold_vec == 0) & (pred_vec == 0)).sum())
-
-            precision  = _precision(tp, fp)
-            recall     = _recall(tp, fn)
-            f1         = _f1(precision, recall)
-            accuracy   = (tp + tn) / len(source_ids) if source_ids else 0.0
-            total_errs = fp + fn
-            smr        = _smr(tp, fp, fn, tn)
-            fp_rate   = _fp_rate(tp, fp, fn, tn)
-            fn_rate   = _fn_rate(tp, fp, fn, tn)
-
-            records.append({
-                "query_id":     q_id,
-                "precision":    precision,
-                "recall":       recall,
-                "f1":           f1,
-                "accuracy":     accuracy,
-                "errors":       total_errs,
-                "tp": tp, "fp": fp, "fn": fn, "tn": tn,
-                "fpr":      fp_rate,
-                "fnr":      fn_rate,
-                "smr": smr,
-            })
-            self._conf_matrix_cache[q_id] = (tp, fp, fn, tn)
-
+        # Evaluate each query sentence
+        records = [self.evaluate_single_query(q_id) for q_id in query_ids]
         self._per_sentence_df = pd.DataFrame(records)
         return self._per_sentence_df.copy()
 
     # EVALUATE AND REPORT METRICS
-    def evaluate(self, *, average: str = "macro") -> Dict[str, float]:
-        """
-        Aggregate corpus-level metrics.
-
-        average="macro" → unweighted mean of per-sentence scores  
-        average="micro" → pool TP/FP/FN/TN first, then derive metrics
-                        (fpr, fnr, smr use the same pooled totals)
-
-        The returned dict always includes the *global* sums of
-        tp, fp, fn, tn so you can see the raw counts alongside
-        the averaged rates.
-        """
-        df = self.evaluate_all_queries()
+    def evaluate(self, *, average: str = "macro", with_match_only: bool = False) -> Dict[str, float]:
+        """ Compute aggregated metrics across all queries. """
+        df = self.evaluate_all_queries(with_match_only)
 
         # global sums (needed for both branches)
         tp_sum = int(df["tp"].sum())
@@ -206,7 +201,7 @@ class IntertextEvaluator:
         return pd.DataFrame([aggregated_metrics]).reset_index(drop=True)
 
     def confusion_matrix(self, query_id: str) -> np.ndarray:
-        """Return 2×2 confusion matrix [[TP,FP],[FN,TN]] for one query sentence."""
+        """Return 2x2 confusion matrix [[TP,FP],[FN,TN]] for one query sentence."""
         if query_id not in self._conf_matrix_cache:
             self.evaluate_single_query(query_id)  # populate if missing
         tp, fp, fn, tn = self._conf_matrix_cache[query_id]

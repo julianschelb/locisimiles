@@ -1,6 +1,7 @@
 # pipeline.py
 from __future__ import annotations
 
+import chromadb
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -8,6 +9,7 @@ from typing import Dict, List, Tuple, Any, Sequence
 from sentence_transformers import SentenceTransformer
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from locisimiles.document import Document, TextSegment
+from tqdm import tqdm
 
 # ============== UTILITY VARIABLES ==============
 
@@ -47,7 +49,8 @@ class ClassificationPipelineWithCandidategeneration:
         pos_class_idx: int = 1, # Index of the positive class in the classifier
     ):
         self.device = device if device is not None else "cpu"
-        self.pos_class_idx = pos_class_idx  
+        self.pos_class_idx = pos_class_idx
+        self._source_index: chromadb.Collection | None = None
 
         # -------- Load Models ----------
         self.embedder = SentenceTransformer(embedding_model_name, device=self.device)
@@ -113,35 +116,55 @@ class ClassificationPipelineWithCandidategeneration:
 
     # ---------- Stage 1: Retrieval ----------
     
+    def build_source_index(
+        self,
+        source_segments: Sequence[TextSegment],
+        source_embeddings: np.ndarray,
+        collection_name: str = "source_segments",
+    ):
+        """Create a Chroma collection from *source_segments* and their embeddings."""
+
+        # Create / get collection
+        client = chromadb.Client()
+        col = client.get_or_create_collection(collection_name)
+
+        # Chroma expects Python lists, not NumPy arrays
+        ids = [s.id for s in source_segments]
+        embeddings = source_embeddings.tolist()
+        col.add(ids=ids, embeddings=embeddings)
+        
+        return col
+    
     def _compute_similarity(
         self,
         query_segments: List[TextSegment],
-        source_segments: List[TextSegment],
         query_embeddings: np.ndarray,
-        source_embeddings: np.ndarray,
+        source_document: Document,
         top_k: int,
     ) -> SimDict:
         """
-        Compute cosine similarity between query and source embeddings
-        and return the top-k similar segments for each query segment.
+        Compute cosine similarity between query embeddings and source embeddings
+        using the Chroma index, and return the top-k similar segments for each query segment.
         """
-        # Compute cosine similarity matrix (normalised vectors)
-        similarity_matrix = np.matmul(query_embeddings, source_embeddings.T)
-        # Initialize a dictionary to store the top-k similar segments for each query segment
         similarity_results: SimDict = {}
 
-        # Iterate over each query segment
-        for query_index, query_segment in enumerate(query_segments):
-            # Get indices of top-k source segments sorted by similarity (descending order) 
-            sorted_indices = np.argsort(similarity_matrix[query_index])[::-1]
-            top_indices = sorted_indices[:top_k] if top_k < similarity_matrix.shape[1] else sorted_indices
-            # Store the top-k similar segments and their similarity scores
+        # Iterate over each query segment and its embedding
+        for query_segment, query_embedding in zip(query_segments, query_embeddings):
+            
+            # Query the Chroma index for the top-k similar source segments
+            results = self._source_index.query(
+                query_embeddings=[query_embedding.tolist()],
+                n_results=top_k,
+            )
+            
+            # Map the results to TextSegment objects and similarity scores
             similarity_results[query_segment.id] = [
-                (source_segments[source_index], float(similarity_matrix[query_index, source_index]))
-                for source_index in top_indices
+                (source_document[idx], float(score))
+                for idx, score in zip(results["ids"][0], results["distances"][0])
             ]
 
         return similarity_results
+
 
     def generate_candidates(
         self,
@@ -161,12 +184,28 @@ class ClassificationPipelineWithCandidategeneration:
         source_segments = list(source.segments.values())
 
         # Embed query and source segments
-        query_embeddings = self._embed([s.text for s in query_segments])
-        source_embeddings = self._embed([s.text for s in source_segments])
+        query_embeddings = self._embed(
+            [s.text for s in tqdm(query_segments, desc="Embedding query segments")]
+        )
+        
+        # Embed source segments with a progress bar
+        source_embeddings = self._embed(
+            [s.text for s in tqdm(source_segments, desc="Embedding source segments")]
+        )
+        
+        # Build the source index for fast retrieval
+        self._source_index = self.build_source_index(
+            source_segments=source_segments,
+            source_embeddings=source_embeddings,
+            collection_name="source_segments",
+        )
         
         # Compute similarity between query and source segments
         similarity_results = self._compute_similarity(
-            query_segments, source_segments, query_embeddings, source_embeddings, top_k
+            query_segments=query_segments,
+            query_embeddings=query_embeddings,
+            source_document=source,
+            top_k=top_k,
         )
         
         # Cache the results and return
@@ -194,7 +233,7 @@ class ClassificationPipelineWithCandidategeneration:
 
         full_results: FullDict = {}
         
-        for query_id, similarity_pairs in candidates.items():
+        for query_id, similarity_pairs in tqdm(candidates.items(), desc="Check candidates"):
             
             # Predict probabilities for the current query and its candidates
             candidate_texts = [segment.text for segment, _ in similarity_pairs]
