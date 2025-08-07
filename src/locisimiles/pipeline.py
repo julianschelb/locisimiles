@@ -122,18 +122,25 @@ class ClassificationPipelineWithCandidategeneration:
         source_segments: Sequence[TextSegment],
         source_embeddings: np.ndarray,
         collection_name: str = "source_segments",
+        batch_size: int = 5000,  # Safe batch size
     ):
         """Create a Chroma collection from *source_segments* and their embeddings."""
-
-        # Create / get collection
+        
+        # Initialize Chroma client and collection
         client = chromadb.Client()
         col = client.get_or_create_collection(collection_name)
 
-        # Chroma expects Python lists, not NumPy arrays
+        # Extract IDs and embeddings
         ids = [s.id for s in source_segments]
         embeddings = source_embeddings.tolist()
-        col.add(ids=ids, embeddings=embeddings)
-        
+
+        # Add segments to the collection in batches
+        for i in range(0, len(ids), batch_size):
+            col.add(
+                ids=ids[i:i + batch_size],
+                embeddings=embeddings[i:i + batch_size],
+            )
+
         return col
     
     def _compute_similarity(
