@@ -64,7 +64,7 @@ class ClassificationPipelineWithCandidategeneration:
 
     # ---------- Generate Embedding ----------
 
-    def _embed(self, texts: Sequence[str]) -> np.ndarray:
+    def _embed(self, texts: Sequence[str], prompt_name: str) -> np.ndarray:
         """Vectorise *texts* → normalised float32 numpy array."""
         return self.embedder.encode(
             list(texts),
@@ -72,6 +72,7 @@ class ClassificationPipelineWithCandidategeneration:
             normalize_embeddings=True,
             batch_size=32,
             show_progress_bar=False,
+            prompt_name=prompt_name if prompt_name else None,
         ).astype("float32")
 
     # ---------- Predict Positive Probability ----------
@@ -172,6 +173,8 @@ class ClassificationPipelineWithCandidategeneration:
         query: Document,
         source: Document,
         top_k: int = 5,
+        query_prompt_name: str = "query",
+        source_prompt_name: str = "match",
         **kwargs: Any,
     ) -> SimDict:
         """
@@ -185,12 +188,14 @@ class ClassificationPipelineWithCandidategeneration:
 
         # Embed query and source segments
         query_embeddings = self._embed(
-            [s.text for s in tqdm(query_segments, desc="Embedding query segments")]
+            [s.text for s in tqdm(query_segments, desc="Embedding query segments")],
+            prompt_name=query_prompt_name
         )
         
         # Embed source segments with a progress bar
         source_embeddings = self._embed(
-            [s.text for s in tqdm(source_segments, desc="Embedding source segments")]
+            [s.text for s in tqdm(source_segments, desc="Embedding source segments")],
+            prompt_name=source_prompt_name
         )
         
         # Build the source index for fast retrieval
@@ -257,6 +262,8 @@ class ClassificationPipelineWithCandidategeneration:
         query: Document,
         source: Document,
         top_k: int = 5,
+        query_prompt_name: str = "query",
+        source_prompt_name: str = "match",
         **kwargs: Any,
     ) -> FullDict:
         """
@@ -268,6 +275,8 @@ class ClassificationPipelineWithCandidategeneration:
             query=query,
             source=source,
             top_k=top_k,
+            query_prompt_name=query_prompt_name,
+            source_prompt_name=source_prompt_name,
         )
         return self.check_candidates(
             query=query,
