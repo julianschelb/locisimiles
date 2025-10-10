@@ -43,8 +43,8 @@ class ClassificationPipelineWithCandidategeneration:
     def __init__(
         self,
         *,
-        classification_name: str = "julian-schelb/xlm-roberta-base-latin-intertextuality",
-        embedding_model_name: str = "bowphs/SPhilBerta",
+        classification_name: str = "julian-schelb/PhilBerta-class-latin-intertext-v1",
+        embedding_model_name: str = "julian-schelb/SPhilBerta-emb-lat-intertext-v1",
         device: str | int | None = None,
         pos_class_idx: int = 1, # Index of the positive class in the classifier
     ):
@@ -128,7 +128,10 @@ class ClassificationPipelineWithCandidategeneration:
         
         # Initialize Chroma client and collection
         client = chromadb.Client()
-        col = client.get_or_create_collection(collection_name)
+        col = client.get_or_create_collection(
+            name=collection_name,
+            metadata={"hnsw:space": "cosine"}  # Use cosine distance
+        )
 
         # Extract IDs and embeddings
         ids = [s.id for s in source_segments]
@@ -166,9 +169,10 @@ class ClassificationPipelineWithCandidategeneration:
             )
             
             # Map the results to TextSegment objects and similarity scores
+            # Convert cosine distance to cosine similarity: similarity = 1 - distance
             similarity_results[query_segment.id] = [
-                (source_document[idx], float(score))
-                for idx, score in zip(results["ids"][0], results["distances"][0])
+                (source_document[idx], 1.0 - float(distance))
+                for idx, distance in zip(results["ids"][0], results["distances"][0])
             ]
 
         return similarity_results
@@ -303,8 +307,8 @@ if __name__ == "__main__":
 
     # Load the pipeline with pre-trained models
     pipeline = ClassificationPipelineWithCandidategeneration(
-        classification_name="julian-schelb/xlm-roberta-base-latin-intertextuality",
-        embedding_model_name="bowphs/SPhilBerta",
+        classification_name="julian-schelb/PhilBerta-class-latin-intertext-v1",
+        embedding_model_name="julian-schelb/SPhilBerta-emb-lat-intertext-v1",
         device="cpu",
     )
     

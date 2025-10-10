@@ -26,3 +26,17 @@ results = pipeline.run(
 
 pretty_print(results)
 ```
+
+## Optional Gradio GUI
+
+Install the optional GUI extra to experiment with a minimal Gradio front end:
+
+```bash
+pip install locisimiles[gui]
+```
+
+Launch the interface from the command line:
+
+```bash
+locisimiles-gui
+```.
