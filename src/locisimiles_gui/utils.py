@@ -45,10 +45,19 @@ def validate_csv(file_path: str | None) -> tuple[bool, str]:
         return False, f"Error reading file: {str(e)}"
 
 
-def load_csv_preview(file_path: str | None, max_rows: int = 10) -> list[list[str]] | None:
-    """Load and preview the first few rows of a CSV file."""
+def load_csv_preview(file_path: str | None, max_rows: int | None = None) -> dict:
+    """Load and preview all rows (or first max_rows) of a CSV file.
+    
+    Args:
+        file_path: Path to the CSV file
+        max_rows: Maximum number of rows to load (None = load all rows)
+    
+    Returns:
+        A Gradio update dict with the preview data and visibility set to True if valid,
+        or hidden if invalid/empty.
+    """
     if not file_path:
-        return None
+        return gr.update(visible=False)
     
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
@@ -56,18 +65,21 @@ def load_csv_preview(file_path: str | None, max_rows: int = 10) -> list[list[str
             header = next(reader, None)
             
             if not header:
-                return None
+                return gr.update(visible=False)
             
-            # Load first max_rows (excluding header)
+            # Load rows (all or up to max_rows)
             rows = []
             for i, row in enumerate(reader):
-                if i >= max_rows:
+                if max_rows is not None and i >= max_rows:
                     break
                 rows.append(row)
             
-            return rows
+            if not rows:
+                return gr.update(visible=False)
+            
+            return gr.update(value=rows, visible=True, headers=header)
     except Exception:
-        return None
+        return gr.update(visible=False)
 
 
 def validate_and_notify(file_path: str | None, doc_type: str = "Document") -> str | None:
