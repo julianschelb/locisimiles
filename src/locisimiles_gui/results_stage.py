@@ -1,8 +1,28 @@
-"""Results page component for the Gradio GUI."""
+"""Results stage for the Loci Similes GUI."""
 
 from __future__ import annotations
 
 import csv
+import io
+import re
+from typing import TYPE_CHECKING
+
+try:
+    import gradio as gr
+except ImportError as exc:
+    missing = getattr(exc, "name", None)
+    base_msg = (
+        "Optional GUI dependencies are missing. Install them via "
+        "'pip install locisimiles[gui]' (Python 3.13+ also requires the "
+        "audioop-lts backport) to use the Gradio interface."
+    )
+    if missing and missing != "gradio":
+        raise ImportError(f"{base_msg} (missing package: {missing})") from exc
+    raise ImportError(base_msg) from exc
+
+if TYPE_CHECKING:
+    from locisimiles.document import Document, TextSegment
+
 import tempfile
 from typing import Any, Dict, List, Tuple
 
@@ -289,18 +309,17 @@ def _export_results_to_csv(query_segments: list, matches_dict: dict, threshold: 
     return temp_file.name
 
 
-def build_results_page() -> tuple[gr.Column, dict[str, Any]]:
-    """Build the results page interface.
+def build_results_stage() -> tuple[gr.Step, dict[str, Any]]:
+    """Build the results stage UI.
     
     Returns:
-        A tuple of (page_column, components_dict) where components_dict contains
+        A tuple of (Step component, components_dict) where components_dict contains
         references to all interactive components that need to be accessed later.
     """
-    # State to hold current query segments and matches
-    query_segments_state = gr.State(value=MOCK_QUERY_SEGMENTS)
-    matches_dict_state = gr.State(value=MOCK_MATCHES)
-    
-    with gr.Column() as results_page:
+    with gr.Step("Results", id=2) as step:
+        # State to hold current query segments and matches
+        query_segments_state = gr.State(value=MOCK_QUERY_SEGMENTS)
+        matches_dict_state = gr.State(value=MOCK_MATCHES)
         gr.Markdown("### 📊 Step 3: View Results")
         gr.Markdown(
             "Select a query segment on the left to view potential intertextual references from the source document. "
@@ -358,14 +377,10 @@ def build_results_page() -> tuple[gr.Column, dict[str, Any]]:
                     datatype=["str", "str", "html", "html"],  # Enable HTML rendering for metric columns
                 )
         
-        # Set up selection handler
-        query_segments.select(
-            fn=_on_query_select,
-            inputs=[query_segments_state, matches_dict_state],
-            outputs=[selection_prompt, source_matches],
-        )
+        with gr.Row():
+            restart_btn = gr.Button("← Start Over", size="lg")
 
-    # Return the page and all components that need to be accessed
+    # Return the step and all components that need to be accessed
     components = {
         "query_segments": query_segments,
         "query_segments_state": query_segments_state,
@@ -373,6 +388,28 @@ def build_results_page() -> tuple[gr.Column, dict[str, Any]]:
         "source_matches": source_matches,
         "selection_prompt": selection_prompt,
         "download_btn": download_btn,
+        "restart_btn": restart_btn,
     }
     
-    return results_page, components
+    return step, components
+
+
+def setup_results_handlers(components: dict, walkthrough: gr.Walkthrough) -> None:
+    """Set up event handlers for the results stage.
+    
+    Args:
+        components: Dictionary of UI components from build_results_stage
+        walkthrough: The Walkthrough component for navigation
+    """
+    # Selection handler for query segments
+    components["query_segments"].select(
+        fn=_on_query_select,
+        inputs=[components["query_segments_state"], components["matches_dict_state"]],
+        outputs=[components["selection_prompt"], components["source_matches"]],
+    )
+    
+    # Restart button: Step 3 → Step 1
+    components["restart_btn"].click(
+        fn=lambda: gr.Walkthrough(selected=0),
+        outputs=walkthrough,
+    )
