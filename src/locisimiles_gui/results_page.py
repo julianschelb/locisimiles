@@ -46,28 +46,78 @@ MOCK_QUERY_SEGMENTS = [
     ["hier. adv. pelag. 3.11", "Numquam hodie effugies, ueniam quocumque uocaris.", 1],
 ]
 
-MOCK_MATCHES = {
-    "hier. adv. iovin. 1.1": [
-        ["verg. aen. 10.636", "dat sine mente sonum gressusque effingit euntis", 0.92, 0.89],
-        ["verg. aen. 6.50", "insanam uatem aspicies", 0.65, 0.54],
-    ],
-    "hier. adv. iovin. 1.41": [
-        ["verg. aen. 11.508", "o decus Italiae uirgo, quas dicere grates", 0.95, 0.93],
-        ["verg. aen. 7.473", "o germana mihi atque eadem gratissima nuper", 0.58, 0.42],
-    ],
-    "hier. adv. iovin. 2.36": [
-        ["verg. aen. 4.172", "coniugium uocat, hoc praetexit nomine culpam.", 0.98, 0.96],
-        ["verg. aen. 4.34", "anna fatebor enim", 0.43, 0.31],
-    ],
-    "hier. adv. pelag. 1.23": [
-        ["verg. ecl. 8.63", "non omnia possumus omnes.", 0.99, 0.97],
-        ["verg. georg. 2.109", "omnia fert aetas, animum quoque", 0.61, 0.48],
-    ],
-    "hier. adv. pelag. 3.11": [
-        ["verg. ecl. 3.49", "Numquam hodie effugies; ueniam quocumque uocaris.", 0.97, 0.95],
-        ["verg. aen. 6.388", "ibimus, haud uanum patimur te ducere", 0.52, 0.39],
-    ],
-}
+
+def _format_metric_with_bar(value: float, is_above_threshold: bool = False) -> str:
+    """Format a metric value with a visual progress bar.
+    
+    Args:
+        value: Metric value between 0 and 1
+        is_above_threshold: Whether to highlight this value
+    
+    Returns:
+        HTML string with progress bar
+    """
+    percentage = int(value * 100)
+    
+    # Choose color based on threshold
+    if is_above_threshold:
+        bar_color = "#6B9BD1"  # Blue accent for findings
+        bg_color = "#E3F2FD"   # Light blue background
+    else:
+        bar_color = "#B0B0B0"  # Gray for below threshold
+        bg_color = "#F5F5F5"   # Light gray background
+    
+    html = f'''
+    <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
+        <div style="flex: 1; background-color: {bg_color}; border-radius: 4px; overflow: hidden; height: 20px; position: relative;">
+            <div style="background-color: {bar_color}; width: {percentage}%; height: 100%; transition: width 0.3s;"></div>
+        </div>
+        <span style="min-width: 45px; text-align: right; font-weight: {'bold' if is_above_threshold else 'normal'};">{value:.3f}</span>
+    </div>
+    '''
+    return html
+
+
+def _create_mock_matches(threshold: float = 0.5) -> dict:
+    """Create mock matches data with formatted visualizations."""
+    raw_mock = {
+        "hier. adv. iovin. 1.1": [
+            ["verg. aen. 10.636", "dat sine mente sonum gressusque effingit euntis", 0.92, 0.89],
+            ["verg. aen. 6.50", "insanam uatem aspicies", 0.65, 0.54],
+        ],
+        "hier. adv. iovin. 1.41": [
+            ["verg. aen. 11.508", "o decus Italiae uirgo, quas dicere grates", 0.95, 0.93],
+            ["verg. aen. 7.473", "o germana mihi atque eadem gratissima nuper", 0.58, 0.42],
+        ],
+        "hier. adv. iovin. 2.36": [
+            ["verg. aen. 4.172", "coniugium uocat, hoc praetexit nomine culpam.", 0.98, 0.96],
+            ["verg. aen. 4.34", "anna fatebor enim", 0.43, 0.31],
+        ],
+        "hier. adv. pelag. 1.23": [
+            ["verg. ecl. 8.63", "non omnia possumus omnes.", 0.99, 0.97],
+            ["verg. georg. 2.109", "omnia fert aetas, animum quoque", 0.61, 0.48],
+        ],
+        "hier. adv. pelag. 3.11": [
+            ["verg. ecl. 3.49", "Numquam hodie effugies; ueniam quocumque uocaris.", 0.97, 0.95],
+            ["verg. aen. 6.388", "ibimus, haud uanum patimur te ducere", 0.52, 0.39],
+        ],
+    }
+    
+    # Format with progress bars
+    formatted = {}
+    for query_id, matches in raw_mock.items():
+        formatted[query_id] = [
+            [
+                seg_id,
+                text,
+                _format_metric_with_bar(sim, prob >= threshold),
+                _format_metric_with_bar(prob, prob >= threshold)
+            ]
+            for seg_id, text, sim, prob in matches
+        ]
+    return formatted
+
+MOCK_MATCHES = _create_mock_matches()
 
 
 def _convert_results_to_display(results: FullDict | None, query_doc: Document | None, threshold: float = 0.5) -> tuple[list[list], dict]:
@@ -85,24 +135,39 @@ def _convert_results_to_display(results: FullDict | None, query_doc: Document | 
         # Return mock data if no results
         return MOCK_QUERY_SEGMENTS, MOCK_MATCHES
     
-    # Convert results to matches dictionary first to count finds
-    matches_dict = {}
+    # First pass: Create raw matches dictionary and count finds
+    raw_matches = {}
+    find_counts = {}
+    
     for query_id, match_list in results.items():
         # Sort by probability (descending) to show most likely matches first
         sorted_matches = sorted(match_list, key=lambda x: x[2], reverse=True)  # x[2] is probability
-        matches_dict[query_id] = [
-            [source_seg.id, source_seg.text, round(similarity, 3), round(probability, 3)]
-            for source_seg, similarity, probability in sorted_matches
-        ]
+        
+        # Store raw numeric values
+        raw_matches[query_id] = sorted_matches
+        
+        # Count finds above threshold
+        find_counts[query_id] = sum(1 for _, _, prob in sorted_matches if prob >= threshold)
     
     # Convert query document to list format with find counts
     # Document is iterable and returns TextSegments in order
     query_segments = []
     for segment in query_doc:
-        # Count how many matches have probability >= threshold
-        matches = matches_dict.get(segment.id, [])
-        find_count = sum(1 for match in matches if match[3] >= threshold)  # match[3] is probability
+        find_count = find_counts.get(segment.id, 0)
         query_segments.append([segment.id, segment.text, find_count])
+    
+    # Second pass: Format matches with HTML progress bars
+    matches_dict = {}
+    for query_id, match_list in raw_matches.items():
+        matches_dict[query_id] = [
+            [
+                source_seg.id,
+                source_seg.text,
+                _format_metric_with_bar(round(similarity, 3), probability >= threshold),
+                _format_metric_with_bar(round(probability, 3), probability >= threshold)
+            ]
+            for source_seg, similarity, probability in match_list
+        ]
     
     return query_segments, matches_dict
 
@@ -132,6 +197,27 @@ def _on_query_select(evt: gr.SelectData, query_segments: list, matches_dict: dic
     
     # Hide prompt, show dataframe with results
     return gr.update(visible=False), gr.update(value=matches, visible=True)
+
+
+def _extract_numeric_from_html(html_str: str) -> float:
+    """Extract numeric value from HTML formatted metric string.
+    
+    Args:
+        html_str: HTML string with embedded numeric value
+    
+    Returns:
+        Extracted numeric value
+    """
+    import re
+    # Extract the number from the span at the end: <span ...>0.XXX</span>
+    match = re.search(r'<span[^>]*>([\d.]+)</span>', html_str)
+    if match:
+        return float(match.group(1))
+    # Fallback: if it's already a number
+    try:
+        return float(html_str)
+    except (ValueError, TypeError):
+        return 0.0
 
 
 def _export_results_to_csv(query_segments: list, matches_dict: dict, threshold: float) -> str:
@@ -174,8 +260,9 @@ def _export_results_to_csv(query_segments: list, matches_dict: dict, threshold: 
                 for match in matches:
                     source_id = match[0]
                     source_text = match[1]
-                    similarity = match[2]
-                    probability = match[3]
+                    # Extract numeric values from HTML formatted strings
+                    similarity = _extract_numeric_from_html(match[2]) if isinstance(match[2], str) else match[2]
+                    probability = _extract_numeric_from_html(match[3]) if isinstance(match[3], str) else match[3]
                     above_threshold = "Yes" if probability >= threshold else "No"
                     
                     writer.writerow([
@@ -217,8 +304,8 @@ def build_results_page() -> tuple[gr.Column, dict[str, Any]]:
         gr.Markdown("### 📊 Step 3: View Results")
         gr.Markdown(
             "Select a query segment on the left to view potential intertextual references from the source document. "
-            "**Similarity** measures the cosine similarity between embeddings (0-1, higher = more similar). "
-            "**Probability** is the classifier's confidence that the pair represents an intertextual reference (0-1, higher = more likely)."
+            "Similarity measures the cosine similarity between embeddings (0-1, higher = more similar). "
+            "Probability is the classifier's confidence that the pair represents an intertextual reference (0-1, higher = more likely)."
         )
         
         # Download button
@@ -268,6 +355,7 @@ def build_results_page() -> tuple[gr.Column, dict[str, Any]]:
                     wrap=True,
                     max_height=600,
                     visible=False,
+                    datatype=["str", "str", "html", "html"],  # Enable HTML rendering for metric columns
                 )
         
         # Set up selection handler

@@ -168,9 +168,9 @@ def build_interface() -> gr.Blocks:
         
         gr.Markdown("# Loci Similes - Intertextuality Detection")
         gr.Markdown(
-            "Find intertextual references in Latin documents using a **two-stage pipeline** with pre-trained language models. "
-            "The first stage uses **embedding similarity** to quickly retrieve candidate passages from thousands of text segments. "
-            "The second stage applies a **classification model** to accurately identify true intertextual references among the candidates. "
+            "Find intertextual references in Latin documents using a two-stage pipeline with pre-trained language models. "
+            "The first stage uses embedding similarity to quickly retrieve candidate passages from thousands of text segments. "
+            "The second stage applies a classification model to accurately identify true intertextual references among the candidates. "
             "This approach balances computational efficiency with high-quality results. "
             "*Built with the [LociSimiles Python package](https://pypi.org/project/locisimiles/).*"
         )
