@@ -27,6 +27,67 @@ results = pipeline.run(
 pretty_print(results)
 ```
 
+## Command-Line Interface
+
+LociSimiles provides a command-line tool for running the pipeline directly from the terminal:
+
+### Basic Usage
+
+```bash
+locisimiles query.csv source.csv -o results.csv
+```
+
+### Advanced Usage
+
+```bash
+locisimiles query.csv source.csv -o results.csv \
+  --classification-model julian-schelb/PhilBerta-class-latin-intertext-v1 \
+  --embedding-model julian-schelb/SPhilBerta-emb-lat-intertext-v1 \
+  --top-k 20 \
+  --threshold 0.7 \
+  --device cuda \
+  --verbose
+```
+
+### Options
+
+- **Input/Output:**
+  - `query`: Path to query document CSV file (columns: `seg_id`, `text`)
+  - `source`: Path to source document CSV file (columns: `seg_id`, `text`)
+  - `-o, --output`: Path to output CSV file for results (required)
+
+- **Models:**
+  - `--classification-model`: HuggingFace model for classification (default: PhilBerta-class-latin-intertext-v1)
+  - `--embedding-model`: HuggingFace model for embeddings (default: SPhilBerta-emb-lat-intertext-v1)
+
+- **Pipeline Parameters:**
+  - `-k, --top-k`: Number of top candidates to retrieve per query segment (default: 10)
+  - `-t, --threshold`: Classification probability threshold for filtering results (default: 0.5)
+
+- **Device:**
+  - `--device`: Choose `auto`, `cuda`, `mps`, or `cpu` (default: auto-detect)
+
+- **Other:**
+  - `-v, --verbose`: Enable detailed progress output
+  - `-h, --help`: Show help message
+
+### Output Format
+
+The CLI saves results to a CSV file with the following columns:
+- `query_id`: Query segment identifier
+- `query_text`: Query text content
+- `source_id`: Source segment identifier
+- `source_text`: Source text content
+- `similarity`: Cosine similarity score (0-1)
+- `probability`: Classification confidence (0-1)
+- `above_threshold`: "Yes" if probability ≥ threshold, otherwise "No"
+
+Example output:
+```
+✅ Results saved to results.csv
+   Found 45 matches above threshold 0.5
+```
+
 ## Optional Gradio GUI
 
 Install the optional GUI extra to experiment with a minimal Gradio front end:
