@@ -82,11 +82,6 @@ The CLI saves results to a CSV file with the following columns:
 - `probability`: Classification confidence (0-1)
 - `above_threshold`: "Yes" if probability ≥ threshold, otherwise "No"
 
-Example output:
-```
-✅ Results saved to results.csv
-   Found 45 matches above threshold 0.5
-```
 
 ## Optional Gradio GUI
 
