@@ -183,7 +183,7 @@ def build_interface() -> gr.Blocks:
                 
                 with gr.Row():
                     with gr.Column():
-                        gr.Markdown("#### 🔍 Query Document")
+                        gr.Markdown("**🔍 Query Document**")
                         gr.Markdown("The document in which you want to find intertextual references.")
                         query_upload = gr.File(
                             label="Upload Query CSV",
@@ -199,7 +199,7 @@ def build_interface() -> gr.Blocks:
                         )
                     
                     with gr.Column():
-                        gr.Markdown("#### 📖 Source Document")
+                        gr.Markdown("**📖 Source Document**")
                         gr.Markdown("The document to search for potential references.")
                         source_upload = gr.File(
                             label="Upload Source CSV",
@@ -221,15 +221,15 @@ def build_interface() -> gr.Blocks:
             with gr.Step("Pipeline Configuration", id=1):
                 gr.Markdown("### ⚙️ Step 2: Pipeline Configuration")
                 gr.Markdown(
-                    "Configure the two-stage pipeline. **Stage 1 (Embedding):** Quickly ranks all source segments by similarity to each query segment. "
-                    "**Stage 2 (Classification):** Examines the top-K candidates more carefully to identify true intertextual references. "
+                    "Configure the two-stage pipeline. Stage 1 (Embedding): Quickly ranks all source segments by similarity to each query segment. "
+                    "Stage 2 (Classification): Examines the top-K candidates more carefully to identify true intertextual references. "
                     "Higher K values catch more potential citations but increase computation time. The threshold filters results by classification confidence."
                 )
                 
                 with gr.Row():
                     # Left column: Model Selection
                     with gr.Column():
-                        gr.Markdown("####🤖 Model Selection")
+                        gr.Markdown("**🤖 Model Selection**")
                         classification_model = gr.Dropdown(
                             label="Classification Model",
                             choices=["julian-schelb/PhilBerta-class-latin-intertext-v1"],
@@ -239,7 +239,7 @@ def build_interface() -> gr.Blocks:
                         )
                         embedding_model = gr.Dropdown(
                             label="Embedding Model",
-                            choices=["julian-schelb/SPhilBerta-emb-lat-intertext-v1"],
+                            choices=["julian-schelb/SPhilBerta-emb-lat-intertext-v1", "bowphs/SPhilBerta", "distilbert-base-multilingual-cased"],
                             value="julian-schelb/SPhilBerta-emb-lat-intertext-v1",
                             interactive=True,
                             info="Model used to generate embeddings for candidate retrieval",
@@ -247,7 +247,7 @@ def build_interface() -> gr.Blocks:
                     
                     # Right column: Retrieval Parameters
                     with gr.Column():
-                        gr.Markdown("####🛠️ Retrieval Parameters")
+                        gr.Markdown("**🛠️ Retrieval Parameters**")
                         top_k = gr.Slider(
                             minimum=1,
                             maximum=50,
