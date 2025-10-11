@@ -57,16 +57,6 @@ def update_results_display(results: FullDict | None, query_doc: Document | None,
     )
 
 
-# Mock data for demonstration
-MOCK_QUERY_SEGMENTS = [
-    ["hier. adv. iovin. 1.1", "Furiosas Apollinis uates legimus; et illud Uirgilianum: Dat sine mente sonum.", 2],
-    ["hier. adv. iovin. 1.41", "O decus Italiae, uirgo!", 1],
-    ["hier. adv. iovin. 2.36", "Uirgilianum consilium est: Coniugium uocat, hoc praetexit nomine culpam.", 1],
-    ["hier. adv. pelag. 1.23", "Hoc totum dico, quod non omnia possumus omnes.", 2],
-    ["hier. adv. pelag. 3.11", "Numquam hodie effugies, ueniam quocumque uocaris.", 1],
-]
-
-
 def _format_metric_with_bar(value: float, is_above_threshold: bool = False) -> str:
     """Format a metric value with a visual progress bar.
     
@@ -98,48 +88,6 @@ def _format_metric_with_bar(value: float, is_above_threshold: bool = False) -> s
     return html
 
 
-def _create_mock_matches(threshold: float = 0.5) -> dict:
-    """Create mock matches data with formatted visualizations."""
-    raw_mock = {
-        "hier. adv. iovin. 1.1": [
-            ["verg. aen. 10.636", "dat sine mente sonum gressusque effingit euntis", 0.92, 0.89],
-            ["verg. aen. 6.50", "insanam uatem aspicies", 0.65, 0.54],
-        ],
-        "hier. adv. iovin. 1.41": [
-            ["verg. aen. 11.508", "o decus Italiae uirgo, quas dicere grates", 0.95, 0.93],
-            ["verg. aen. 7.473", "o germana mihi atque eadem gratissima nuper", 0.58, 0.42],
-        ],
-        "hier. adv. iovin. 2.36": [
-            ["verg. aen. 4.172", "coniugium uocat, hoc praetexit nomine culpam.", 0.98, 0.96],
-            ["verg. aen. 4.34", "anna fatebor enim", 0.43, 0.31],
-        ],
-        "hier. adv. pelag. 1.23": [
-            ["verg. ecl. 8.63", "non omnia possumus omnes.", 0.99, 0.97],
-            ["verg. georg. 2.109", "omnia fert aetas, animum quoque", 0.61, 0.48],
-        ],
-        "hier. adv. pelag. 3.11": [
-            ["verg. ecl. 3.49", "Numquam hodie effugies; ueniam quocumque uocaris.", 0.97, 0.95],
-            ["verg. aen. 6.388", "ibimus, haud uanum patimur te ducere", 0.52, 0.39],
-        ],
-    }
-    
-    # Format with progress bars
-    formatted = {}
-    for query_id, matches in raw_mock.items():
-        formatted[query_id] = [
-            [
-                seg_id,
-                text,
-                _format_metric_with_bar(sim, prob >= threshold),
-                _format_metric_with_bar(prob, prob >= threshold)
-            ]
-            for seg_id, text, sim, prob in matches
-        ]
-    return formatted
-
-MOCK_MATCHES = _create_mock_matches()
-
-
 def _convert_results_to_display(results: FullDict | None, query_doc: Document | None, threshold: float = 0.5) -> tuple[list[list], dict]:
     """Convert pipeline results to display format.
     
@@ -152,8 +100,8 @@ def _convert_results_to_display(results: FullDict | None, query_doc: Document | 
         Tuple of (query_segments_list, matches_dict)
     """
     if results is None or query_doc is None:
-        # Return mock data if no results
-        return MOCK_QUERY_SEGMENTS, MOCK_MATCHES
+        # Return empty data if no results
+        return [], {}
     
     # First pass: Create raw matches dictionary and count finds
     raw_matches = {}
@@ -318,8 +266,8 @@ def build_results_stage() -> tuple[gr.Step, dict[str, Any]]:
     """
     with gr.Step("Results", id=2) as step:
         # State to hold current query segments and matches
-        query_segments_state = gr.State(value=MOCK_QUERY_SEGMENTS)
-        matches_dict_state = gr.State(value=MOCK_MATCHES)
+        query_segments_state = gr.State(value=[])
+        matches_dict_state = gr.State(value={})
         gr.Markdown("### 📊 Step 3: View Results")
         gr.Markdown(
             "Select a query segment on the left to view potential intertextual references from the source document. "
@@ -336,14 +284,13 @@ def build_results_stage() -> tuple[gr.Step, dict[str, Any]]:
             with gr.Column(scale=1):
                 gr.Markdown("### Query Document Segments")
                 query_segments = gr.Dataframe(
-                    value=MOCK_QUERY_SEGMENTS,
+                    value=[],
                     headers=["Segment ID", "Text", "Finds"],
                     interactive=False,
                     show_label=False,
                     label="Query Document Segments",
                     wrap=True,
                     max_height=600,
-                    row_count=(len(MOCK_QUERY_SEGMENTS), "fixed"),
                     col_count=(3, "fixed"),
                 )
             
