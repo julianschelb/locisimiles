@@ -126,9 +126,12 @@ class ClassificationPipelineWithCandidategeneration:
     ):
         """Create a Chroma collection from *source_segments* and their embeddings."""
         
-        # Initialize Chroma client and collection
-        client = chromadb.Client()
-        col = client.get_or_create_collection(
+        # Use EphemeralClient for non-persistent, in-memory storage
+        # This ensures clean state for each run
+        client = chromadb.EphemeralClient()
+        
+        # Create collection (always fresh with EphemeralClient)
+        col = client.create_collection(
             name=collection_name,
             metadata={"hnsw:space": "cosine"}  # Use cosine distance
         )
