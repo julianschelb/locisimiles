@@ -39,4 +39,4 @@ Launch the interface from the command line:
 
 ```bash
 locisimiles-gui
-```.
+```
