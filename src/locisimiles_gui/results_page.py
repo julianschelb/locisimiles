@@ -214,7 +214,7 @@ def build_results_page() -> tuple[gr.Column, dict[str, Any]]:
     matches_dict_state = gr.State(value=MOCK_MATCHES)
     
     with gr.Column() as results_page:
-        gr.Markdown("### Step 3: View Results")
+        gr.Markdown("### 📊 Step 3: View Results")
         gr.Markdown(
             "Select a query segment on the left to view potential intertextual references from the source document. "
             "**Similarity** measures the cosine similarity between embeddings (0-1, higher = more similar). "
