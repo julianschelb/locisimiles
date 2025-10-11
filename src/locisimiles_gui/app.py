@@ -239,7 +239,7 @@ def build_interface() -> gr.Blocks:
                         )
                         embedding_model = gr.Dropdown(
                             label="Embedding Model",
-                            choices=["julian-schelb/SPhilBerta-emb-lat-intertext-v1", "bowphs/SPhilBerta", "distilbert-base-multilingual-cased"],
+                            choices=["julian-schelb/SPhilBerta-emb-lat-intertext-v1"],
                             value="julian-schelb/SPhilBerta-emb-lat-intertext-v1",
                             interactive=True,
                             info="Model used to generate embeddings for candidate retrieval",
