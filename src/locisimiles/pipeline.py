@@ -127,12 +127,16 @@ class ClassificationPipelineWithCandidategeneration:
         """Create a Chroma collection from *source_segments* and their embeddings."""
         
         # Use EphemeralClient for non-persistent, in-memory storage
-        # This ensures clean state for each run
+        # Create new client each time to ensure clean state
         client = chromadb.EphemeralClient()
         
-        # Create collection (always fresh with EphemeralClient)
+        # Use unique collection name to avoid conflicts in same session
+        import time
+        unique_name = f"{collection_name}_{int(time.time() * 1000000)}"
+        
+        # Create fresh collection with unique name
         col = client.create_collection(
-            name=collection_name,
+            name=unique_name,
             metadata={"hnsw:space": "cosine"}  # Use cosine distance
         )
 
