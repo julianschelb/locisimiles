@@ -77,18 +77,45 @@ class ClassificationPipelineWithCandidategeneration:
 
     # ---------- Predict Positive Probability ----------
 
+    def _count_special_tokens_added(self) -> int:
+        """Counts the number of special tokens added by the tokenizer."""
+        return self.clf_tokenizer.num_special_tokens_to_add(pair=True)
+    
+    def _truncate_pair(self, sentence1: str, sentence2: str, max_len: int = 512) -> Tuple[str, str]:
+        """Truncates sentence1 and sentence2 to fit within max_len including special tokens."""
+        num_special = self._count_special_tokens_added()
+        max_tokens = max_len - num_special
+        half = max_tokens // 2
+
+        # Tokenize and truncate
+        tokens1 = self.clf_tokenizer.tokenize(sentence1)[:half]
+        tokens2 = self.clf_tokenizer.tokenize(sentence2)[:half]
+
+        # Convert back to string
+        sentence1 = self.clf_tokenizer.convert_tokens_to_string(tokens1)
+        sentence2 = self.clf_tokenizer.convert_tokens_to_string(tokens2)
+        return sentence1, sentence2
+
     def _predict_batch(
         self,
         query_text: str,
         cand_texts: Sequence[str],
+        max_len: int = 512,
     ) -> List[ScoreT]:
         """Predict probabilities for a batch of (query, cand) pairs."""
+        # Truncate pairs intelligently before tokenization
+        truncated_pairs = [self._truncate_pair(query_text, cand_text, max_len) 
+                          for cand_text in cand_texts]
+        query_texts_trunc = [pair[0] for pair in truncated_pairs]
+        cand_texts_trunc = [pair[1] for pair in truncated_pairs]
+        
         encoding = self.clf_tokenizer(
-            [query_text] * len(cand_texts),  # Repeat query for each candidate
-            cand_texts,  # Candidate texts
+            query_texts_trunc,
+            cand_texts_trunc,
             add_special_tokens=True,
             padding=True,
             truncation=True,
+            max_length=max_len,
             return_tensors="pt",
         ).to(self.device)
 
@@ -341,18 +368,45 @@ class ClassificationPipeline:
 
     # ---------- Predict Positive Probability ----------
 
+    def _count_special_tokens_added(self) -> int:
+        """Counts the number of special tokens added by the tokenizer."""
+        return self.clf_tokenizer.num_special_tokens_to_add(pair=True)
+    
+    def _truncate_pair(self, sentence1: str, sentence2: str, max_len: int = 512) -> Tuple[str, str]:
+        """Truncates sentence1 and sentence2 to fit within max_len including special tokens."""
+        num_special = self._count_special_tokens_added()
+        max_tokens = max_len - num_special
+        half = max_tokens // 2
+
+        # Tokenize and truncate
+        tokens1 = self.clf_tokenizer.tokenize(sentence1)[:half]
+        tokens2 = self.clf_tokenizer.tokenize(sentence2)[:half]
+
+        # Convert back to string
+        sentence1 = self.clf_tokenizer.convert_tokens_to_string(tokens1)
+        sentence2 = self.clf_tokenizer.convert_tokens_to_string(tokens2)
+        return sentence1, sentence2
+
     def _predict_batch(
         self,
         query_text: str,
         cand_texts: Sequence[str],
+        max_len: int = 512,
     ) -> List[ScoreT]:
         """Predict probabilities for a batch of (query, cand) pairs."""
+        # Truncate pairs intelligently before tokenization
+        truncated_pairs = [self._truncate_pair(query_text, cand_text, max_len) 
+                          for cand_text in cand_texts]
+        query_texts_trunc = [pair[0] for pair in truncated_pairs]
+        cand_texts_trunc = [pair[1] for pair in truncated_pairs]
+        
         encoding = self.clf_tokenizer(
-            [query_text] * len(cand_texts),  # Repeat query for each candidate
-            cand_texts,  # Candidate texts
+            query_texts_trunc,
+            cand_texts_trunc,
             add_special_tokens=True,
             padding=True,
             truncation=True,
+            max_length=max_len,
             return_tensors="pt",
         ).to(self.device)
 
@@ -366,6 +420,7 @@ class ClassificationPipeline:
         cand_texts: Sequence[str],
         *,
         batch_size: int = 32,
+        max_len: int = 512,
     ) -> List[ScoreT]:
         """Return P(positive) for each (query, cand) pair in *cand_texts*."""
         probs: List[ScoreT] = []
@@ -373,7 +428,7 @@ class ClassificationPipeline:
         # Predict in batches between a query and multiple candidates
         for i in range(0, len(cand_texts), batch_size):
             chunk = cand_texts[i: i + batch_size]
-            chunk_probs = self._predict_batch(query_text, chunk)
+            chunk_probs = self._predict_batch(query_text, chunk, max_len=max_len)
             probs.extend(chunk_probs)
         return probs
 
