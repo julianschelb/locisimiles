@@ -134,6 +134,12 @@ class ClassificationPipelineWithCandidategeneration:
         import time
         unique_name = f"{collection_name}_{int(time.time() * 1000000)}"
         
+        # Delete collection if it exists (should not happen with unique names, but just in case)
+        try:
+            client.delete_collection(name=unique_name)
+        except Exception:
+            pass  # Collection doesn't exist, which is fine
+        
         # Create fresh collection with unique name
         col = client.create_collection(
             name=unique_name,
