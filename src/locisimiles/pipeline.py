@@ -309,6 +309,118 @@ class ClassificationPipelineWithCandidategeneration:
             **kwargs,
         )
 
+
+# ============== CLASSIFICATION-ONLY PIPELINE ==============
+
+
+class ClassificationPipeline:
+    """
+    A simpler pipeline for intertextuality classification without candidate generation.
+    It classifies all possible pairs between query and source segments without
+    a retrieval stage. Suitable for smaller document pairs or when exhaustive
+    comparison is needed.
+    """
+    
+    def __init__(
+        self,
+        *,
+        classification_name: str = "julian-schelb/PhilBerta-class-latin-intertext-v1",
+        device: str | int | None = None,
+        pos_class_idx: int = 1,  # Index of the positive class in the classifier
+    ):
+        self.device = device if device is not None else "cpu"
+        self.pos_class_idx = pos_class_idx
+
+        # -------- Load Classification Model ----------
+        self.clf_tokenizer = AutoTokenizer.from_pretrained(classification_name)
+        self.clf_model = AutoModelForSequenceClassification.from_pretrained(classification_name)
+        self.clf_model.to(self.device).eval()
+
+        # Keep results in memory for later access
+        self._last_results: FullDict | None = None
+
+    # ---------- Predict Positive Probability ----------
+
+    def _predict_batch(
+        self,
+        query_text: str,
+        cand_texts: Sequence[str],
+    ) -> List[ScoreT]:
+        """Predict probabilities for a batch of (query, cand) pairs."""
+        encoding = self.clf_tokenizer(
+            [query_text] * len(cand_texts),  # Repeat query for each candidate
+            cand_texts,  # Candidate texts
+            add_special_tokens=True,
+            padding=True,
+            truncation=True,
+            return_tensors="pt",
+        ).to(self.device)
+
+        with torch.no_grad():
+            logits = self.clf_model(**encoding).logits
+            return F.softmax(logits, dim=1)[:, self.pos_class_idx].cpu().tolist()
+        
+    def _predict(
+        self,
+        query_text: str,
+        cand_texts: Sequence[str],
+        *,
+        batch_size: int = 32,
+    ) -> List[ScoreT]:
+        """Return P(positive) for each (query, cand) pair in *cand_texts*."""
+        probs: List[ScoreT] = []
+        
+        # Predict in batches between a query and multiple candidates
+        for i in range(0, len(cand_texts), batch_size):
+            chunk = cand_texts[i: i + batch_size]
+            chunk_probs = self._predict_batch(query_text, chunk)
+            probs.extend(chunk_probs)
+        return probs
+
+    # ---------- Main Pipeline ----------
+
+    def run(
+        self,
+        *,
+        query: Document,
+        source: Document,
+        batch_size: int = 32,
+        **kwargs: Any,
+    ) -> FullDict:
+        """
+        Run classification on all query-source segment pairs.
+        Returns a dictionary mapping query segment IDs to lists of
+        (source segment, similarity_score=None, P(positive)) tuples.
+        
+        Note: Since there's no retrieval stage, similarity_score is set to None.
+        """
+        results: FullDict = {}
+        
+        # Extract all source segments
+        source_segments = list(source.segments.values())
+        source_texts = [s.text for s in source_segments]
+        
+        # For each query segment, classify against all source segments
+        for query_segment in tqdm(query.segments.values(), desc="Classifying pairs"):
+            query_text = query_segment.text
+            
+            # Predict probabilities for all source segments
+            probabilities = self._predict(
+                query_text, 
+                source_texts, 
+                batch_size=batch_size
+            )
+            
+            # Build results with None for similarity score (no retrieval stage)
+            results[query_segment.id] = [
+                (source_seg, None, prob)
+                for source_seg, prob in zip(source_segments, probabilities)
+            ]
+        
+        self._last_results = results
+        return results
+
+
 # ================== MAIN ==================
 
 
