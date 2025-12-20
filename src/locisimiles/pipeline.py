@@ -140,6 +140,44 @@ class ClassificationPipelineWithCandidategeneration:
             probs.extend(chunk_probs)
         return probs
 
+    def debug_input_sequence(self, query_text: str, candidate_text: str, max_len: int = 512) -> Dict[str, Any]:
+        """Debug method to inspect how a query-candidate pair is encoded.
+        
+        Returns a dictionary with:
+        - query: Original query text
+        - candidate: Original candidate text
+        - query_truncated: Truncated query text
+        - candidate_truncated: Truncated candidate text
+        - input_ids: Token IDs as list
+        - input_text: Decoded text with special tokens visible
+        - attention_mask: Attention mask as list
+        """
+        # Truncate the pair
+        query_trunc, candidate_trunc = self._truncate_pair(query_text, candidate_text, max_len)
+        
+        # Encode the pair
+        encoding = self.clf_tokenizer(
+            query_trunc,
+            candidate_trunc,
+            add_special_tokens=True,
+            padding=True,
+            truncation=True,
+            max_length=max_len,
+            return_tensors="pt",
+        )
+        
+        # Decode with special tokens visible
+        decoded_text = self.clf_tokenizer.decode(encoding['input_ids'].squeeze(), skip_special_tokens=False)
+        
+        return {
+            "query": query_text,
+            "candidate": candidate_text,
+            "query_truncated": query_trunc,
+            "candidate_truncated": candidate_trunc,
+            "input_ids": encoding['input_ids'].squeeze().tolist(),
+            "attention_mask": encoding['attention_mask'].squeeze().tolist(),
+            "input_text": decoded_text,
+        }
 
 
     # ---------- Stage 1: Retrieval ----------
@@ -431,6 +469,36 @@ class ClassificationPipeline:
             chunk_probs = self._predict_batch(query_text, chunk, max_len=max_len)
             probs.extend(chunk_probs)
         return probs
+
+    def debug_input_sequence(self, query_text: str, candidate_text: str, max_len: int = 512) -> Dict[str, Any]:
+        """Debug method to inspect how a query-candidate pair is encoded.
+        """
+        # Truncate the pair
+        query_trunc, candidate_trunc = self._truncate_pair(query_text, candidate_text, max_len)
+        
+        # Encode the pair
+        encoding = self.clf_tokenizer(
+            query_trunc,
+            candidate_trunc,
+            add_special_tokens=True,
+            padding=True,
+            truncation=True,
+            max_length=max_len,
+            return_tensors="pt",
+        )
+        
+        # Decode with special tokens visible
+        decoded_text = self.clf_tokenizer.decode(encoding['input_ids'].squeeze(), skip_special_tokens=False)
+        
+        return {
+            "query": query_text,
+            "candidate": candidate_text,
+            "query_truncated": query_trunc,
+            "candidate_truncated": candidate_trunc,
+            "input_ids": encoding['input_ids'].squeeze().tolist(),
+            "attention_mask": encoding['attention_mask'].squeeze().tolist(),
+            "input_text": decoded_text,
+        }
 
     # ---------- Main Pipeline ----------
 
