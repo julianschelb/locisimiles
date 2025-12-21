@@ -207,6 +207,69 @@ class IntertextEvaluator:
         tp, fp, fn, tn = self._conf_matrix_cache[query_id]
         return np.array([[tp, fp], [fn, tn]], dtype=int)
 
+    # ─────────── THRESHOLD OPTIMIZATION ───────────
+
+    def find_best_threshold(
+        self,
+        *,
+        metric: str = "f1",
+        thresholds: List[float] | None = None,
+        average: str = "micro",
+        with_match_only: bool = False,
+    ) -> Tuple[Dict[str, float], pd.DataFrame]:
+        """Find the optimal probability threshold based on the given metric. """
+        
+        if thresholds is None:
+            thresholds = [round(t * 0.1, 2) for t in range(1, 10)]  # 0.1 to 0.9
+
+        # Metrics
+        maximize_metrics = {"f1", "precision", "recall", "accuracy"}
+        minimize_metrics = {"smr", "fpr", "fnr"}
+        valid_metrics = maximize_metrics | minimize_metrics
+        if metric not in valid_metrics:
+            raise ValueError(f"metric must be one of {valid_metrics}")
+
+        # Store original threshold to restore later
+        original_threshold = self.threshold
+        results = []
+
+        # Evaluate for each threshold
+        for thresh in thresholds:
+            self.threshold = thresh
+            self._per_sentence_df = None
+            self._conf_matrix_cache = {}
+
+            metrics_df = self.evaluate(average=average, with_match_only=with_match_only)
+            row = metrics_df.iloc[0].to_dict()
+            row["threshold"] = thresh
+            results.append(row)
+
+        # Restore original threshold
+        self.threshold = original_threshold
+        self._per_sentence_df = None
+        self._conf_matrix_cache = {}
+
+        # Build results DataFrame
+        results_df = pd.DataFrame(results)
+        results_df = results_df[["threshold"] + [c for c in results_df.columns if c != "threshold"]]
+
+        # Find best threshold (maximize or minimize depending on metric)
+        if metric in minimize_metrics:
+            best_idx = results_df[metric].idxmin()
+        else:
+            best_idx = results_df[metric].idxmax()
+        best_row = results_df.loc[best_idx].to_dict()
+        best_threshold = best_row["threshold"]
+        best_metric_value = best_row[metric]
+
+        best_result = {
+            "best_threshold": best_threshold,
+            f"best_{metric}": best_metric_value,
+            **{k: v for k, v in best_row.items() if k != "threshold"},
+        }
+
+        return best_result, results_df
+
     # ─────────── INTERNAL HELPERS ───────────
     
     def _load_gold_labels(self, ground_truth_csv: Union[str, pd.DataFrame]) -> Dict[Tuple[str, str], int]:
