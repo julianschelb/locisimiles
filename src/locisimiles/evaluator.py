@@ -58,14 +58,16 @@ class IntertextEvaluator:
         ground_truth_csv: str | pd.DataFrame,
         pipeline: ClassificationPipelineWithCandidategeneration,
         top_k: int = 5,
-        threshold: float = 0.5,
+        threshold: float | str = "auto",
+        auto_threshold_metric: str = "smr",
     ):
         # Persist inputs
         self.query_doc = query_doc
         self.source_doc = source_doc
         self.pipeline = pipeline
         self.top_k = top_k
-        self.threshold = threshold
+        self._auto_threshold_metric = auto_threshold_metric
+        self._threshold_is_auto = (threshold == "auto")
 
         # 1) LOAD GOLD LABELS ────────────────────────────────────────────
         self.gold_labels = self._load_gold_labels(ground_truth_csv)
@@ -85,6 +87,19 @@ class IntertextEvaluator:
                 "source sentences → pairs not returned by the pipeline "
                 "will be treated as negatives."
             )
+
+        # 3) AUTO-THRESHOLD ─────────────────────────────────────────────
+        if self._threshold_is_auto:
+            # Temporarily set a default threshold to allow find_best_threshold to run
+            self.threshold = 0.5
+            best_result, _ = self.find_best_threshold(metric=auto_threshold_metric)
+            self.threshold = best_result["best_threshold"]
+            print(
+                f"[IntertextEvaluator] Auto-threshold enabled: "
+                f"best {auto_threshold_metric} at threshold={self.threshold:.2f}"
+            )
+        else:
+            self.threshold = float(threshold)
 
         # Internal caches (populated lazily)
         self._per_sentence_df: pd.DataFrame | None = None
