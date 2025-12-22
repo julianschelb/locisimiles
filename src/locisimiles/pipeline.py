@@ -55,8 +55,16 @@ class ClassificationPipelineWithCandidategeneration:
         # -------- Load Models ----------
         self.embedder = SentenceTransformer(embedding_model_name, device=self.device)
         self.clf_tokenizer = AutoTokenizer.from_pretrained(classification_name)
-        self.clf_model = AutoModelForSequenceClassification.from_pretrained(classification_name)
-        self.clf_model.to(self.device).eval()
+        
+        # Use device_map="auto" to automatically distribute across available GPUs
+        if self.device != "cpu" and torch.cuda.device_count() > 1:
+            self.clf_model = AutoModelForSequenceClassification.from_pretrained(
+                classification_name, device_map="auto"
+            )
+        else:
+            self.clf_model = AutoModelForSequenceClassification.from_pretrained(classification_name)
+            self.clf_model.to(self.device)
+        self.clf_model.eval()
 
         # Keep results in memory for later access
         self._last_sim:  SimDict | None = None
