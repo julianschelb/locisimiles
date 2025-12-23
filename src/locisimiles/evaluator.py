@@ -173,45 +173,80 @@ class IntertextEvaluator:
 
     # EVALUATE AND REPORT METRICS
     def evaluate(self, *, average: str = "macro", with_match_only: bool = False) -> Dict[str, float]:
-        """ Compute aggregated metrics across all queries. """
-        df = self.evaluate_all_queries(with_match_only)
+        """
+        Compute aggregated metrics across queries.
+        
+        - Precision, Recall, F1, Accuracy: ALWAYS computed on queries with at least 
+          one ground truth match (otherwise these metrics are meaningless).
+        - FPR, FNR, SMR: Computed on ALL queries by default (measures false alarms 
+          on queries that shouldn't have matches). If with_match_only=True, these 
+          are also restricted to queries with matches.
+        """
+        # Get queries with matches for TP-dependent metrics
+        df_with_match = self.evaluate_all_queries(with_match_only=True)
+        
+        # Get all queries for error-rate metrics (unless with_match_only=True)
+        if with_match_only:
+            df_all = df_with_match
+        else:
+            df_all = self.evaluate_all_queries(with_match_only=False)
 
-        # global sums (needed for both branches)
-        tp_sum = int(df["tp"].sum())
-        fp_sum = int(df["fp"].sum())
-        fn_sum = int(df["fn"].sum())
-        tn_sum = int(df["tn"].sum())
-        total  = tp_sum + fp_sum + fn_sum + tn_sum
+        # Sums from queries WITH matches (for precision, recall, f1, accuracy)
+        tp_match = int(df_with_match["tp"].sum())
+        fp_match = int(df_with_match["fp"].sum())
+        fn_match = int(df_with_match["fn"].sum())
+        tn_match = int(df_with_match["tn"].sum())
+        total_match = tp_match + fp_match + fn_match + tn_match
 
-        base_cols = ["precision", "recall", "f1", "accuracy",
-                    "fpr", "fnr", "smr"]
+        # Sums from ALL queries (for fpr, fnr, smr)
+        tp_all = int(df_all["tp"].sum())
+        fp_all = int(df_all["fp"].sum())
+        fn_all = int(df_all["fn"].sum())
+        tn_all = int(df_all["tn"].sum())
+        total_all = tp_all + fp_all + fn_all + tn_all
+
+        if average not in ["macro", "micro"]:
+            raise ValueError("average must be 'macro' or 'micro'")
 
         # ────────── MACRO (uniform) ──────────
         if average == "macro":
-            out = {m: float(df[m].mean()) for m in base_cols}
-            out.update({"tp": tp_sum, "fp": fp_sum, "fn": fn_sum, "tn": tn_sum})
-            aggregated_metrics = out
-
-        # ────────── MICRO (pooled) ───────────
-        if average == "micro":
-            precision = _precision(tp_sum, fp_sum)
-            recall    = _recall(tp_sum, fn_sum)
-            f1        = _f1(precision, recall)
-            accuracy  = (tp_sum + tn_sum) / total if total else 0.0
-
-            fpr = fp_sum / total if total else 0.0
-            fnr = fn_sum / total if total else 0.0
-            smr = (fp_sum + fn_sum) / total if total else 0.0
+            # TP-dependent metrics from queries with matches
+            precision = float(df_with_match["precision"].mean()) if len(df_with_match) else 0.0
+            recall    = float(df_with_match["recall"].mean()) if len(df_with_match) else 0.0
+            f1        = float(df_with_match["f1"].mean()) if len(df_with_match) else 0.0
+            accuracy  = float(df_with_match["accuracy"].mean()) if len(df_with_match) else 0.0
+            
+            # Error-rate metrics from all queries (or match-only if requested)
+            fpr = float(df_all["fpr"].mean()) if len(df_all) else 0.0
+            fnr = float(df_all["fnr"].mean()) if len(df_all) else 0.0
+            smr = float(df_all["smr"].mean()) if len(df_all) else 0.0
 
             aggregated_metrics = {
                 "precision": precision, "recall": recall, "f1": f1,
                 "accuracy": accuracy,   "fpr": fpr,       "fnr": fnr,
-                "smr": smr,             "tp": tp_sum,     "fp": fp_sum,
-                "fn": fn_sum,           "tn": tn_sum,
+                "smr": smr,
+                "tp": tp_all, "fp": fp_all, "fn": fn_all, "tn": tn_all,
             }
-        
-        if average not in ["macro", "micro"]:
-            raise ValueError("average must be 'macro' or 'micro'")
+
+        # ────────── MICRO (pooled) ───────────
+        if average == "micro":
+            # TP-dependent metrics from queries with matches
+            precision = _precision(tp_match, fp_match)
+            recall    = _recall(tp_match, fn_match)
+            f1        = _f1(precision, recall)
+            accuracy  = (tp_match + tn_match) / total_match if total_match else 0.0
+
+            # Error-rate metrics from all queries (or match-only if requested)
+            fpr = fp_all / total_all if total_all else 0.0
+            fnr = fn_all / total_all if total_all else 0.0
+            smr = (fp_all + fn_all) / total_all if total_all else 0.0
+
+            aggregated_metrics = {
+                "precision": precision, "recall": recall, "f1": f1,
+                "accuracy": accuracy,   "fpr": fpr,       "fnr": fnr,
+                "smr": smr,
+                "tp": tp_all, "fp": fp_all, "fn": fn_all, "tn": tn_all,
+            }
         
         return pd.DataFrame([aggregated_metrics]).reset_index(drop=True)
 
