@@ -285,6 +285,51 @@ class IntertextEvaluator:
 
         return best_result, results_df
 
+    # ─────────── TOP-K EVALUATION ───────────
+
+    def evaluate_k_values(
+        self,
+        *,
+        k_values: List[int] | None = None,
+        average: str = "micro",
+        with_match_only: bool = False,
+    ) -> Dict[int, Dict[str, float]]:
+        """Evaluate metrics for different top_k values WITHOUT re-running the pipeline."""
+        if k_values is None:
+            # Default k values, capped at the original top_k
+            k_values = [k for k in [1, 2, 3, 5, 10, 15, 20, 25, 50] if k <= self.top_k]
+        
+        # Validate k values
+        k_values = [k for k in k_values if k <= self.top_k]
+        if not k_values:
+            raise ValueError(f"All k_values exceed the original top_k={self.top_k}")
+
+        # Store original predictions
+        original_predictions = self.predictions
+        results: Dict[int, Dict[str, float]] = {}
+
+        # Evaluate for each k
+        for k in k_values:
+            filtered_predictions: FullDict = {}
+            for q_id, result_list in original_predictions.items():
+                filtered_predictions[q_id] = result_list[:k]
+            
+            # Temporarily replace predictions
+            self.predictions = filtered_predictions
+            self._per_sentence_df = None
+            self._conf_matrix_cache = {}
+
+            # Evaluate at this k
+            metrics_df = self.evaluate(average=average, with_match_only=with_match_only)
+            results[k] = metrics_df.iloc[0].to_dict()
+
+        # Restore original predictions
+        self.predictions = original_predictions
+        self._per_sentence_df = None
+        self._conf_matrix_cache = {}
+
+        return results
+
     # ─────────── INTERNAL HELPERS ───────────
     
     def _load_gold_labels(self, ground_truth_csv: Union[str, pd.DataFrame]) -> Dict[Tuple[str, str], int]:
