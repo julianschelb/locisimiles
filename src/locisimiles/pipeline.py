@@ -51,22 +51,12 @@ class ClassificationPipelineWithCandidategeneration:
         self.device = device if device is not None else "cpu"
         self.pos_class_idx = pos_class_idx
         self._source_index: chromadb.Collection | None = None
-        self._uses_device_map = False  # Track if using device_map="auto"
 
         # -------- Load Models ----------
         self.embedder = SentenceTransformer(embedding_model_name, device=self.device)
         self.clf_tokenizer = AutoTokenizer.from_pretrained(classification_name)
-        
-        # Use device_map="auto" to automatically distribute across available GPUs
-        if self.device != "cpu" and torch.cuda.device_count() > 1:
-            self.clf_model = AutoModelForSequenceClassification.from_pretrained(
-                classification_name, device_map="auto"
-            )
-            self._uses_device_map = True
-        else:
-            self.clf_model = AutoModelForSequenceClassification.from_pretrained(classification_name)
-            self.clf_model.to(self.device)
-        self.clf_model.eval()
+        self.clf_model = AutoModelForSequenceClassification.from_pretrained(classification_name)
+        self.clf_model.to(self.device).eval()
 
         # Keep results in memory for later access
         self._last_sim:  SimDict | None = None
@@ -127,11 +117,7 @@ class ClassificationPipelineWithCandidategeneration:
             truncation=True,
             max_length=max_len,
             return_tensors="pt",
-        )
-        
-        # When using device_map="auto", model handles device placement internally
-        if not self._uses_device_map:
-            encoding = encoding.to(self.device)
+        ).to(self.device)
 
         with torch.no_grad():
             logits = self.clf_model(**encoding).logits
@@ -409,21 +395,11 @@ class ClassificationPipeline:
     ):
         self.device = device if device is not None else "cpu"
         self.pos_class_idx = pos_class_idx
-        self._uses_device_map = False  # Track if using device_map="auto"
 
         # -------- Load Classification Model ----------
         self.clf_tokenizer = AutoTokenizer.from_pretrained(classification_name)
-        
-        # Use device_map="auto" to automatically distribute across available GPUs
-        if self.device != "cpu" and torch.cuda.device_count() > 1:
-            self.clf_model = AutoModelForSequenceClassification.from_pretrained(
-                classification_name, device_map="auto"
-            )
-            self._uses_device_map = True
-        else:
-            self.clf_model = AutoModelForSequenceClassification.from_pretrained(classification_name)
-            self.clf_model.to(self.device)
-        self.clf_model.eval()
+        self.clf_model = AutoModelForSequenceClassification.from_pretrained(classification_name)
+        self.clf_model.to(self.device).eval()
 
         # Keep results in memory for later access
         self._last_results: FullDict | None = None
@@ -470,11 +446,7 @@ class ClassificationPipeline:
             truncation=True,
             max_length=max_len,
             return_tensors="pt",
-        )
-        
-        # When using device_map="auto", model handles device placement internally
-        if not self._uses_device_map:
-            encoding = encoding.to(self.device)
+        ).to(self.device)
 
         with torch.no_grad():
             logits = self.clf_model(**encoding).logits
