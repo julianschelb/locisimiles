@@ -2,9 +2,10 @@
 """
 Pipeline submodule for intertextuality detection.
 
-This module provides two pipeline implementations:
+This module provides three pipeline implementations:
 - ClassificationPipelineWithCandidategeneration: Two-stage (retrieval + classification)
 - ClassificationPipeline: Classification-only (exhaustive comparison)
+- RetrievalPipeline: Retrieval-only (embedding similarity, no classification)
 
 All exports are available at the package level for backward compatibility:
     from locisimiles.pipeline import ClassificationPipeline, pretty_print
@@ -24,6 +25,7 @@ from locisimiles.pipeline._types import (
 # Import pipeline classes
 from locisimiles.pipeline.two_stage import ClassificationPipelineWithCandidategeneration
 from locisimiles.pipeline.classification import ClassificationPipeline
+from locisimiles.pipeline.retrieval import RetrievalPipeline
 
 # Define public API
 __all__ = [
@@ -38,4 +40,5 @@ __all__ = [
     # Pipeline classes
     "ClassificationPipelineWithCandidategeneration",
     "ClassificationPipeline",
+    "RetrievalPipeline",
 ]

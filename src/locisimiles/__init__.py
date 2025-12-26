@@ -4,6 +4,7 @@ from locisimiles.document import Document, TextSegment
 from locisimiles.pipeline import (
     ClassificationPipeline,
     ClassificationPipelineWithCandidategeneration,
+    RetrievalPipeline,
     pretty_print,
 )
 from locisimiles.evaluator import IntertextEvaluator
@@ -13,6 +14,7 @@ __all__ = [
     "TextSegment",
     "ClassificationPipeline",
     "ClassificationPipelineWithCandidategeneration",
+    "RetrievalPipeline",
     "IntertextEvaluator",
     "pretty_print",
 ]
