@@ -1,0 +1,102 @@
+/* Cleaner mkdocstrings output - Card layout */
+
+/* ===== Bold Headings ===== */
+.md-typeset h1 {
+  font-weight: 700;
+}
+
+.md-typeset h2 {
+  font-weight: 700;
+  border-bottom: 2px solid var(--md-primary-fg-color);
+  padding-bottom: 0.3em;
+}
+
+.md-typeset h3 {
+  font-weight: 700;
+}
+
+.md-typeset h4 {
+  font-weight: 600;
+}
+
+/* ===== Type Labels (class, function, attribute) ===== */
+.doc-label {
+  display: inline-block;
+  padding: 0.15em 0.5em;
+  font-size: 0.7em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 3px;
+  margin-right: 0.5em;
+  vertical-align: middle;
+}
+
+.doc-label-class {
+  background: #7c4dff;
+  color: white;
+}
+
+.doc-label-function,
+.doc-label-method {
+  background: #00bcd4;
+  color: white;
+}
+
+.doc-label-attribute {
+  background: #ff9800;
+  color: white;
+}
+
+.doc-label-module {
+  background: #4caf50;
+  color: white;
+}
+
+/* ===== Card styling for classes/functions ===== */
+.doc-object {
+  background: var(--md-code-bg-  background: var(--md-code-bg-  backgro: 1.5em;
+  margin-bottom: 1.5em;
+  box-shadow: 0 2px  box-shadow: 0 2px  box-shadode  box-shadid var(  box-shadow: 0 2plor--  box-sh);
+}
+
+/* /* /* /* /* /* /* dj/* /* /* /* /* /* /* dj/* /* /* /* /* /* /* dj/* /*ct {/* /* /* /* /* /*2px 8px rgb/* /* /* /* /*);
+}
+
+/* Nested objects - /* Nested obing */* Nested objen .doc-object {
+  background: transparent;
+  border-radius: 0;
+  padding: 0.75em 0;
+  margin-bottom: 0.5em  margin-bottom: 0.5em  b  margin-bot
+  borde  borde  borde  bod   borde  borde  bordcolor--li  borde  borde  bohildren   borde  borde  bordld {
+  border-bottom: none;
+}
+
+/* ===== Signature styl/* ===== tiline par/* ===== Signatur-signa/* ===== Signaround/* ===== Signaturt-bg-color);
+  border-radius: 8px;
+  padding: 1em;
+  margin: 1em 0;
+  font-size: 0.9em;
+  overflow-x: auto;
+  border: 1px solid var  border: 1lt-fg-color--lightest);
+}
+
+.doc-signature code {
+         pace: pre-wrap;
+  word-break: break-word;
+}
+
+/* ===== Sectio/* ===== Sectio/* ===== Sectio/* ===== Sectio/* ===== Sectio/* ===== Sectio/ze: 0.85em;
+  font-weight: 7  font-weight: 7  font-weight: 7  font-weight: 7  font-weight: 7  font-weight: 7  font-weight--light);
+                                                                                                                           -lightest);
+}
+
+/* ===== Parameter styling ===== */
+.doc-param-type {
+  f  f  f  f  f  f  f  olor: var(--md-accent-fg-co  f  f  f  f  f  f le  f  f  f  f  f  f  f  olor: var(--md-accent-fg-co  f  f  -l  f  f  f  f  f  f  f  olor: var(--md-accent-fg-co  f  f  f  f  f  f le  f  f  f  f  f  f  f  olor: var(-pe  f  f  f  f  f  f  ne;
+}
+
+/* ===== Doc headings bold ===== */
+.doc-heading code {
+  font-weight: 700;
+}

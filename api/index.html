@@ -55,6 +55,8 @@
     
       <link rel="stylesheet" href="../assets/_mkdocstrings.css">
     
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -318,6 +320,33 @@
   
   
     <li class="md-nav__item">
+      <a href="../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../cli/" class="md-nav__link">
         
   
@@ -360,10 +389,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
             
   
   
@@ -381,8 +410,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_4">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -532,10 +561,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#running-runnes" class="md-nav__link">
+  <a href="#evaluating-results" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Running### Runnes
+        Evaluating Results
       
     </span>
   </a>
@@ -774,10 +803,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#running-runnes" class="md-nav__link">
+  <a href="#evaluating-results" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Running### Runnes
+        Evaluating Results
       
     </span>
   </a>
@@ -823,29 +852,29 @@
 <ul>
 <li><code>RetrievalPipeline</code> - Semantic similarity retrieval</li>
 <li><code>ClassificationPipeline</code> - Text pair classification</li>
-<li><code>TwoStagePipeline</code> - Combined retrieval and classification</li>
+<li><code>ClassificationPipelineWithCandidategeneration</code> - Two-stage retrieval + classification</li>
 </ul>
 <h3 id="evaluator-module">Evaluator Module<a class="headerlink" href="#evaluator-module" title="Permanent link">&para;</a></h3>
 <p>The <a href="evaluator/">Evaluator</a> module provides tools for assessing detection quality:</p>
 <ul>
 <li><code>IntertextEvaluator</code> - Main evaluation class</li>
-<li>Metric functions for precision, recall, F1, MRR, MAP</li>
 </ul>
 <h2 id="quick-reference">Quick Reference<a class="headerlink" href="#quick-reference" title="Permanent link">&para;</a></h2>
 <h3 id="loading-documents">Loading Documents<a class="headerlink" href="#loading-documents" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Document</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># From CSV file</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">doc</span> <span class="o">=</span> <span class="n">Document</span><span class="o">.</span><span class="n">from_csv</span><span class="p">(</span><span class="s2">&quot;tedoc = Document.from_csv(&quot;</span><span class="n">tedoc</span> <span class="o">=</span><span class="n">naries</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">doc</span> <span class="o">=</span> <span class="n">Document</span><span class="o">.</span><span class="n">from_records</span><span class="p">([</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;First passage&quot;</span><span class="p">},</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;Second passage&quot;</span><span class="p">},</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="p">])</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">doc</span> <span class="o">=</span> <span class="n">Document</span><span class="o">.</span><span class="n">from_csv</span><span class="p">(</span><span class="s2">&quot;texts.csv&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1"># From list of d# From list of d# From list of dre#ords([</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>  <span class="n">om</span>     <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="n">mpor</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="n">pel</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;ipip    {&quot;</span><span class="nb">id</span><span class="s2">&quot;    {&quot;</span><span class="nb">id</span><span class="s2">&quot;    {&quot;</span><span class="nb">id</span><span class="s2">&quot;    {&quot;</span><span class="nb">id</span><span class="s2">&quot;    {&quot;</span><span class="nb">id</span><span class="s2">&quot; 0.5)</span>
 </code></pre></div>
-<h3 id="running-runnes">Running### Runnes<a class="headerlink" href="#running-runnes" title="Permanent link">&para;</a></h3>
-<p><code>py</code>py<code>py``cisimiles</code>py<code>py</code>py<code>cisimiles```py```py```py</code>cisimiles<code>py</code>py<code>py``cisimiles</code>py<code>py</code>py, top_k<code>py</code>py<code>py``cisimiles</code>py<code>py</code>py<code>cisimiles</code>thon
-<code>py</code>py<code>py``cisimiles</code>py<code>`py</code>ator</p>
-<p><code>py```py```py</code>cext<code>py```py```py</code>cext<code>py```py```py</code>cext<code>py```py```py</code>cext``py<code></code></p>
+<h3 id="evaluating-results">Evaluating Results<a class="headerlink" href="#evaluating-results" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">IntertextEvaluator</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">evaluator</span> <span class="o">=</span> <span class="n">IntertextEvaluator</span><span class="p">(</span><span class="n">predictions</span><span class="p">,</span> <span class="n">ground_truth</span><span class="p">)</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">metrics</span> <span class="o">=</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
+</code></pre></div>
 
 
 
