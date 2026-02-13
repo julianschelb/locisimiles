@@ -5,6 +5,7 @@ from locisimiles.pipeline import (
     ClassificationPipeline,
     ClassificationPipelineWithCandidategeneration,
     RetrievalPipeline,
+    RuleBasedPipeline,
     pretty_print,
 )
 from locisimiles.evaluator import IntertextEvaluator
@@ -15,6 +16,7 @@ __all__ = [
     "ClassificationPipeline",
     "ClassificationPipelineWithCandidategeneration",
     "RetrievalPipeline",
+    "RuleBasedPipeline",
     "IntertextEvaluator",
     "pretty_print",
 ]

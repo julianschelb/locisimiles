@@ -26,6 +26,7 @@ from locisimiles.pipeline._types import (
 from locisimiles.pipeline.two_stage import ClassificationPipelineWithCandidategeneration
 from locisimiles.pipeline.classification import ClassificationPipeline
 from locisimiles.pipeline.retrieval import RetrievalPipeline
+from locisimiles.pipeline.rule_based import RuleBasedPipeline
 
 # Define public API
 __all__ = [
@@ -41,4 +42,5 @@ __all__ = [
     "ClassificationPipelineWithCandidategeneration",
     "ClassificationPipeline",
     "RetrievalPipeline",
+    "RuleBasedPipeline",
 ]

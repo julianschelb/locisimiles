@@ -26,6 +26,14 @@ Two-stage pipeline: retrieval for candidate generation, then classification.
     options:
       heading_level: 3
 
+## RuleBasedPipeline
+
+Rule-based pipeline using lexical matching and linguistic filters.
+
+::: locisimiles.pipeline.rule_based.RuleBasedPipeline
+    options:
+      heading_level: 3
+
 ## Type Definitions
 
 Data classes for pipeline results.
