@@ -24,6 +24,11 @@ gui = [
     "pydantic (==2.10.6)",
     "audioop-lts (>=0.2.1,<0.3.0) ; python_version >= '3.13'",
 ]
+dev = [
+    "pytest (>=8.0.0,<10.0.0)",
+    "pytest-cov (>=4.0.0)",
+    "poethepoet (>=0.24.0)",
+]
 
 [project.scripts]
 locisimiles = "locisimiles.cli:main"
@@ -39,3 +44,14 @@ packages = [
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v"
+
+[tool.poe.tasks]
+test = "pytest"
+test-cov = "pytest --cov=locisimiles --cov-report=term-missing"
