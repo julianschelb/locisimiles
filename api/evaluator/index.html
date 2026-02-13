@@ -914,8 +914,131 @@
 
 
 
-        <p>Compute sentence- and document-level scores for intertextual link prediction.</p>
+        <p>Evaluator for measuring intertextuality detection performance.</p>
+<p>This class computes sentence-level and document-level evaluation metrics
+by comparing pipeline predictions against ground truth annotations.</p>
 
+
+<details class="supported-metrics" open>
+  <summary>Supported metrics</summary>
+  <ul>
+<li><strong>Precision</strong>: TP / (TP + FP)</li>
+<li><strong>Recall</strong>: TP / (TP + FN)</li>
+<li><strong>F1</strong>: Harmonic mean of precision and recall</li>
+<li><strong>SMR</strong>: Source Match Rate (error rate)</li>
+<li><strong>Accuracy</strong>: (TP + TN) / Total</li>
+</ul>
+</details>        <p>The evaluator runs the pipeline once during initialization and caches
+the results for efficient metric computation across different thresholds.</p>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">ATTRIBUTE</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code><span title="locisimiles.evaluator.IntertextEvaluator.query_doc">query_doc</span></code></td>
+            <td class="doc-attribute-details">
+              <div class="doc-md-description">
+                <p>The query document being analyzed.</p>
+              </div>
+              <p>
+              </p>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="locisimiles.evaluator.IntertextEvaluator.source_doc">source_doc</span></code></td>
+            <td class="doc-attribute-details">
+              <div class="doc-md-description">
+                <p>The source document containing potential quotation origins.</p>
+              </div>
+              <p>
+              </p>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="locisimiles.evaluator.IntertextEvaluator.predictions">predictions</span></code></td>
+            <td class="doc-attribute-details">
+              <div class="doc-md-description">
+                <p>Cached pipeline predictions (FullDict format).</p>
+              </div>
+              <p>
+                  <span class="doc-attribute-annotation">
+                    <b>TYPE:</b>
+                      <code><a class="autorefs autorefs-internal" title="            FullDict
+
+
+  
+      module-attribute
+   (locisimiles.pipeline.FullDict)" href="../pipelines/#locisimiles.pipeline._types.FullDict">FullDict</a></code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="locisimiles.evaluator.IntertextEvaluator.threshold">threshold</span></code></td>
+            <td class="doc-attribute-details">
+              <div class="doc-md-description">
+                <p>Probability threshold for positive classification.</p>
+              </div>
+              <p>
+              </p>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="locisimiles.evaluator.IntertextEvaluator.gold_labels">gold_labels</span></code></td>
+            <td class="doc-attribute-details">
+              <div class="doc-md-description">
+                <p>Ground truth annotations loaded from CSV.</p>
+              </div>
+              <p>
+              </p>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<details class="example" open>
+  <summary>Example</summary>
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles.evaluator</span><span class="w"> </span><span class="kn">import</span> <span class="n">IntertextEvaluator</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">ClassificationPipelineWithCandidategeneration</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles.document</span><span class="w"> </span><span class="kn">import</span> <span class="n">Document</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># Load documents</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="n">query_doc</span> <span class="o">=</span> <span class="n">Document</span><span class="p">(</span><span class="s2">&quot;hieronymus.csv&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="n">source_doc</span> <span class="o">=</span> <span class="n">Document</span><span class="p">(</span><span class="s2">&quot;vergil.csv&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="c1"># Initialize pipeline</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="n">pipeline</span> <span class="o">=</span> <span class="n">ClassificationPipelineWithCandidategeneration</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="c1"># Create evaluator with auto-threshold</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="n">evaluator</span> <span class="o">=</span> <span class="n">IntertextEvaluator</span><span class="p">(</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="n">query_doc</span><span class="o">=</span><span class="n">query_doc</span><span class="p">,</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    <span class="n">source_doc</span><span class="o">=</span><span class="n">source_doc</span><span class="p">,</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="n">ground_truth_csv</span><span class="o">=</span><span class="s2">&quot;ground_truth.csv&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>    <span class="n">pipeline</span><span class="o">=</span><span class="n">pipeline</span><span class="p">,</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>    <span class="n">top_k</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>    <span class="n">threshold</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span>  <span class="c1"># Automatically find best threshold</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>    <span class="n">auto_threshold_metric</span><span class="o">=</span><span class="s2">&quot;smr&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="p">)</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="c1"># Get evaluation metrics</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="nb">print</span><span class="p">(</span><span class="n">evaluator</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">average</span><span class="o">=</span><span class="s2">&quot;micro&quot;</span><span class="p">))</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="nb">print</span><span class="p">(</span><span class="n">evaluator</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">average</span><span class="o">=</span><span class="s2">&quot;macro&quot;</span><span class="p">))</span>
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="c1"># Evaluate single query</span>
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="nb">print</span><span class="p">(</span><span class="n">evaluator</span><span class="o">.</span><span class="n">evaluate_single_query</span><span class="p">(</span><span class="s2">&quot;hier. adv. iovin. 1.41&quot;</span><span class="p">))</span>
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="c1"># Find optimal threshold for different metrics</span>
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="n">best</span><span class="p">,</span> <span class="n">all_thresholds</span> <span class="o">=</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">find_best_threshold</span><span class="p">(</span><span class="n">metric</span><span class="o">=</span><span class="s2">&quot;f1&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Best F1 at threshold </span><span class="si">{</span><span class="n">best</span><span class="p">[</span><span class="s1">&#39;best_threshold&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">best</span><span class="p">[</span><span class="s1">&#39;best_f1&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+</details>
 
 
 

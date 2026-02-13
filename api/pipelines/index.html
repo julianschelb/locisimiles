@@ -836,6 +836,61 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#locisimiles.pipeline._types.ScoreT" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;ScoreT
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#locisimiles.pipeline._types.SimPair" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;SimPair
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#locisimiles.pipeline._types.FullPair" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;FullPair
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#locisimiles.pipeline._types.SimDict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;SimDict
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#locisimiles.pipeline._types.FullDict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;FullDict
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#locisimiles.pipeline._types.pretty_print" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1246,6 +1301,61 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#locisimiles.pipeline._types.ScoreT" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;ScoreT
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#locisimiles.pipeline._types.SimPair" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;SimPair
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#locisimiles.pipeline._types.FullPair" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;FullPair
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#locisimiles.pipeline._types.SimDict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;SimDict
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#locisimiles.pipeline._types.FullDict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;FullDict
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#locisimiles.pipeline._types.pretty_print" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1313,12 +1423,76 @@
 
 
         <p>A retrieval-only pipeline for intertextuality detection.</p>
-<p>Uses embedding similarity to find candidate segments without a classification
-stage. Binary decisions are made based on rank (top-k) or similarity threshold.</p>
-<p>To maintain compatibility with the evaluator, results are returned in FullDict
-format where the "probability" field is set to 1.0 for positive predictions
-and 0.0 for negative predictions based on the decision criteria.</p>
+<p>This pipeline uses semantic embeddings to find similar text passages without
+a classification stage. It's useful for fast candidate generation or when
+you want a simpler approach based purely on semantic similarity.</p>
 
+
+<details class="binary-decisions-are-made-using-one-of-two-strategies" open>
+  <summary>Binary decisions are made using one of two strategies</summary>
+  <ul>
+<li><strong>Top-k</strong>: The k most similar candidates are marked as positive</li>
+<li><strong>Similarity threshold</strong>: Candidates above a threshold are positive</li>
+</ul>
+</details>        <p>The results are returned in FullDict format for compatibility with the
+evaluator, where "probability" is 1.0 for positive and 0.0 for negative.</p>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">ATTRIBUTE</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code><span title="locisimiles.pipeline.retrieval.RetrievalPipeline.embedder">embedder</span></code></td>
+            <td class="doc-attribute-details">
+              <div class="doc-md-description">
+                <p>The sentence transformer model for computing embeddings.</p>
+              </div>
+              <p>
+              </p>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="locisimiles.pipeline.retrieval.RetrievalPipeline.device">device</span></code></td>
+            <td class="doc-attribute-details">
+              <div class="doc-md-description">
+                <p>The device used for computation ('cpu' or 'cuda').</p>
+              </div>
+              <p>
+              </p>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<details class="example" open>
+  <summary>Example</summary>
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">RetrievalPipeline</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles.document</span><span class="w"> </span><span class="kn">import</span> <span class="n">Document</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># Load documents</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">query_doc</span> <span class="o">=</span> <span class="n">Document</span><span class="p">(</span><span class="s2">&quot;hieronymus.csv&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="n">source_doc</span> <span class="o">=</span> <span class="n">Document</span><span class="p">(</span><span class="s2">&quot;vergil.csv&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="c1"># Initialize pipeline</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="n">pipeline</span> <span class="o">=</span> <span class="n">RetrievalPipeline</span><span class="p">(</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="n">embedding_model_name</span><span class="o">=</span><span class="s2">&quot;julian-schelb/SPhilBerta-emb-lat-intertext-v1&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="p">)</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="c1"># Find top 5 similar passages for each query</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="n">results</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="n">query</span><span class="o">=</span><span class="n">query_doc</span><span class="p">,</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>    <span class="n">source</span><span class="o">=</span><span class="n">source_doc</span><span class="p">,</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>    <span class="n">top_k</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="p">)</span>
+</code></pre></div>
+</details>
 
 
 
@@ -1383,7 +1557,12 @@ and 0.0 for negative predictions based on the decision criteria.</p>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">query_prompt_name</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s2">&quot;query&quot;</span><span class="p">,</span>
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">source_prompt_name</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s2">&quot;match&quot;</span><span class="p">,</span>
 <a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n"><span title="typing.Any">Any</span></span><span class="p">,</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="locisimiles.pipeline._types.SimDict">SimDict</span></span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="            SimDict
+
+
+  
+      module-attribute
+   (locisimiles.pipeline._types.SimDict)" href="#locisimiles.pipeline._types.SimDict">SimDict</a></span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -1419,7 +1598,12 @@ and 0.0 for negative predictions based on the decision criteria.</p>
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">query_prompt_name</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s2">&quot;query&quot;</span><span class="p">,</span>
 <a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">source_prompt_name</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s2">&quot;match&quot;</span><span class="p">,</span>
 <a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n"><span title="typing.Any">Any</span></span><span class="p">,</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="locisimiles.pipeline._types.FullDict">FullDict</span></span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="            FullDict
+
+
+  
+      module-attribute
+   (locisimiles.pipeline._types.FullDict)" href="#locisimiles.pipeline._types.FullDict">FullDict</a></span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -1569,7 +1753,12 @@ and 0.0 for negative predictions based on the decision criteria.</p>
           <tr class="doc-section-item">
             <td>
                 <span class="doc-returns-annotation">
-                    <code><span title="locisimiles.pipeline._types.FullDict">FullDict</span></code>
+                    <code><a class="autorefs autorefs-internal" title="            FullDict
+
+
+  
+      module-attribute
+   (locisimiles.pipeline._types.FullDict)" href="#locisimiles.pipeline._types.FullDict">FullDict</a></code>
                 </span>
             </td>
             <td class="doc-returns-details">
@@ -1581,7 +1770,12 @@ and 0.0 for negative predictions based on the decision criteria.</p>
           <tr class="doc-section-item">
             <td>
                 <span class="doc-returns-annotation">
-                    <code><span title="locisimiles.pipeline._types.FullDict">FullDict</span></code>
+                    <code><a class="autorefs autorefs-internal" title="            FullDict
+
+
+  
+      module-attribute
+   (locisimiles.pipeline._types.FullDict)" href="#locisimiles.pipeline._types.FullDict">FullDict</a></code>
                 </span>
             </td>
             <td class="doc-returns-details">
@@ -1630,11 +1824,89 @@ and 0.0 for negative predictions based on the decision criteria.</p>
 
 
 
-        <p>A simpler pipeline for intertextuality classification without candidate generation.
-It classifies all possible pairs between query and source segments without
-a retrieval stage. Suitable for smaller document pairs or when exhaustive
-comparison is needed.</p>
+        <p>A classification-only pipeline for exhaustive pairwise intertextuality detection.</p>
+<p>This pipeline classifies <strong>all possible pairs</strong> between query and source segments
+without a retrieval stage. It's suitable for smaller document collections or when
+you need exhaustive comparison without missing any potential matches.</p>
 
+
+<details class="note" open>
+  <summary>Note</summary>
+  <p>For large documents, consider using <code>ClassificationPipelineWithCandidategeneration</code>
+which first filters candidates using semantic similarity.</p>
+</details>
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">ATTRIBUTE</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code><span title="locisimiles.pipeline.classification.ClassificationPipeline.clf_model">clf_model</span></code></td>
+            <td class="doc-attribute-details">
+              <div class="doc-md-description">
+                <p>The transformer classification model.</p>
+              </div>
+              <p>
+              </p>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="locisimiles.pipeline.classification.ClassificationPipeline.clf_tokenizer">clf_tokenizer</span></code></td>
+            <td class="doc-attribute-details">
+              <div class="doc-md-description">
+                <p>The tokenizer for the classification model.</p>
+              </div>
+              <p>
+              </p>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="locisimiles.pipeline.classification.ClassificationPipeline.device">device</span></code></td>
+            <td class="doc-attribute-details">
+              <div class="doc-md-description">
+                <p>The device used for computation ('cpu' or 'cuda').</p>
+              </div>
+              <p>
+              </p>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<details class="example" open>
+  <summary>Example</summary>
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">ClassificationPipeline</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles.document</span><span class="w"> </span><span class="kn">import</span> <span class="n">Document</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># Load documents</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">query_doc</span> <span class="o">=</span> <span class="n">Document</span><span class="p">(</span><span class="s2">&quot;hieronymus.csv&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="n">source_doc</span> <span class="o">=</span> <span class="n">Document</span><span class="p">(</span><span class="s2">&quot;vergil.csv&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="c1"># Initialize pipeline</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="n">pipeline</span> <span class="o">=</span> <span class="n">ClassificationPipeline</span><span class="p">(</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="n">classification_name</span><span class="o">=</span><span class="s2">&quot;julian-schelb/PhilBerta-class-latin-intertext-v1&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="p">)</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="c1"># Classify all pairs (exhaustive)</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="n">results</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="n">query</span><span class="o">=</span><span class="n">query_doc</span><span class="p">,</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>    <span class="n">source</span><span class="o">=</span><span class="n">source_doc</span><span class="p">,</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>    <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="p">)</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="c1"># Filter results by probability threshold</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="k">for</span> <span class="n">query_id</span><span class="p">,</span> <span class="n">pairs</span> <span class="ow">in</span> <span class="n">results</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>    <span class="n">matches</span> <span class="o">=</span> <span class="p">[(</span><span class="n">seg</span><span class="p">,</span> <span class="n">prob</span><span class="p">)</span> <span class="k">for</span> <span class="n">seg</span><span class="p">,</span> <span class="n">sim</span><span class="p">,</span> <span class="n">prob</span> <span class="ow">in</span> <span class="n">pairs</span> <span class="k">if</span> <span class="n">prob</span> <span class="o">&gt;</span> <span class="mf">0.7</span><span class="p">]</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>    <span class="k">if</span> <span class="n">matches</span><span class="p">:</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">query_id</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">matches</span><span class="p">)</span><span class="si">}</span><span class="s2"> matches&quot;</span><span class="p">)</span>
+</code></pre></div>
+</details>
 
 
 
@@ -1694,7 +1966,12 @@ comparison is needed.</p>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">source</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            locisimiles.document.Document" href="../document/#locisimiles.document.Document">Document</a></span><span class="p">,</span>
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">batch_size</span><span class="p">:</span> <span class="n"><span title="int">int</span></span> <span class="o">=</span> <span class="mi">32</span><span class="p">,</span>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n"><span title="typing.Any">Any</span></span><span class="p">,</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="locisimiles.pipeline._types.FullDict">FullDict</span></span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="            FullDict
+
+
+  
+      module-attribute
+   (locisimiles.pipeline._types.FullDict)" href="#locisimiles.pipeline._types.FullDict">FullDict</a></span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -1742,11 +2019,99 @@ Returns a dictionary mapping query segment IDs to lists of
 
 
 
-        <p>A pipeline for intertextuality classification with candidate generation.
-It first generates candidate segments from a source document based on
-similarity to a query segment, and then classifies these candidates
-as intertextual or not using a pre-trained model.</p>
+        <p>A two-stage pipeline combining retrieval and classification for intertextuality detection.</p>
 
+
+<details class="this-pipeline-implements-an-efficient-two-stage-approach" open>
+  <summary>This pipeline implements an efficient two-stage approach</summary>
+  <ol>
+<li><strong>Retrieval</strong>: Generate candidate segments using embedding similarity</li>
+<li><strong>Classification</strong>: Classify the top-k candidates using a transformer model</li>
+</ol>
+</details>        <p>This approach is more efficient than exhaustive classification for large document
+collections, while maintaining high accuracy by using learned classification.</p>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">ATTRIBUTE</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code><span title="locisimiles.pipeline.two_stage.ClassificationPipelineWithCandidategeneration.embedder">embedder</span></code></td>
+            <td class="doc-attribute-details">
+              <div class="doc-md-description">
+                <p>The sentence transformer model for candidate generation.</p>
+              </div>
+              <p>
+              </p>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="locisimiles.pipeline.two_stage.ClassificationPipelineWithCandidategeneration.clf_model">clf_model</span></code></td>
+            <td class="doc-attribute-details">
+              <div class="doc-md-description">
+                <p>The transformer classification model.</p>
+              </div>
+              <p>
+              </p>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="locisimiles.pipeline.two_stage.ClassificationPipelineWithCandidategeneration.clf_tokenizer">clf_tokenizer</span></code></td>
+            <td class="doc-attribute-details">
+              <div class="doc-md-description">
+                <p>The tokenizer for the classification model.</p>
+              </div>
+              <p>
+              </p>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="locisimiles.pipeline.two_stage.ClassificationPipelineWithCandidategeneration.device">device</span></code></td>
+            <td class="doc-attribute-details">
+              <div class="doc-md-description">
+                <p>The device used for computation ('cpu' or 'cuda').</p>
+              </div>
+              <p>
+              </p>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<details class="example" open>
+  <summary>Example</summary>
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">ClassificationPipelineWithCandidategeneration</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles.document</span><span class="w"> </span><span class="kn">import</span> <span class="n">Document</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># Load documents</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">query_doc</span> <span class="o">=</span> <span class="n">Document</span><span class="p">(</span><span class="s2">&quot;hieronymus.csv&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="n">source_doc</span> <span class="o">=</span> <span class="n">Document</span><span class="p">(</span><span class="s2">&quot;vergil.csv&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="c1"># Initialize two-stage pipeline</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="n">pipeline</span> <span class="o">=</span> <span class="n">ClassificationPipelineWithCandidategeneration</span><span class="p">(</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="n">classification_name</span><span class="o">=</span><span class="s2">&quot;julian-schelb/PhilBerta-class-latin-intertext-v1&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n">embedding_model_name</span><span class="o">=</span><span class="s2">&quot;julian-schelb/SPhilBerta-emb-lat-intertext-v1&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="p">)</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="c1"># Run pipeline: retrieve top 10 candidates, then classify</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="n">results</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>    <span class="n">query</span><span class="o">=</span><span class="n">query_doc</span><span class="p">,</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>    <span class="n">source</span><span class="o">=</span><span class="n">source_doc</span><span class="p">,</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>    <span class="n">top_k</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="p">)</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="c1"># Pretty print results</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">pretty_print</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="n">pretty_print</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+</code></pre></div>
+</details>
 
 
 
@@ -1846,7 +2211,12 @@ as intertextual or not using a pre-trained model.</p>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">query_prompt_name</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s2">&quot;query&quot;</span><span class="p">,</span>
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">source_prompt_name</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s2">&quot;match&quot;</span><span class="p">,</span>
 <a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n"><span title="typing.Any">Any</span></span><span class="p">,</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="locisimiles.pipeline._types.SimDict">SimDict</span></span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="            SimDict
+
+
+  
+      module-attribute
+   (locisimiles.pipeline._types.SimDict)" href="#locisimiles.pipeline._types.SimDict">SimDict</a></span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -1877,10 +2247,20 @@ Returns a dictionary mapping query segment IDs to lists of
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="o">*</span><span class="p">,</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">query</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            locisimiles.document.Document" href="../document/#locisimiles.document.Document">Document</a></span><span class="p">,</span>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">source</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            locisimiles.document.Document" href="../document/#locisimiles.document.Document">Document</a></span><span class="p">,</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">candidates</span><span class="p">:</span> <span class="n"><span title="locisimiles.pipeline._types.SimDict">SimDict</span></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">candidates</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            SimDict
+
+
+  
+      module-attribute
+   (locisimiles.pipeline._types.SimDict)" href="#locisimiles.pipeline._types.SimDict">SimDict</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">batch_size</span><span class="p">:</span> <span class="n"><span title="int">int</span></span> <span class="o">=</span> <span class="mi">32</span><span class="p">,</span>
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n"><span title="typing.Any">Any</span></span><span class="p">,</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="locisimiles.pipeline._types.FullDict">FullDict</span></span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="            FullDict
+
+
+  
+      module-attribute
+   (locisimiles.pipeline._types.FullDict)" href="#locisimiles.pipeline._types.FullDict">FullDict</a></span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -1917,7 +2297,12 @@ Returns a dictionary mapping query segment IDs to lists of
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">query_prompt_name</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s2">&quot;query&quot;</span><span class="p">,</span>
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">source_prompt_name</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s2">&quot;match&quot;</span><span class="p">,</span>
 <a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n"><span title="typing.Any">Any</span></span><span class="p">,</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="locisimiles.pipeline._types.FullDict">FullDict</span></span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="            FullDict
+
+
+  
+      module-attribute
+   (locisimiles.pipeline._types.FullDict)" href="#locisimiles.pipeline._types.FullDict">FullDict</a></span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -1973,25 +2358,25 @@ Returns a dictionary mapping query segment IDs to lists of
         <p>A rule-based pipeline for detecting intertextuality in Latin texts.</p>
 <p>This pipeline uses lexical matching combined with various filters to identify
 potential quotations, allusions, and textual reuse between Latin documents.</p>
-<p>Features:
-- Orthographic normalization (v→u, j→i, prefix assimilation)
-- Stopword filtering
-- Distance criterion (shared words must be close together)
-- Scissa filter (punctuation agreement)
-- HTRG filter (Part-of-Speech agreement) - optional
-- Similarity filter (embedding-based) - optional</p>
 
+
+<details class="features" open>
+  <summary>Features</summary>
+  <ul>
+<li>Orthographic normalization (v→u, j→i, prefix assimilation)</li>
+<li>Stopword filtering</li>
+<li>Distance criterion (shared words must be close together)</li>
+<li>Scissa filter (punctuation agreement)</li>
+<li>HTRG filter (Part-of-Speech agreement) - optional</li>
+<li>Similarity filter (embedding-based) - optional</li>
+</ul>
+</details>
 
 <details class="example" open>
   <summary>Example</summary>
-  <blockquote>
-<blockquote>
-<blockquote>
-<p>pipeline = RuleBasedPipeline()
-results = pipeline.run(source_doc, target_doc)</p>
-</blockquote>
-</blockquote>
-</blockquote>
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">pipeline</span> <span class="o">=</span> <span class="n">RuleBasedPipeline</span><span class="p">()</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">results</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="n">query_doc</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">source_doc</span><span class="p">)</span>
+</code></pre></div>
 </details>
         <p>Initialize the rule-based pipeline.</p>
 
@@ -2241,7 +2626,12 @@ results = pipeline.run(source_doc, target_doc)</p>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">query_genre</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s2">&quot;prose&quot;</span><span class="p">,</span>
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">source_genre</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s2">&quot;poetry&quot;</span><span class="p">,</span>
 <a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">threshold</span><span class="p">:</span> <span class="n"><span title="float">float</span></span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="locisimiles.pipeline._types.FullDict">FullDict</span></span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="            FullDict
+
+
+  
+      module-attribute
+   (locisimiles.pipeline._types.FullDict)" href="#locisimiles.pipeline._types.FullDict">FullDict</a></span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2384,7 +2774,12 @@ results = pipeline.run(source_doc, target_doc)</p>
           <tr class="doc-section-item">
             <td>
                 <span class="doc-returns-annotation">
-                    <code><span title="locisimiles.pipeline._types.FullDict">FullDict</span></code>
+                    <code><a class="autorefs autorefs-internal" title="            FullDict
+
+
+  
+      module-attribute
+   (locisimiles.pipeline._types.FullDict)" href="#locisimiles.pipeline._types.FullDict">FullDict</a></code>
                 </span>
             </td>
             <td class="doc-returns-details">
@@ -2396,7 +2791,12 @@ results = pipeline.run(source_doc, target_doc)</p>
           <tr class="doc-section-item">
             <td>
                 <span class="doc-returns-annotation">
-                    <code><span title="locisimiles.pipeline._types.FullDict">FullDict</span></code>
+                    <code><a class="autorefs autorefs-internal" title="            FullDict
+
+
+  
+      module-attribute
+   (locisimiles.pipeline._types.FullDict)" href="#locisimiles.pipeline._types.FullDict">FullDict</a></code>
                 </span>
             </td>
             <td class="doc-returns-details">
@@ -2490,6 +2890,8 @@ results = pipeline.run(source_doc, target_doc)</p>
     <div class="doc doc-contents first">
 
         <p>Shared type definitions and utilities for pipeline modules.</p>
+<p>This module defines the common data structures used across all pipeline
+implementations for representing detection results.</p>
 
 
 
@@ -2512,6 +2914,200 @@ results = pipeline.run(source_doc, target_doc)</p>
 
 
 
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="locisimiles.pipeline._types.ScoreT" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <span class="doc doc-object-name doc-attribute-name">ScoreT</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-module-attribute"><code>module-attribute</code></small>
+  </span>
+
+<a href="#locisimiles.pipeline._types.ScoreT" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">ScoreT</span> <span class="o">=</span> <span class="n"><span title="float">float</span></span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Type alias for similarity or probability scores (float between 0 and 1).</p>
+
+    </div>
+
+</div>
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="locisimiles.pipeline._types.SimPair" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <span class="doc doc-object-name doc-attribute-name">SimPair</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-module-attribute"><code>module-attribute</code></small>
+  </span>
+
+<a href="#locisimiles.pipeline._types.SimPair" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">SimPair</span> <span class="o">=</span> <span class="n"><span title="typing.Tuple">Tuple</span></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="            locisimiles.document.TextSegment" href="../document/#locisimiles.document.TextSegment">TextSegment</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-internal" title="            ScoreT
+
+
+  
+      module-attribute
+   (locisimiles.pipeline._types.ScoreT)" href="#locisimiles.pipeline._types.ScoreT">ScoreT</a></span><span class="p">]</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>A tuple of (TextSegment, similarity_score) representing a candidate match.</p>
+<p>Used in retrieval-only pipelines where only similarity scores are computed.</p>
+
+    </div>
+
+</div>
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="locisimiles.pipeline._types.FullPair" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <span class="doc doc-object-name doc-attribute-name">FullPair</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-module-attribute"><code>module-attribute</code></small>
+  </span>
+
+<a href="#locisimiles.pipeline._types.FullPair" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">FullPair</span> <span class="o">=</span> <span class="n"><span title="typing.Tuple">Tuple</span></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="            locisimiles.document.TextSegment" href="../document/#locisimiles.document.TextSegment">TextSegment</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-internal" title="            ScoreT
+
+
+  
+      module-attribute
+   (locisimiles.pipeline._types.ScoreT)" href="#locisimiles.pipeline._types.ScoreT">ScoreT</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-internal" title="            ScoreT
+
+
+  
+      module-attribute
+   (locisimiles.pipeline._types.ScoreT)" href="#locisimiles.pipeline._types.ScoreT">ScoreT</a></span><span class="p">]</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>A tuple of (TextSegment, similarity_score, probability) for classified matches.</p>
+
+
+<details class="the-three-elements-are" open>
+  <summary>The three elements are</summary>
+  <ul>
+<li>TextSegment: The matching source segment</li>
+<li>similarity_score: Cosine similarity from retrieval (may be None)</li>
+<li>probability: Classification probability P(positive)</li>
+</ul>
+</details>
+    </div>
+
+</div>
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="locisimiles.pipeline._types.SimDict" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <span class="doc doc-object-name doc-attribute-name">SimDict</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-module-attribute"><code>module-attribute</code></small>
+  </span>
+
+<a href="#locisimiles.pipeline._types.SimDict" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">SimDict</span> <span class="o">=</span> <span class="n"><span title="typing.Dict">Dict</span></span><span class="p">[</span><span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n"><span title="typing.List">List</span></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="            SimPair
+
+
+  
+      module-attribute
+   (locisimiles.pipeline._types.SimPair)" href="#locisimiles.pipeline._types.SimPair">SimPair</a></span><span class="p">]]</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Mapping from query segment IDs to lists of (segment, similarity) pairs.</p>
+<p>Used as intermediate result format in retrieval pipelines.</p>
+
+    </div>
+
+</div>
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="locisimiles.pipeline._types.FullDict" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <span class="doc doc-object-name doc-attribute-name">FullDict</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-module-attribute"><code>module-attribute</code></small>
+  </span>
+
+<a href="#locisimiles.pipeline._types.FullDict" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">FullDict</span> <span class="o">=</span> <span class="n"><span title="typing.Dict">Dict</span></span><span class="p">[</span><span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n"><span title="typing.List">List</span></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="            FullPair
+
+
+  
+      module-attribute
+   (locisimiles.pipeline._types.FullPair)" href="#locisimiles.pipeline._types.FullPair">FullPair</a></span><span class="p">]]</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Mapping from query segment IDs to lists of (segment, similarity, probability) tuples.</p>
+<p>This is the standard output format for all pipelines, used by the evaluator.</p>
+
+
+<details class="example" open>
+  <summary>Example</summary>
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">results</span><span class="p">:</span> <span class="n">FullDict</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="s2">&quot;hier. adv. iovin. 1.41&quot;</span><span class="p">:</span> <span class="p">[</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        <span class="p">(</span><span class="n">TextSegment</span><span class="p">(</span><span class="o">...</span><span class="p">),</span> <span class="mf">0.82</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">),</span>  <span class="c1"># High confidence match</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>        <span class="p">(</span><span class="n">TextSegment</span><span class="p">(</span><span class="o">...</span><span class="p">),</span> <span class="mf">0.65</span><span class="p">,</span> <span class="mf">0.23</span><span class="p">),</span>  <span class="c1"># Low confidence</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="p">],</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="s2">&quot;hier. adv. iovin. 1.42&quot;</span><span class="p">:</span> <span class="p">[</span><span class="o">...</span><span class="p">],</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="p">}</span>
+</code></pre></div>
+</details>
+    </div>
+
+</div>
+
+
+
+
+
+
 <div class="doc doc-object doc-function">
 
 
@@ -2520,13 +3116,67 @@ results = pipeline.run(source_doc, target_doc)</p>
 
 
 <a href="#locisimiles.pipeline._types.pretty_print" class="headerlink" title="Permanent link">&para;</a></h4>
-<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">pretty_print</span><span class="p">(</span><span class="n">results</span><span class="p">:</span> <span class="n"><span title="locisimiles.pipeline._types.FullDict">FullDict</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">pretty_print</span><span class="p">(</span><span class="n">results</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            FullDict
+
+
+  
+      module-attribute
+   (locisimiles.pipeline._types.FullDict)" href="#locisimiles.pipeline._types.FullDict">FullDict</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
 
-        <p>Human-friendly dump of <em>run()</em> output.</p>
+        <p>Print pipeline results in a human-readable format.</p>
+<p>Displays each query segment and its candidate matches with similarity
+scores and classification probabilities.</p>
 
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">PARAMETER</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>results</code>
+            </td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>Pipeline output in FullDict format.</p>
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code><a class="autorefs autorefs-internal" title="            FullDict
+
+
+  
+      module-attribute
+   (locisimiles.pipeline._types.FullDict)" href="#locisimiles.pipeline._types.FullDict">FullDict</a></code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<details class="example" open>
+  <summary>Example</summary>
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">pretty_print</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">results</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="n">query_doc</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">source_doc</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">pretty_print</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1"># Output:</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1"># ▶ Query segment &#39;hier. adv. iovin. 1.41&#39;:</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="c1">#   verg. aen. 1.1              sim=+0.823  P(pos)=0.951</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="c1">#   verg. aen. 2.45             sim=+0.654  P(pos)=0.234</span>
+</code></pre></div>
+</details>
 
     </div>
 

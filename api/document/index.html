@@ -901,7 +901,90 @@
 
 
         <p>Atomic unit of text inside a document.</p>
+<p>A TextSegment represents a single passage, sentence, or verse from a larger
+document. Each segment has a unique identifier and optional metadata.</p>
 
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">ATTRIBUTE</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code><span title="locisimiles.document.TextSegment.text">text</span></code></td>
+            <td class="doc-attribute-details">
+              <div class="doc-md-description">
+                <p>The raw text content of the segment.</p>
+              </div>
+              <p>
+                  <span class="doc-attribute-annotation">
+                    <b>TYPE:</b>
+                      <code><span title="str">str</span></code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="locisimiles.document.TextSegment.id">id</span></code></td>
+            <td class="doc-attribute-details">
+              <div class="doc-md-description">
+                <p>Unique identifier for the segment (e.g., "verg. aen. 1.1").</p>
+              </div>
+              <p>
+                  <span class="doc-attribute-annotation">
+                    <b>TYPE:</b>
+                      <code><span title="locisimiles.document.ID">ID</span></code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="locisimiles.document.TextSegment.row_id">row_id</span></code></td>
+            <td class="doc-attribute-details">
+              <div class="doc-md-description">
+                <p>Position of the segment in the original document (0-indexed).</p>
+              </div>
+              <p>
+                  <span class="doc-attribute-annotation">
+                    <b>TYPE:</b>
+                      <code><span title="int">int</span> | None</code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="locisimiles.document.TextSegment.meta">meta</span></code></td>
+            <td class="doc-attribute-details">
+              <div class="doc-md-description">
+                <p>Optional dictionary of additional metadata.</p>
+              </div>
+              <p>
+                  <span class="doc-attribute-annotation">
+                    <b>TYPE:</b>
+                      <code><span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]</code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<details class="example" open>
+  <summary>Example</summary>
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">segment</span> <span class="o">=</span> <span class="n">TextSegment</span><span class="p">(</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Arma virumque cano, Troiae qui primus ab oris&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">seg_id</span><span class="o">=</span><span class="s2">&quot;verg. aen. 1.1&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">row_id</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">meta</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;book&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;line&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">)</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="nb">print</span><span class="p">(</span><span class="n">segment</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>  <span class="c1"># &quot;Arma virumque cano...&quot;</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="nb">print</span><span class="p">(</span><span class="n">segment</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>    <span class="c1"># &quot;verg. aen. 1.1&quot;</span>
+</code></pre></div>
+</details>
 
 
 
@@ -948,8 +1031,90 @@
 
 
 
-        <p>Collection of text segments, representing a document.</p>
+        <p>Collection of text segments representing a document.</p>
+<p>A Document is a container for TextSegments loaded from a file. It supports
+CSV/TSV files with 'seg_id' and 'text' columns, or plain text files where
+segments are separated by a delimiter.</p>
 
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">ATTRIBUTE</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code><span title="locisimiles.document.Document.path">path</span></code></td>
+            <td class="doc-attribute-details">
+              <div class="doc-md-description">
+                <p>Path to the source file.</p>
+              </div>
+              <p>
+                  <span class="doc-attribute-annotation">
+                    <b>TYPE:</b>
+                      <code><span title="pathlib.Path">Path</span></code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="locisimiles.document.Document.author">author</span></code></td>
+            <td class="doc-attribute-details">
+              <div class="doc-md-description">
+                <p>Optional author name for the document.</p>
+              </div>
+              <p>
+                  <span class="doc-attribute-annotation">
+                    <b>TYPE:</b>
+                      <code><span title="str">str</span> | None</code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="locisimiles.document.Document.meta">meta</span></code></td>
+            <td class="doc-attribute-details">
+              <div class="doc-md-description">
+                <p>Optional dictionary of document-level metadata.</p>
+              </div>
+              <p>
+                  <span class="doc-attribute-annotation">
+                    <b>TYPE:</b>
+                      <code><span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]</code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<details class="example" open>
+  <summary>Example</summary>
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles.document</span><span class="w"> </span><span class="kn">import</span> <span class="n">Document</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># Load from CSV (must have &#39;seg_id&#39; and &#39;text&#39; columns)</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">vergil</span> <span class="o">=</span> <span class="n">Document</span><span class="p">(</span><span class="s2">&quot;vergil_samples.csv&quot;</span><span class="p">,</span> <span class="n">author</span><span class="o">=</span><span class="s2">&quot;Vergil&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1"># Access segments</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vergil</span><span class="p">))</span>           <span class="c1"># Number of segments</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="nb">print</span><span class="p">(</span><span class="n">vergil</span><span class="o">.</span><span class="n">ids</span><span class="p">())</span>          <span class="c1"># List of segment IDs</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="nb">print</span><span class="p">(</span><span class="n">vergil</span><span class="o">.</span><span class="n">get_text</span><span class="p">(</span><span class="s2">&quot;verg. aen. 1.1&quot;</span><span class="p">))</span>  <span class="c1"># Get text by ID</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="c1"># Iterate over segments</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="k">for</span> <span class="n">segment</span> <span class="ow">in</span> <span class="n">vergil</span><span class="p">:</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">segment</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">segment</span><span class="o">.</span><span class="n">text</span><span class="p">[:</span><span class="mi">50</span><span class="p">]</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="c1"># Add custom segments</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="n">vergil</span><span class="o">.</span><span class="n">add_segment</span><span class="p">(</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>    <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Custom text&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>    <span class="n">seg_id</span><span class="o">=</span><span class="s2">&quot;custom.1&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>    <span class="n">meta</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;source&quot;</span><span class="p">:</span> <span class="s2">&quot;manual&quot;</span><span class="p">}</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="p">)</span>
+</code></pre></div>
+</details>
 
 
 
