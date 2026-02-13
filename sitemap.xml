@@ -1,39 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-         <loc>https://julian-schelb.github.io/locisimiles/</loc>
+         <loc>https://julianschelb.github.io/locisimiles/</loc>
          <lastmod>2026-02-13</lastmod>
     </url>
     <url>
-         <loc>https://julian-schelb.github.io/locisimiles/cli/</loc>
+         <loc>https://julianschelb.github.io/locisimiles/cli/</loc>
          <lastmod>2026-02-13</lastmod>
     </url>
     <url>
-         <loc>https://julian-schelb.github.io/locisimiles/development/</loc>
+         <loc>https://julianschelb.github.io/locisimiles/development/</loc>
          <lastmod>2026-02-13</lastmod>
     </url>
     <url>
-         <loc>https://julian-schelb.github.io/locisimiles/examples/</loc>
+         <loc>https://julianschelb.github.io/locisimiles/examples/</loc>
          <lastmod>2026-02-13</lastmod>
     </url>
     <url>
-         <loc>https://julian-schelb.github.io/locisimiles/getting-started/</loc>
+         <loc>https://julianschelb.github.io/locisimiles/getting-started/</loc>
          <lastmod>2026-02-13</lastmod>
     </url>
     <url>
-         <loc>https://julian-schelb.github.io/locisimiles/api/</loc>
+         <loc>https://julianschelb.github.io/locisimiles/api/</loc>
          <lastmod>2026-02-13</lastmod>
     </url>
     <url>
-         <loc>https://julian-schelb.github.io/locisimiles/api/document/</loc>
+         <loc>https://julianschelb.github.io/locisimiles/api/document/</loc>
          <lastmod>2026-02-13</lastmod>
     </url>
     <url>
-         <loc>https://julian-schelb.github.io/locisimiles/api/evaluator/</loc>
+         <loc>https://julianschelb.github.io/locisimiles/api/evaluator/</loc>
          <lastmod>2026-02-13</lastmod>
     </url>
     <url>
-         <loc>https://julian-schelb.github.io/locisimiles/api/pipelines/</loc>
+         <loc>https://julianschelb.github.io/locisimiles/api/pipelines/</loc>
          <lastmod>2026-02-13</lastmod>
     </url>
 </urlset>
