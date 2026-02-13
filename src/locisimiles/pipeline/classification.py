@@ -15,12 +15,51 @@ from tqdm import tqdm
 
 class ClassificationPipeline:
     """
-    A simpler pipeline for intertextuality classification without candidate generation.
-    It classifies all possible pairs between query and source segments without
-    a retrieval stage. Suitable for smaller document pairs or when exhaustive
-    comparison is needed.
-    """
+    A classification-only pipeline for exhaustive pairwise intertextuality detection.
     
+    This pipeline classifies **all possible pairs** between query and source segments
+    without a retrieval stage. It's suitable for smaller document collections or when
+    you need exhaustive comparison without missing any potential matches.
+    
+    Note:
+        For large documents, consider using `ClassificationPipelineWithCandidategeneration`
+        which first filters candidates using semantic similarity.
+    
+    Attributes:
+        clf_model: The transformer classification model.
+        clf_tokenizer: The tokenizer for the classification model.
+        device: The device used for computation ('cpu' or 'cuda').
+    
+    Example:
+        ```python
+        from locisimiles.pipeline import ClassificationPipeline
+        from locisimiles.document import Document
+        
+        # Load documents
+        query_doc = Document("hieronymus.csv")
+        source_doc = Document("vergil.csv")
+        
+        # Initialize pipeline
+        pipeline = ClassificationPipeline(
+            classification_name="julian-schelb/PhilBerta-class-latin-intertext-v1",
+            device="cpu",
+        )
+        
+        # Classify all pairs (exhaustive)
+        results = pipeline.run(
+            query=query_doc,
+            source=source_doc,
+            batch_size=32,
+        )
+        
+        # Filter results by probability threshold
+        for query_id, pairs in results.items():
+            matches = [(seg, prob) for seg, sim, prob in pairs if prob > 0.7]
+            if matches:
+                print(f"{query_id}: {len(matches)} matches")
+        ```
+    """
+
     def __init__(
         self,
         *,

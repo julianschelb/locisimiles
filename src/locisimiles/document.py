@@ -8,7 +8,30 @@ ID = Union[str, int]
 
 
 class TextSegment:
-    """Atomic unit of text inside a document."""
+    """
+    Atomic unit of text inside a document.
+    
+    A TextSegment represents a single passage, sentence, or verse from a larger
+    document. Each segment has a unique identifier and optional metadata.
+    
+    Attributes:
+        text: The raw text content of the segment.
+        id: Unique identifier for the segment (e.g., "verg. aen. 1.1").
+        row_id: Position of the segment in the original document (0-indexed).
+        meta: Optional dictionary of additional metadata.
+    
+    Example:
+        ```python
+        segment = TextSegment(
+            text="Arma virumque cano, Troiae qui primus ab oris",
+            seg_id="verg. aen. 1.1",
+            row_id=0,
+            meta={"book": 1, "line": 1}
+        )
+        print(segment.text)  # "Arma virumque cano..."
+        print(segment.id)    # "verg. aen. 1.1"
+        ```
+    """
 
     def __init__(
         self,
@@ -30,7 +53,42 @@ class TextSegment:
 # =================== DOCUMENT ===================
 
 class Document:
-    """Collection of text segments, representing a document."""
+    """
+    Collection of text segments representing a document.
+    
+    A Document is a container for TextSegments loaded from a file. It supports
+    CSV/TSV files with 'seg_id' and 'text' columns, or plain text files where
+    segments are separated by a delimiter.
+    
+    Attributes:
+        path: Path to the source file.
+        author: Optional author name for the document.
+        meta: Optional dictionary of document-level metadata.
+    
+    Example:
+        ```python
+        from locisimiles.document import Document
+        
+        # Load from CSV (must have 'seg_id' and 'text' columns)
+        vergil = Document("vergil_samples.csv", author="Vergil")
+        
+        # Access segments
+        print(len(vergil))           # Number of segments
+        print(vergil.ids())          # List of segment IDs
+        print(vergil.get_text("verg. aen. 1.1"))  # Get text by ID
+        
+        # Iterate over segments
+        for segment in vergil:
+            print(f"{segment.id}: {segment.text[:50]}...")
+        
+        # Add custom segments
+        vergil.add_segment(
+            text="Custom text",
+            seg_id="custom.1",
+            meta={"source": "manual"}
+        )
+        ```
+    """
 
     def __init__(
         self,

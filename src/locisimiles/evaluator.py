@@ -47,7 +47,65 @@ def _fn_rate(tp: int, fp: int, fn: int, tn: int) -> float:
 # ────────────────────────────────
 
 class IntertextEvaluator:
-    """Compute sentence- and document-level scores for intertextual link prediction."""
+    """
+    Evaluator for measuring intertextuality detection performance.
+    
+    This class computes sentence-level and document-level evaluation metrics
+    by comparing pipeline predictions against ground truth annotations.
+    
+    Supported metrics:
+        - **Precision**: TP / (TP + FP)
+        - **Recall**: TP / (TP + FN)
+        - **F1**: Harmonic mean of precision and recall
+        - **SMR**: Source Match Rate (error rate)
+        - **Accuracy**: (TP + TN) / Total
+    
+    The evaluator runs the pipeline once during initialization and caches
+    the results for efficient metric computation across different thresholds.
+    
+    Attributes:
+        query_doc: The query document being analyzed.
+        source_doc: The source document containing potential quotation origins.
+        predictions: Cached pipeline predictions (FullDict format).
+        threshold: Probability threshold for positive classification.
+        gold_labels: Ground truth annotations loaded from CSV.
+    
+    Example:
+        ```python
+        from locisimiles.evaluator import IntertextEvaluator
+        from locisimiles.pipeline import ClassificationPipelineWithCandidategeneration
+        from locisimiles.document import Document
+        
+        # Load documents
+        query_doc = Document("hieronymus.csv")
+        source_doc = Document("vergil.csv")
+        
+        # Initialize pipeline
+        pipeline = ClassificationPipelineWithCandidategeneration(device="cpu")
+        
+        # Create evaluator with auto-threshold
+        evaluator = IntertextEvaluator(
+            query_doc=query_doc,
+            source_doc=source_doc,
+            ground_truth_csv="ground_truth.csv",
+            pipeline=pipeline,
+            top_k=10,
+            threshold="auto",  # Automatically find best threshold
+            auto_threshold_metric="smr",
+        )
+        
+        # Get evaluation metrics
+        print(evaluator.evaluate(average="micro"))
+        print(evaluator.evaluate(average="macro"))
+        
+        # Evaluate single query
+        print(evaluator.evaluate_single_query("hier. adv. iovin. 1.41"))
+        
+        # Find optimal threshold for different metrics
+        best, all_thresholds = evaluator.find_best_threshold(metric="f1")
+        print(f"Best F1 at threshold {best['best_threshold']}: {best['best_f1']:.3f}")
+        ```
+    """
 
     # ─────────── CONSTRUCTOR ───────────
     def __init__(

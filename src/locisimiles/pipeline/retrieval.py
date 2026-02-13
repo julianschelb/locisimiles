@@ -18,14 +18,45 @@ class RetrievalPipeline:
     """
     A retrieval-only pipeline for intertextuality detection.
     
-    Uses embedding similarity to find candidate segments without a classification
-    stage. Binary decisions are made based on rank (top-k) or similarity threshold.
+    This pipeline uses semantic embeddings to find similar text passages without
+    a classification stage. It's useful for fast candidate generation or when
+    you want a simpler approach based purely on semantic similarity.
     
-    To maintain compatibility with the evaluator, results are returned in FullDict
-    format where the "probability" field is set to 1.0 for positive predictions
-    and 0.0 for negative predictions based on the decision criteria.
+    Binary decisions are made using one of two strategies:
+        - **Top-k**: The k most similar candidates are marked as positive
+        - **Similarity threshold**: Candidates above a threshold are positive
+    
+    The results are returned in FullDict format for compatibility with the
+    evaluator, where "probability" is 1.0 for positive and 0.0 for negative.
+    
+    Attributes:
+        embedder: The sentence transformer model for computing embeddings.
+        device: The device used for computation ('cpu' or 'cuda').
+    
+    Example:
+        ```python
+        from locisimiles.pipeline import RetrievalPipeline
+        from locisimiles.document import Document
+        
+        # Load documents
+        query_doc = Document("hieronymus.csv")
+        source_doc = Document("vergil.csv")
+        
+        # Initialize pipeline
+        pipeline = RetrievalPipeline(
+            embedding_model_name="julian-schelb/SPhilBerta-emb-lat-intertext-v1",
+            device="cpu",
+        )
+        
+        # Find top 5 similar passages for each query
+        results = pipeline.run(
+            query=query_doc,
+            source=source_doc,
+            top_k=5,
+        )
+        ```
     """
-    
+
     def __init__(
         self,
         *,

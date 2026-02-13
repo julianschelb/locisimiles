@@ -19,12 +19,50 @@ from tqdm import tqdm
 
 class ClassificationPipelineWithCandidategeneration:
     """
-    A pipeline for intertextuality classification with candidate generation.
-    It first generates candidate segments from a source document based on
-    similarity to a query segment, and then classifies these candidates
-    as intertextual or not using a pre-trained model.
-    """
+    A two-stage pipeline combining retrieval and classification for intertextuality detection.
     
+    This pipeline implements an efficient two-stage approach:
+        1. **Retrieval**: Generate candidate segments using embedding similarity
+        2. **Classification**: Classify the top-k candidates using a transformer model
+    
+    This approach is more efficient than exhaustive classification for large document
+    collections, while maintaining high accuracy by using learned classification.
+    
+    Attributes:
+        embedder: The sentence transformer model for candidate generation.
+        clf_model: The transformer classification model.
+        clf_tokenizer: The tokenizer for the classification model.
+        device: The device used for computation ('cpu' or 'cuda').
+    
+    Example:
+        ```python
+        from locisimiles.pipeline import ClassificationPipelineWithCandidategeneration
+        from locisimiles.document import Document
+        
+        # Load documents
+        query_doc = Document("hieronymus.csv")
+        source_doc = Document("vergil.csv")
+        
+        # Initialize two-stage pipeline
+        pipeline = ClassificationPipelineWithCandidategeneration(
+            classification_name="julian-schelb/PhilBerta-class-latin-intertext-v1",
+            embedding_model_name="julian-schelb/SPhilBerta-emb-lat-intertext-v1",
+            device="cpu",
+        )
+        
+        # Run pipeline: retrieve top 10 candidates, then classify
+        results = pipeline.run(
+            query=query_doc,
+            source=source_doc,
+            top_k=10,
+        )
+        
+        # Pretty print results
+        from locisimiles.pipeline import pretty_print
+        pretty_print(results)
+        ```
+    """
+
     def __init__(
         self,
         *,

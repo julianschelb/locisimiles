@@ -87,16 +87,18 @@ class RuleBasedPipeline:
     potential quotations, allusions, and textual reuse between Latin documents.
     
     Features:
-    - Orthographic normalization (v→u, j→i, prefix assimilation)
-    - Stopword filtering
-    - Distance criterion (shared words must be close together)
-    - Scissa filter (punctuation agreement)
-    - HTRG filter (Part-of-Speech agreement) - optional
-    - Similarity filter (embedding-based) - optional
+        - Orthographic normalization (v→u, j→i, prefix assimilation)
+        - Stopword filtering
+        - Distance criterion (shared words must be close together)
+        - Scissa filter (punctuation agreement)
+        - HTRG filter (Part-of-Speech agreement) - optional
+        - Similarity filter (embedding-based) - optional
     
     Example:
-        >>> pipeline = RuleBasedPipeline()
-        >>> results = pipeline.run(source_doc, target_doc)
+        ```python
+        pipeline = RuleBasedPipeline()
+        results = pipeline.run(query=query_doc, source=source_doc)
+        ```
     """
     
     def __init__(
