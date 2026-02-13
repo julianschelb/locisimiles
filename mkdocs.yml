@@ -1,0 +1,107 @@
+site_name: LociSimiles
+site_description: A Python package for finding intertextual links in Latin literature using pre-trained language models.
+site_url: https://julianschelb.github.io/locisimiles/
+repo_url: https://github.com/julianschelb/locisimiles
+repo_name: julianschelb/locisimiles
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+
+extra_css:
+  - stylesheets/extra.css
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/julianschelb/locisimiles
+  generator: false
+
+copyright: |
+  <a href="https://arxiv.org/abs/2601.07533">arXiv:2601.07533</a> | MIT License
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            # Cleaner layout
+            show_source: false
+            show_root_heading: true
+            show_root_toc_entry: true
+            heading_level: 2
+            
+            # Show type labels (class, function, etc.)
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            
+            # Hide clutter
+            show_bases: false
+            show_if_no_docstring: false
+            filters: ["!^_"]
+            
+            # Flat layout (no nested categories)
+            group_by_category: false
+            members_order: source
+            show_category_heading: false
+            
+            # Signatures
+            show_signature: true
+            show_signature_annotations: true
+            separate_signature: true
+            line_length: 60
+            signature_crossrefs: true
+            
+            # Docstrings
+            docstring_style: google
+            docstring_section_style: spacy
+            merge_init_into_class: true
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets:
+      base_path: .
+  - pymdownx.superfences
+  - admonition
+  - pymdownx.details
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - Examples: examples.md
+  - CLI Reference: cli.md
+  - API Reference:
+    - Overview: api/index.md
+    - Document: api/document.md
+    - Pipelines: api/pipelines.md
+    - Evaluator: api/evaluator.md
+  - Development: development.md
