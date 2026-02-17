@@ -10,7 +10,12 @@ import numpy as np
 from typing import Dict, List, Any, Sequence
 from sentence_transformers import SentenceTransformer
 from locisimiles.document import Document, TextSegment
-from locisimiles.pipeline._types import SimDict, FullDict
+from locisimiles.pipeline._types import (
+    Candidate,
+    Judgment,
+    CandidateGeneratorOutput,
+    JudgeOutput,
+)
 from tqdm import tqdm
 
 
@@ -26,8 +31,9 @@ class RetrievalPipeline:
         - **Top-k**: The k most similar candidates are marked as positive
         - **Similarity threshold**: Candidates above a threshold are positive
     
-    The results are returned in FullDict format for compatibility with the
-    evaluator, where "probability" is 1.0 for positive and 0.0 for negative.
+    The results are returned in ``JudgeOutput`` format for compatibility with
+    the evaluator, where ``judgment_score`` is 1.0 for positive and 0.0 for
+    negative.
     
     Attributes:
         embedder: The sentence transformer model for computing embeddings.
@@ -70,8 +76,8 @@ class RetrievalPipeline:
         self.embedder = SentenceTransformer(embedding_model_name, device=self.device)
 
         # Keep results in memory for later access
-        self._last_sim: SimDict | None = None
-        self._last_full: FullDict | None = None
+        self._last_candidates: CandidateGeneratorOutput | None = None
+        self._last_judgments: JudgeOutput | None = None
 
     # ---------- Generate Embedding ----------
 
@@ -127,12 +133,12 @@ class RetrievalPipeline:
         query_embeddings: np.ndarray,
         source_document: Document,
         top_k: int,
-    ) -> SimDict:
+    ) -> CandidateGeneratorOutput:
         """
         Compute cosine similarity between query embeddings and source embeddings
         using the Chroma index, and return the top-k similar segments for each query segment.
         """
-        similarity_results: SimDict = {}
+        similarity_results: CandidateGeneratorOutput = {}
 
         for query_segment, query_embedding in zip(query_segments, query_embeddings):
             results = self._source_index.query(
@@ -142,7 +148,7 @@ class RetrievalPipeline:
             
             # Convert cosine distance to cosine similarity: similarity = 1 - distance
             similarity_results[query_segment.id] = [
-                (source_document[idx], 1.0 - float(distance))
+                Candidate(segment=source_document[idx], score=1.0 - float(distance))
                 for idx, distance in zip(results["ids"][0], results["distances"][0])
             ]
 
@@ -159,12 +165,13 @@ class RetrievalPipeline:
         query_prompt_name: str = "query",
         source_prompt_name: str = "match",
         **kwargs: Any,
-    ) -> SimDict:
+    ) -> CandidateGeneratorOutput:
         """
         Retrieve candidate segments from *source* based on similarity to *query*.
-        
-        Returns a dictionary mapping query segment IDs to lists of
-        (source segment, similarity score) pairs, sorted by similarity (descending).
+
+        Returns:
+            CandidateGeneratorOutput mapping query segment IDs to lists of
+            ``Candidate`` objects, sorted by score (descending).
         """
         query_segments = list(query.segments.values())
         source_segments = list(source.segments.values())
@@ -192,7 +199,7 @@ class RetrievalPipeline:
             top_k=top_k,
         )
         
-        self._last_sim = similarity_results
+        self._last_candidates = similarity_results
         return similarity_results
 
     # ---------- Main Pipeline ----------
@@ -207,35 +214,24 @@ class RetrievalPipeline:
         query_prompt_name: str = "query",
         source_prompt_name: str = "match",
         **kwargs: Any,
-    ) -> FullDict:
+    ) -> JudgeOutput:
         """
         Run the retrieval pipeline and return results compatible with the evaluator.
-        
+
         Binary decisions are made using one of two criteria:
-        - **top_k** (default): The top-k ranked candidates per query are predicted 
-          as positive (prob=1.0), all others as negative (prob=0.0).
-        - **similarity_threshold**: If provided, candidates with similarity >= threshold
-          are predicted as positive, regardless of rank.
-        
-        Args:
-            query: Query document
-            source: Source document  
-            top_k: Number of top candidates to mark as positive (default: 10).
-                   Used when similarity_threshold is None.
-            similarity_threshold: If provided, use this similarity cutoff instead
-                   of top_k. Candidates with similarity >= threshold are positive.
-            query_prompt_name: Prompt name for query embeddings
-            source_prompt_name: Prompt name for source embeddings
-            
+        - **top_k** (default): The top-k ranked candidates per query are predicted
+          as positive (``judgment_score=1.0``), all others as negative (``0.0``).
+        - **similarity_threshold**: If provided, candidates with similarity >=
+          threshold are predicted as positive, regardless of rank.
+
         Returns:
-            FullDict mapping query IDs to lists of (segment, similarity, probability)
-            tuples. Probability is 1.0 for positive predictions, 0.0 for negative.
+            JudgeOutput mapping query IDs to lists of ``Judgment`` objects.
         """
         # Retrieve more candidates than top_k to ensure we have enough for evaluation
         # When using similarity_threshold, we need all candidates
         retrieve_k = len(source) if similarity_threshold is not None else top_k
         
-        similarity_dict = self.retrieve(
+        candidate_dict = self.retrieve(
             query=query,
             source=source,
             top_k=retrieve_k,
@@ -243,24 +239,24 @@ class RetrievalPipeline:
             source_prompt_name=source_prompt_name,
         )
         
-        # Convert to FullDict format with binary "probabilities"
-        full_results: FullDict = {}
+        # Convert to JudgeOutput format with binary judgment scores
+        judge_results: JudgeOutput = {}
         
-        for query_id, similarity_pairs in similarity_dict.items():
-            full_results[query_id] = []
+        for query_id, candidate_list in candidate_dict.items():
+            judge_results[query_id] = []
             
-            for rank, (segment, similarity) in enumerate(similarity_pairs):
+            for rank, candidate in enumerate(candidate_list):
                 # Determine if this candidate should be predicted as positive
                 if similarity_threshold is not None:
-                    # Use similarity threshold
-                    is_positive = similarity >= similarity_threshold
+                    is_positive = candidate.score >= similarity_threshold
                 else:
-                    # Use top-k ranking (0-indexed, so rank < top_k)
                     is_positive = rank < top_k
                 
-                # Set probability to 1.0 for positive, 0.0 for negative
-                probability = 1.0 if is_positive else 0.0
-                full_results[query_id].append((segment, similarity, probability))
+                judge_results[query_id].append(Judgment(
+                    segment=candidate.segment,
+                    candidate_score=candidate.score,
+                    judgment_score=1.0 if is_positive else 0.0,
+                ))
         
-        self._last_full = full_results
-        return full_results
+        self._last_judgments = judge_results
+        return judge_results

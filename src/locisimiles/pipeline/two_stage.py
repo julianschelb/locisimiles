@@ -13,7 +13,12 @@ from typing import Dict, List, Tuple, Any, Sequence
 from sentence_transformers import SentenceTransformer
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from locisimiles.document import Document, TextSegment
-from locisimiles.pipeline._types import ScoreT, SimDict, FullDict
+from locisimiles.pipeline._types import (
+    Candidate,
+    Judgment,
+    CandidateGeneratorOutput,
+    JudgeOutput,
+)
 from tqdm import tqdm
 
 
@@ -82,8 +87,8 @@ class ClassificationPipelineWithCandidategeneration:
         self.clf_model.to(self.device).eval()
 
         # Keep results in memory for later access
-        self._last_sim: SimDict | None = None
-        self._last_full: FullDict | None = None
+        self._last_candidates: CandidateGeneratorOutput | None = None
+        self._last_judgments: JudgeOutput | None = None
 
     # ---------- Generate Embedding ----------
 
@@ -124,7 +129,7 @@ class ClassificationPipelineWithCandidategeneration:
         query_text: str,
         cand_texts: Sequence[str],
         max_len: int = 512,
-    ) -> List[ScoreT]:
+    ) -> List[float]:
         """Predict probabilities for a batch of (query, cand) pairs."""
         # Truncate pairs intelligently before tokenization
         truncated_pairs = [self._truncate_pair(query_text, cand_text, max_len) 
@@ -152,9 +157,9 @@ class ClassificationPipelineWithCandidategeneration:
         cand_texts: Sequence[str],
         *,
         batch_size: int = 32,
-    ) -> List[ScoreT]:
+    ) -> List[float]:
         """Return P(positive) for each (query, cand) pair in *cand_texts*."""
-        probs: List[ScoreT] = []
+        probs: List[float] = []
         
         # Predict in batches between a query and multiple candidates
         for i in range(0, len(cand_texts), batch_size):
@@ -251,12 +256,12 @@ class ClassificationPipelineWithCandidategeneration:
         query_embeddings: np.ndarray,
         source_document: Document,
         top_k: int,
-    ) -> SimDict:
+    ) -> CandidateGeneratorOutput:
         """
         Compute cosine similarity between query embeddings and source embeddings
         using the Chroma index, and return the top-k similar segments for each query segment.
         """
-        similarity_results: SimDict = {}
+        similarity_results: CandidateGeneratorOutput = {}
 
         # Iterate over each query segment and its embedding
         for query_segment, query_embedding in zip(query_segments, query_embeddings):
@@ -267,10 +272,10 @@ class ClassificationPipelineWithCandidategeneration:
                 n_results=top_k,
             )
             
-            # Map the results to TextSegment objects and similarity scores
+            # Map the results to Candidate objects
             # Convert cosine distance to cosine similarity: similarity = 1 - distance
             similarity_results[query_segment.id] = [
-                (source_document[idx], 1.0 - float(distance))
+                Candidate(segment=source_document[idx], score=1.0 - float(distance))
                 for idx, distance in zip(results["ids"][0], results["distances"][0])
             ]
 
@@ -285,11 +290,13 @@ class ClassificationPipelineWithCandidategeneration:
         query_prompt_name: str = "query",
         source_prompt_name: str = "match",
         **kwargs: Any,
-    ) -> SimDict:
+    ) -> CandidateGeneratorOutput:
         """
         Generate candidate segments from *source* based on similarity to *query*.
-        Returns a dictionary mapping query segment IDs to lists of
-        (source segment, similarity score) pairs.
+
+        Returns:
+            CandidateGeneratorOutput mapping query segment IDs to lists of
+            ``Candidate`` objects.
         """
         # Extract segments from query and source documents
         query_segments = list(query.segments.values())
@@ -323,47 +330,62 @@ class ClassificationPipelineWithCandidategeneration:
         )
         
         # Cache the results and return
-        self._last_sim = similarity_results
+        self._last_candidates = similarity_results
         return similarity_results
 
-    # ---------- Stage 2: Classification ----------
+    # ---------- Stage 2: Classification (Judge) ----------
 
-    def check_candidates(
+    def judge(
         self,
         *,
         query: Document,
         source: Document,
-        candidates: SimDict | None = None,
+        candidates: CandidateGeneratorOutput | None = None,
         batch_size: int = 32,
         **kwargs: Any,
-    ) -> FullDict:
+    ) -> JudgeOutput:
         """
         Classify candidates generated from *source*.
-        If *candidates* is not provided, it will be generated using
-        *generate_candidates*.
-        Returns a dictionary mapping query segment IDs to lists of
-        (source segment, similarity score, P(positive)) tuples.
+
+        Args:
+            query: Query document.
+            source: Source document.
+            candidates: Output from ``generate_candidates``. Required.
+            batch_size: Batch size for the classifier.
+
+        Returns:
+            JudgeOutput mapping query segment IDs to lists of ``Judgment``
+            objects with ``candidate_score`` (similarity) and
+            ``judgment_score`` (classification probability).
         """
 
-        full_results: FullDict = {}
+        judge_results: JudgeOutput = {}
         
-        for query_id, similarity_pairs in tqdm(candidates.items(), desc="Check candidates"):
+        for query_id, candidate_list in tqdm(candidates.items(), desc="Judging candidates"):
             
             # Predict probabilities for the current query and its candidates
-            candidate_texts = [segment.text for segment, _ in similarity_pairs]
+            candidate_texts = [c.segment.text for c in candidate_list]
             predicted_probabilities = self._predict(
                 query[query_id].text, candidate_texts, batch_size=batch_size
             )
             
-            # Combine segments, similarity scores, and probabilities into results
-            full_results[query_id] = []
-            for (segment, similarity_score), probability in zip(similarity_pairs, predicted_probabilities):
-                full_results[query_id].append((segment, similarity_score, probability))
+            # Combine candidates with classification probabilities
+            judge_results[query_id] = [
+                Judgment(
+                    segment=candidate.segment,
+                    candidate_score=candidate.score,
+                    judgment_score=probability,
+                )
+                for candidate, probability in zip(candidate_list, predicted_probabilities)
+            ]
 
-        self._last_full = full_results
-        return full_results
+        self._last_judgments = judge_results
+        return judge_results
 
-    # ---------- Stage 3: Pipeline ----------
+    # Backward-compatible alias
+    check_candidates = judge
+
+    # ---------- Full Pipeline ----------
 
     def run(
         self,
@@ -374,22 +396,24 @@ class ClassificationPipelineWithCandidategeneration:
         query_prompt_name: str = "query",
         source_prompt_name: str = "match",
         **kwargs: Any,
-    ) -> FullDict:
+    ) -> JudgeOutput:
         """
         Run the full pipeline: generate candidates and classify them.
-        Returns a dictionary mapping query segment IDs to lists of
-        (source segment, similarity score, P(positive)) tuples.
+
+        Returns:
+            JudgeOutput mapping query segment IDs to lists of ``Judgment``
+            objects.
         """
-        similarity_dict = self.generate_candidates(
+        candidates = self.generate_candidates(
             query=query,
             source=source,
             top_k=top_k,
             query_prompt_name=query_prompt_name,
             source_prompt_name=source_prompt_name,
         )
-        return self.check_candidates(
+        return self.judge(
             query=query,
             source=source,
-            candidates=similarity_dict,
+            candidates=candidates,
             **kwargs,
         )

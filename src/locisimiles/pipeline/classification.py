@@ -9,7 +9,7 @@ import torch.nn.functional as F
 from typing import Dict, List, Tuple, Any, Sequence
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from locisimiles.document import Document
-from locisimiles.pipeline._types import ScoreT, FullDict
+from locisimiles.pipeline._types import Judgment, JudgeOutput
 from tqdm import tqdm
 
 
@@ -53,8 +53,8 @@ class ClassificationPipeline:
         )
         
         # Filter results by probability threshold
-        for query_id, pairs in results.items():
-            matches = [(seg, prob) for seg, sim, prob in pairs if prob > 0.7]
+        for query_id, judgments in results.items():
+            matches = [j for j in judgments if j.judgment_score > 0.7]
             if matches:
                 print(f"{query_id}: {len(matches)} matches")
         ```
@@ -76,7 +76,7 @@ class ClassificationPipeline:
         self.clf_model.to(self.device).eval()
 
         # Keep results in memory for later access
-        self._last_results: FullDict | None = None
+        self._last_results: JudgeOutput | None = None
 
     # ---------- Predict Positive Probability ----------
 
@@ -104,7 +104,7 @@ class ClassificationPipeline:
         query_text: str,
         cand_texts: Sequence[str],
         max_len: int = 512,
-    ) -> List[ScoreT]:
+    ) -> List[float]:
         """Predict probabilities for a batch of (query, cand) pairs."""
         # Truncate pairs intelligently before tokenization
         truncated_pairs = [self._truncate_pair(query_text, cand_text, max_len) 
@@ -133,9 +133,9 @@ class ClassificationPipeline:
         *,
         batch_size: int = 32,
         max_len: int = 512,
-    ) -> List[ScoreT]:
+    ) -> List[float]:
         """Return P(positive) for each (query, cand) pair in *cand_texts*."""
-        probs: List[ScoreT] = []
+        probs: List[float] = []
         
         # Predict in batches between a query and multiple candidates
         for i in range(0, len(cand_texts), batch_size):
@@ -182,15 +182,18 @@ class ClassificationPipeline:
         source: Document,
         batch_size: int = 32,
         **kwargs: Any,
-    ) -> FullDict:
+    ) -> JudgeOutput:
         """
         Run classification on all query-source segment pairs.
-        Returns a dictionary mapping query segment IDs to lists of
-        (source segment, similarity_score=None, P(positive)) tuples.
-        
-        Note: Since there's no retrieval stage, similarity_score is set to None.
+
+        Since there is no retrieval stage the ``candidate_score`` on every
+        ``Judgment`` is set to ``None``.
+
+        Returns:
+            JudgeOutput mapping query segment IDs to lists of ``Judgment``
+            objects.
         """
-        results: FullDict = {}
+        results: JudgeOutput = {}
         
         # Extract all source segments
         source_segments = list(source.segments.values())
@@ -207,9 +210,13 @@ class ClassificationPipeline:
                 batch_size=batch_size
             )
             
-            # Build results with None for similarity score (no retrieval stage)
+            # Build Judgment objects (no candidate score since exhaustive)
             results[query_segment.id] = [
-                (source_seg, None, prob)
+                Judgment(
+                    segment=source_seg,
+                    candidate_score=None,
+                    judgment_score=prob,
+                )
                 for source_seg, prob in zip(source_segments, probabilities)
             ]
         

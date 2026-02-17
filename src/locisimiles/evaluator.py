@@ -7,7 +7,8 @@ import pandas as pd
 from locisimiles.document import Document
 from locisimiles.pipeline import (
     ClassificationPipelineWithCandidategeneration,
-    FullDict,  # alias exported by pipeline.py
+    Judgment,
+    JudgeOutput,
 )
 
 # ────────────────────────────────
@@ -66,7 +67,7 @@ class IntertextEvaluator:
     Attributes:
         query_doc: The query document being analyzed.
         source_doc: The source document containing potential quotation origins.
-        predictions: Cached pipeline predictions (FullDict format).
+        predictions: Cached pipeline predictions (JudgeOutput format).
         threshold: Probability threshold for positive classification.
         gold_labels: Ground truth annotations loaded from CSV.
     
@@ -131,7 +132,7 @@ class IntertextEvaluator:
         self.gold_labels = self._load_gold_labels(ground_truth_csv)
 
         # 2) RUN PIPELINE ONCE ──────────────────────────────────────────
-        self.predictions: FullDict = pipeline.run(
+        self.predictions: JudgeOutput = pipeline.run(
             query=query_doc,
             source=source_doc,
             top_k=top_k,
@@ -403,7 +404,7 @@ class IntertextEvaluator:
 
         # Evaluate for each k
         for k in k_values:
-            filtered_predictions: FullDict = {}
+            filtered_predictions: JudgeOutput = {}
             for q_id, result_list in original_predictions.items():
                 filtered_predictions[q_id] = result_list[:k]
             
@@ -455,10 +456,14 @@ class IntertextEvaluator:
         """
         link_set: set[Tuple[str, str]] = set()
         for q_id, result_list in self.predictions.items():
-            link_set.update(
-                {(q_id, seg.id)
-                 for seg, _sim, prob in result_list if prob >= self.threshold}
-            )
+            for item in result_list:
+                if isinstance(item, Judgment):
+                    seg, prob = item.segment, item.judgment_score
+                else:
+                    # Backward compat: tuple (segment, sim, prob)
+                    seg, _sim, prob = item  # type: ignore[misc]
+                if prob >= self.threshold:
+                    link_set.add((q_id, seg.id))
         return link_set
 
 

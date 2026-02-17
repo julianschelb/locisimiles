@@ -8,7 +8,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from locisimiles.document import Document, TextSegment
-from locisimiles.pipeline._types import FullDict
+from locisimiles.pipeline._types import Judgment, JudgeOutput
 
 
 class TestRuleBasedPipelineInit:
@@ -477,8 +477,8 @@ class TestRuleBasedDocumentConversion:
         assert all(isinstance(item[0], str) for item in result)
         assert all(isinstance(item[1], str) for item in result)
 
-    def test_matches_to_fulldict(self, sample_document, sample_source_document):
-        """Test converting matches to FullDict format."""
+    def test_matches_to_judge_output(self, sample_document, sample_source_document):
+        """Test converting matches to JudgeOutput format."""
         from locisimiles.pipeline.rule_based import RuleBasedPipeline
         
         pipeline = RuleBasedPipeline()
@@ -488,7 +488,7 @@ class TestRuleBasedDocumentConversion:
             [1, "src1", "source text", "seg1", "target text", "shared; words"]
         ]
         
-        result = pipeline._matches_to_fulldict(matches, sample_source_document, sample_document)
+        result = pipeline._matches_to_judge_output(matches, sample_source_document, sample_document)
         
         assert isinstance(result, dict)
         assert "seg1" in result
@@ -537,19 +537,19 @@ class TestRuleBasedRun:
         
         assert isinstance(result, dict)
 
-    def test_run_returns_fulldict_format(self, sample_document, sample_source_document):
-        """Test that run returns proper FullDict format."""
+    def test_run_returns_judge_output_format(self, sample_document, sample_source_document):
+        """Test that run returns proper JudgeOutput format."""
         from locisimiles.pipeline.rule_based import RuleBasedPipeline
         
         pipeline = RuleBasedPipeline(min_shared_words=1)
         result = pipeline.run(query=sample_document, source=sample_source_document)
         
-        # All values should be lists of tuples
+        # All values should be lists of Judgment objects
         for seg_id, matches in result.items():
             assert isinstance(matches, list)
             for match in matches:
-                assert len(match) == 3  # (segment, similarity, probability)
-                assert isinstance(match[0], TextSegment)
+                assert isinstance(match, Judgment)
+                assert isinstance(match.segment, TextSegment)
 
 
 class TestRuleBasedPreprocess:

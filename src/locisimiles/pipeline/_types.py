@@ -4,87 +4,128 @@ Shared type definitions and utilities for pipeline modules.
 
 This module defines the common data structures used across all pipeline
 implementations for representing detection results.
+
+Pipeline Architecture
+---------------------
+Every pipeline follows a two-phase pattern:
+
+1. **Candidate Generation** — narrows the search space, producing a
+   ``CandidateGeneratorOutput`` (mapping of query IDs → ``Candidate`` lists).
+2. **Judgment** — scores or classifies candidate pairs, producing a
+   ``JudgeOutput`` (mapping of query IDs → ``Judgment`` lists).
+
+The dataclasses ``Candidate`` and ``Judgment`` replace the previous unnamed
+tuple types (``SimPair`` / ``FullPair``), giving each field a clear name.
 """
 from __future__ import annotations
 
-from typing import Dict, List, Tuple
+from dataclasses import dataclass
+from typing import Dict, List, Optional, Tuple
 from locisimiles.document import TextSegment
 
-# ============== TYPE ALIASES ==============
+
+# ============== DATACLASSES ==============
+
+@dataclass
+class Candidate:
+    """A single candidate match produced by a candidate-generation stage.
+
+    Attributes:
+        segment: The matching source segment.
+        score: Relevance score (e.g. cosine similarity, shared-word ratio).
+    """
+    segment: TextSegment
+    score: float
+
+
+@dataclass
+class Judgment:
+    """A single scored candidate after the judgment (classification / filtering) stage.
+
+    Attributes:
+        segment: The matching source segment.
+        candidate_score: Score from candidate generation (``None`` when the
+            generator is exhaustive, i.e. all pairs are candidates).
+        judgment_score: Final judgment value — e.g. a classification
+            probability, a binary 1.0/0.0 decision, or a rule-based score.
+    """
+    segment: TextSegment
+    candidate_score: Optional[float]
+    judgment_score: float
+
+
+# ============== TYPE ALIASES — new names ==============
+
+CandidateGeneratorOutput = Dict[str, List[Candidate]]
+"""Mapping from query segment IDs → ranked lists of ``Candidate`` objects.
+
+This is the output type of every candidate-generation stage.
+"""
+
+JudgeOutput = Dict[str, List[Judgment]]
+"""Mapping from query segment IDs → lists of ``Judgment`` objects.
+
+This is the standard output type of every pipeline's ``run()`` method
+and is consumed by the evaluator.
+"""
+
+# Alias so both names work (judge input == candidate-generator output)
+JudgeInput = CandidateGeneratorOutput
+"""Alias: the judge receives exactly what the generator produced."""
+
+
+# ============== BACKWARD-COMPATIBLE ALIASES (deprecated) ==============
 
 ScoreT = float
-"""Type alias for similarity or probability scores (float between 0 and 1)."""
+"""*Deprecated* — use plain ``float`` instead."""
 
-SimPair = Tuple[TextSegment, ScoreT]
-"""
-A tuple of (TextSegment, similarity_score) representing a candidate match.
+SimPair = Tuple[TextSegment, float]
+"""*Deprecated* — use ``Candidate`` instead."""
 
-Used in retrieval-only pipelines where only similarity scores are computed.
-"""
-
-FullPair = Tuple[TextSegment, ScoreT, ScoreT]
-"""
-A tuple of (TextSegment, similarity_score, probability) for classified matches.
-
-The three elements are:
-    - TextSegment: The matching source segment
-    - similarity_score: Cosine similarity from retrieval (may be None)
-    - probability: Classification probability P(positive)
-"""
+FullPair = Tuple[TextSegment, float, float]
+"""*Deprecated* — use ``Judgment`` instead."""
 
 SimDict = Dict[str, List[SimPair]]
-"""
-Mapping from query segment IDs to lists of (segment, similarity) pairs.
-
-Used as intermediate result format in retrieval pipelines.
-"""
+"""*Deprecated* — use ``CandidateGeneratorOutput`` instead."""
 
 FullDict = Dict[str, List[FullPair]]
-"""
-Mapping from query segment IDs to lists of (segment, similarity, probability) tuples.
-
-This is the standard output format for all pipelines, used by the evaluator.
-
-Example:
-    ```python
-    results: FullDict = {
-        "hier. adv. iovin. 1.41": [
-            (TextSegment(...), 0.82, 0.95),  # High confidence match
-            (TextSegment(...), 0.65, 0.23),  # Low confidence
-        ],
-        "hier. adv. iovin. 1.42": [...],
-    }
-    ```
-"""
+"""*Deprecated* — kept for type-checker backward compatibility."""
 
 
 # ============== UTILITY HELPERS ==============
 
-def pretty_print(results: FullDict) -> None:
+def pretty_print(results: JudgeOutput) -> None:
     """
     Print pipeline results in a human-readable format.
-    
-    Displays each query segment and its candidate matches with similarity
-    scores and classification probabilities.
-    
+
+    Displays each query segment and its candidate matches with candidate
+    scores and judgment scores.
+
     Args:
-        results: Pipeline output in FullDict format.
-    
+        results: Pipeline output in ``JudgeOutput`` format.
+
     Example:
         ```python
         from locisimiles.pipeline import pretty_print
-        
+
         results = pipeline.run(query=query_doc, source=source_doc, top_k=5)
         pretty_print(results)
-        
+
         # Output:
         # ▶ Query segment 'hier. adv. iovin. 1.41':
-        #   verg. aen. 1.1              sim=+0.823  P(pos)=0.951
-        #   verg. aen. 2.45             sim=+0.654  P(pos)=0.234
+        #   verg. aen. 1.1              candidate=+0.823  judgment=0.951
+        #   verg. aen. 2.45             candidate=+0.654  judgment=0.234
         ```
     """
     for qid, lst in results.items():
         print(f"\n▶ Query segment {qid!r}:")
-        for src_seg, sim, ppos in lst:
-            sim_str = f"{sim:+.3f}" if sim is not None else "N/A"
-            print(f"  {src_seg.id:<25}  sim={sim_str}  P(pos)={ppos:.3f}")
+        for item in lst:
+            if isinstance(item, Judgment):
+                seg = item.segment
+                cand = item.candidate_score
+                judg = item.judgment_score
+            else:
+                # Backward compat: tuple (segment, sim, prob)
+                seg, cand, judg = item  # type: ignore[misc]
+            cand_str = f"{cand:+.3f}" if cand is not None else "N/A"
+            print(f"  {seg.id:<25}  candidate={cand_str}  judgment={judg:.3f}")

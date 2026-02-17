@@ -13,6 +13,7 @@ from locisimiles.evaluator import (
     IntertextEvaluator
 )
 from locisimiles.document import Document, TextSegment
+from locisimiles.pipeline._types import Judgment
 
 
 # =================== METRIC HELPER TESTS ===================
@@ -273,8 +274,16 @@ class TestIntertextEvaluatorMetrics:
         
         # Predictions: prob > 0.5 means positive
         mock_pipeline.run.return_value = {
-            "q1": [(s1, 0.9, 0.8), (s2, 0.7, 0.3), (s3, 0.5, 0.6)],  # Pred: s1=1, s2=0, s3=1
-            "q2": [(s1, 0.8, 0.7), (s2, 0.6, 0.9), (s3, 0.4, 0.2)],  # Pred: s1=1, s2=1, s3=0
+            "q1": [
+                Judgment(segment=s1, candidate_score=0.9, judgment_score=0.8),
+                Judgment(segment=s2, candidate_score=0.7, judgment_score=0.3),
+                Judgment(segment=s3, candidate_score=0.5, judgment_score=0.6),
+            ],  # Pred: s1=1, s2=0, s3=1
+            "q2": [
+                Judgment(segment=s1, candidate_score=0.8, judgment_score=0.7),
+                Judgment(segment=s2, candidate_score=0.6, judgment_score=0.9),
+                Judgment(segment=s3, candidate_score=0.4, judgment_score=0.2),
+            ],  # Pred: s1=1, s2=1, s3=0
         }
         
         evaluator = IntertextEvaluator(
@@ -359,7 +368,10 @@ class TestIntertextEvaluatorThreshold:
         s1 = TextSegment("Source one.", "s1", row_id=0)
         s2 = TextSegment("Source two.", "s2", row_id=1)
         mock_pipeline.run.return_value = {
-            "q1": [(s1, 0.9, 0.75), (s2, 0.5, 0.25)],
+            "q1": [
+                Judgment(segment=s1, candidate_score=0.9, judgment_score=0.75),
+                Judgment(segment=s2, candidate_score=0.5, judgment_score=0.25),
+            ],
         }
         
         return IntertextEvaluator(
@@ -427,8 +439,8 @@ class TestIntertextEvaluatorQueryIds:
         mock_pipeline = MagicMock()
         s1 = TextSegment("Source.", "s1", row_id=0)
         mock_pipeline.run.return_value = {
-            "q1": [(s1, 0.9, 0.8)],
-            "q2": [(s1, 0.5, 0.3)],
+            "q1": [Judgment(segment=s1, candidate_score=0.9, judgment_score=0.8)],
+            "q2": [Judgment(segment=s1, candidate_score=0.5, judgment_score=0.3)],
         }
         
         return IntertextEvaluator(

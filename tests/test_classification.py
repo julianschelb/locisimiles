@@ -8,7 +8,7 @@ import numpy as np
 from unittest.mock import MagicMock, patch
 
 from locisimiles.document import Document, TextSegment
-from locisimiles.pipeline._types import FullDict
+from locisimiles.pipeline._types import Judgment, JudgeOutput
 
 
 class TestClassificationPipelineTruncation:
@@ -272,8 +272,8 @@ class TestClassificationPipelineRun:
     @patch("locisimiles.pipeline.classification.AutoModelForSequenceClassification")
     @patch("locisimiles.pipeline.classification.AutoTokenizer")
     @patch("locisimiles.pipeline.classification.tqdm", lambda x, **kwargs: x)
-    def test_run_none_similarity(self, mock_tokenizer_class, mock_model_class, temp_dir):
-        """Test that similarity is None (no retrieval stage)."""
+    def test_run_none_candidate_score(self, mock_tokenizer_class, mock_model_class, temp_dir):
+        """Test that candidate_score is None (no retrieval stage)."""
         from locisimiles.pipeline.classification import ClassificationPipeline
         
         mock_tokenizer = MagicMock()
@@ -306,8 +306,8 @@ class TestClassificationPipelineRun:
             source=Document(source_csv),
         )
         
-        segment, similarity, prob = result["q1"][0]
-        assert similarity is None  # No retrieval stage
+        j = result["q1"][0]
+        assert j.candidate_score is None  # No retrieval stage
 
 
 class TestClassificationPipelineDebug:

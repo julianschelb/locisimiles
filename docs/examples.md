@@ -113,12 +113,12 @@ results = pipeline_clf.run(
 
 # Filter high-probability matches
 threshold = 0.7
-for query_id, pairs in results.items():
-    high_prob = [(seg, prob) for seg, sim, prob in pairs if prob > threshold]
+for query_id, judgments in results.items():
+    high_prob = [j for j in judgments if j.judgment_score > threshold]
     if high_prob:
         print(f"Query {query_id}:")
-        for seg, prob in high_prob:
-            print(f"  {seg.id}: P={prob:.3f}")
+        for j in high_prob:
+            print(f"  {j.segment.id}: P={j.judgment_score:.3f}")
 ```
 
 ## Running the Examples

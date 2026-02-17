@@ -8,7 +8,7 @@ import numpy as np
 from unittest.mock import MagicMock, patch
 
 from locisimiles.document import Document, TextSegment
-from locisimiles.pipeline._types import FullDict, SimDict
+from locisimiles.pipeline._types import Judgment, JudgeOutput, CandidateGeneratorOutput
 
 
 class TestTwoStagePipelineInitialization:
@@ -343,9 +343,9 @@ class TestTwoStagePipelineRun:
             top_k=1,
         )
         
-        segment, similarity, prob = result["q1"][0]
-        assert similarity is not None
-        assert similarity == pytest.approx(0.8, rel=1e-5)
+        j = result["q1"][0]
+        assert j.candidate_score is not None
+        assert j.candidate_score == pytest.approx(0.8, rel=1e-5)
 
     @patch("locisimiles.pipeline.two_stage.SentenceTransformer")
     @patch("locisimiles.pipeline.two_stage.AutoModelForSequenceClassification")
@@ -401,20 +401,20 @@ class TestTwoStagePipelineRun:
             top_k=1,
         )
         
-        segment, similarity, prob = result["q1"][0]
-        assert 0.0 <= prob <= 1.0
+        j = result["q1"][0]
+        assert 0.0 <= j.judgment_score <= 1.0
         # With logits [0, 2], softmax gives ~0.88 for class 1
-        assert prob > 0.8
+        assert j.judgment_score > 0.8
 
     @patch("locisimiles.pipeline.two_stage.SentenceTransformer")
     @patch("locisimiles.pipeline.two_stage.AutoModelForSequenceClassification")
     @patch("locisimiles.pipeline.two_stage.AutoTokenizer")
     @patch("locisimiles.pipeline.two_stage.chromadb.EphemeralClient")
     @patch("locisimiles.pipeline.two_stage.tqdm", lambda x, **kwargs: x)
-    def test_fulldict_format(
+    def test_judge_output_format(
         self, mock_chroma, mock_tokenizer_class, mock_model_class, mock_st_class, temp_dir
     ):
-        """Test output matches FullDict type structure."""
+        """Test output matches JudgeOutput type structure."""
         from locisimiles.pipeline.two_stage import ClassificationPipelineWithCandidategeneration
         
         mock_embedder = MagicMock()
@@ -459,14 +459,15 @@ class TestTwoStagePipelineRun:
             top_k=1,
         )
         
-        # Verify FullDict structure
+        # Verify JudgeOutput structure
         assert isinstance(result, dict)
-        for qid, pairs in result.items():
+        for qid, judgments in result.items():
             assert isinstance(qid, str)
-            for segment, similarity, probability in pairs:
-                assert isinstance(segment, TextSegment)
-                assert isinstance(similarity, float)
-                assert isinstance(probability, float)
+            for j in judgments:
+                assert isinstance(j, Judgment)
+                assert isinstance(j.segment, TextSegment)
+                assert isinstance(j.candidate_score, float)
+                assert isinstance(j.judgment_score, float)
 
 
 class TestTwoStagePipelineDebug:
@@ -517,10 +518,10 @@ class TestTwoStagePipelineResultCaching:
     @patch("locisimiles.pipeline.two_stage.AutoTokenizer")
     @patch("locisimiles.pipeline.two_stage.chromadb.EphemeralClient")
     @patch("locisimiles.pipeline.two_stage.tqdm", lambda x, **kwargs: x)
-    def test_stores_last_sim_and_full(
+    def test_stores_last_candidates_and_judgments(
         self, mock_chroma, mock_tokenizer_class, mock_model_class, mock_st_class, temp_dir
     ):
-        """Test that _last_sim and _last_full are populated after run."""
+        """Test that _last_candidates and _last_judgments are populated after run."""
         from locisimiles.pipeline.two_stage import ClassificationPipelineWithCandidategeneration
         
         mock_embedder = MagicMock()
@@ -561,8 +562,8 @@ class TestTwoStagePipelineResultCaching:
         pipeline = ClassificationPipelineWithCandidategeneration(device="cpu")
         
         # Before run
-        assert pipeline._last_sim is None
-        assert pipeline._last_full is None
+        assert pipeline._last_candidates is None
+        assert pipeline._last_judgments is None
         
         pipeline.run(
             query=Document(query_csv),
@@ -571,5 +572,5 @@ class TestTwoStagePipelineResultCaching:
         )
         
         # After run
-        assert pipeline._last_sim is not None
-        assert pipeline._last_full is not None
+        assert pipeline._last_candidates is not None
+        assert pipeline._last_judgments is not None

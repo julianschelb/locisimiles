@@ -32,7 +32,7 @@ from typing import Dict, List, Tuple, Set, Union, Any, Optional, Sequence
 import numpy as np
 
 from locisimiles.document import Document, TextSegment
-from locisimiles.pipeline._types import FullDict
+from locisimiles.pipeline._types import Judgment, JudgeOutput
 
 # Optional heavy dependencies - loaded lazily
 try:
@@ -173,7 +173,7 @@ class RuleBasedPipeline:
         query_genre: str = "prose",
         source_genre: str = "poetry",
         threshold: float = 0.5,
-    ) -> FullDict:
+    ) -> JudgeOutput:
         """
         Run the rule-based pipeline on query and source documents.
         
@@ -186,8 +186,8 @@ class RuleBasedPipeline:
             threshold: Not used (included for API compatibility).
         
         Returns:
-            FullDict mapping query segment IDs to lists of
-            (source_segment, similarity, probability) tuples.
+            JudgeOutput mapping query segment IDs to lists of ``Judgment``
+            objects.
         """
         # Convert documents to internal format
         source_list = self._document_to_list(source)
@@ -216,8 +216,8 @@ class RuleBasedPipeline:
         # Combine matches and complura matches
         all_matches = self._combine_matches(matches, complura_matches)
         
-        # Convert to FullDict format
-        results = self._matches_to_fulldict(all_matches, source, query)
+        # Convert to JudgeOutput format
+        results = self._matches_to_judge_output(all_matches, source, query)
         
         # Apply top_k limit if specified
         if top_k is not None:
@@ -246,14 +246,14 @@ class RuleBasedPipeline:
         """Convert Document to internal list format [[id, text], ...]."""
         return [[str(seg.id), seg.text] for seg in doc]
     
-    def _matches_to_fulldict(
+    def _matches_to_judge_output(
         self,
         matches: List[List[Any]],
         source: Document,
         query: Document,
-    ) -> FullDict:
-        """Convert internal matches to FullDict format."""
-        results: FullDict = {str(seg.id): [] for seg in query}
+    ) -> JudgeOutput:
+        """Convert internal matches to JudgeOutput format."""
+        results: JudgeOutput = {str(seg.id): [] for seg in query}
         source_segments = {str(seg.id): seg for seg in source}
         
         for match in matches:
@@ -267,13 +267,16 @@ class RuleBasedPipeline:
                     shared_words = match[5].split(";") if len(match) > 5 else []
                     score = min(len(shared_words) / 5.0, 1.0)  # Normalize to [0, 1]
                     
-                    results[query_id].append((
-                        source_segments[source_id],
-                        score,  # similarity score
-                        1.0,    # probability (always positive for matches)
+                    results[query_id].append(Judgment(
+                        segment=source_segments[source_id],
+                        candidate_score=score,
+                        judgment_score=1.0,  # always positive for matches
                     ))
         
         return results
+
+    # Backward-compatible alias
+    _matches_to_fulldict = _matches_to_judge_output
     
     # ============== TEXT PREPROCESSING ==============
     

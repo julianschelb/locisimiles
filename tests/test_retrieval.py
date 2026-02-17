@@ -7,7 +7,7 @@ import numpy as np
 from unittest.mock import MagicMock, patch, PropertyMock
 
 from locisimiles.document import Document, TextSegment
-from locisimiles.pipeline._types import SimDict, FullDict
+from locisimiles.pipeline._types import Candidate, Judgment, CandidateGeneratorOutput, JudgeOutput
 
 
 class TestRetrievalPipelineEmbedding:
@@ -123,8 +123,8 @@ class TestRetrievalPipelineSimilarity:
     """Tests for similarity computation in RetrievalPipeline."""
 
     @patch("locisimiles.pipeline.retrieval.SentenceTransformer")
-    def test_compute_similarity_returns_simdict(self, mock_st_class):
-        """Test that _compute_similarity returns proper SimDict structure."""
+    def test_compute_similarity_returns_candidate_generator_output(self, mock_st_class):
+        """Test that _compute_similarity returns proper CandidateGeneratorOutput structure."""
         from locisimiles.pipeline.retrieval import RetrievalPipeline
         
         mock_st_class.return_value = MagicMock()
@@ -179,8 +179,8 @@ class TestRetrievalPipelineSimilarity:
             query_segments, query_embeddings, source_doc, top_k=1
         )
         
-        _, similarity = result["q1"][0]
-        assert similarity == pytest.approx(0.8, rel=1e-5)
+        cand = result["q1"][0]
+        assert cand.score == pytest.approx(0.8, rel=1e-5)
 
 
 class TestRetrievalPipelineRun:
@@ -225,8 +225,8 @@ class TestRetrievalPipelineRun:
         
         assert isinstance(result, dict)
         assert "q1" in result
-        # Top 2 should have prob=1.0, third should have prob=0.0
-        probs = [prob for _, _, prob in result["q1"]]
+        # Top 2 should have judgment_score=1.0, third should have judgment_score=0.0
+        probs = [j.judgment_score for j in result["q1"]]
         assert probs[0] == 1.0
         assert probs[1] == 1.0
         assert probs[2] == 0.0
@@ -267,7 +267,7 @@ class TestRetrievalPipelineRun:
             similarity_threshold=0.5,  # Only s1 (0.9) and s2 (0.7) should be positive
         )
         
-        probs = [prob for _, _, prob in result["q1"]]
+        probs = [j.judgment_score for j in result["q1"]]
         # sim >= 0.5: s1=1.0, s2=1.0
         # sim < 0.5: s3=0.0
         assert probs[0] == 1.0  # sim=0.9
@@ -277,8 +277,8 @@ class TestRetrievalPipelineRun:
     @patch("locisimiles.pipeline.retrieval.SentenceTransformer")
     @patch("locisimiles.pipeline.retrieval.chromadb.EphemeralClient")
     @patch("locisimiles.pipeline.retrieval.tqdm", lambda x, **kwargs: x)
-    def test_fulldict_format(self, mock_chroma_client, mock_st_class, temp_dir):
-        """Test output matches FullDict type structure."""
+    def test_judge_output_format(self, mock_chroma_client, mock_st_class, temp_dir):
+        """Test output matches JudgeOutput type structure."""
         from locisimiles.pipeline.retrieval import RetrievalPipeline
         
         mock_embedder = MagicMock()
@@ -306,15 +306,16 @@ class TestRetrievalPipelineRun:
             top_k=1,
         )
         
-        # Verify FullDict structure
+        # Verify JudgeOutput structure
         assert isinstance(result, dict)
-        for qid, pairs in result.items():
+        for qid, judgments in result.items():
             assert isinstance(qid, str)
-            for segment, similarity, probability in pairs:
-                assert isinstance(segment, TextSegment)
-                assert isinstance(similarity, float)
-                assert isinstance(probability, float)
-                assert 0.0 <= probability <= 1.0
+            for j in judgments:
+                assert isinstance(j, Judgment)
+                assert isinstance(j.segment, TextSegment)
+                assert isinstance(j.candidate_score, float)
+                assert isinstance(j.judgment_score, float)
+                assert 0.0 <= j.judgment_score <= 1.0
 
 
 class TestRetrievalPipelineRetrieve:
@@ -323,8 +324,8 @@ class TestRetrievalPipelineRetrieve:
     @patch("locisimiles.pipeline.retrieval.SentenceTransformer")
     @patch("locisimiles.pipeline.retrieval.chromadb.EphemeralClient")
     @patch("locisimiles.pipeline.retrieval.tqdm", lambda x, **kwargs: x)
-    def test_retrieve_returns_simdict(self, mock_chroma_client, mock_st_class, temp_dir):
-        """Test that retrieve() returns SimDict format."""
+    def test_retrieve_returns_candidate_generator_output(self, mock_chroma_client, mock_st_class, temp_dir):
+        """Test that retrieve() returns CandidateGeneratorOutput format."""
         from locisimiles.pipeline.retrieval import RetrievalPipeline
         
         mock_embedder = MagicMock()
@@ -352,19 +353,19 @@ class TestRetrievalPipelineRetrieve:
             top_k=2,
         )
         
-        # SimDict: Dict[str, List[Tuple[TextSegment, float]]]
+        # CandidateGeneratorOutput: Dict[str, List[Candidate]]
         assert isinstance(result, dict)
-        for qid, pairs in result.items():
-            for segment, score in pairs:
-                assert isinstance(segment, TextSegment)
-                assert isinstance(score, float)
-                # Should only have 2 values (no probability)
+        for qid, candidates in result.items():
+            for cand in candidates:
+                assert isinstance(cand, Candidate)
+                assert isinstance(cand.segment, TextSegment)
+                assert isinstance(cand.score, float)
 
     @patch("locisimiles.pipeline.retrieval.SentenceTransformer")
     @patch("locisimiles.pipeline.retrieval.chromadb.EphemeralClient")
     @patch("locisimiles.pipeline.retrieval.tqdm", lambda x, **kwargs: x)
-    def test_retrieve_stores_last_sim(self, mock_chroma_client, mock_st_class, temp_dir):
-        """Test that retrieve() stores results in _last_sim."""
+    def test_retrieve_stores_last_candidates(self, mock_chroma_client, mock_st_class, temp_dir):
+        """Test that retrieve() stores results in _last_candidates."""
         from locisimiles.pipeline.retrieval import RetrievalPipeline
         
         mock_embedder = MagicMock()
@@ -386,7 +387,7 @@ class TestRetrievalPipelineRetrieve:
         source_csv.write_text("seg_id,text\ns1,Source\n", encoding="utf-8")
         
         pipeline = RetrievalPipeline(device="cpu")
-        assert pipeline._last_sim is None
+        assert pipeline._last_candidates is None
         
         pipeline.retrieve(
             query=Document(query_csv),
@@ -394,7 +395,7 @@ class TestRetrievalPipelineRetrieve:
             top_k=1,
         )
         
-        assert pipeline._last_sim is not None
+        assert pipeline._last_candidates is not None
 
 
 class TestRetrievalPipelineDeviceSelection:

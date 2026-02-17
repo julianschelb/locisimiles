@@ -231,33 +231,35 @@ def mock_chroma_collection():
 
 @pytest.fixture
 def sample_fulldict(sample_segments):
-    """Create a sample FullDict result."""
+    """Create a sample JudgeOutput result."""
+    from locisimiles.pipeline._types import Judgment
     return {
         "q1": [
-            (sample_segments[0], 0.95, 0.85),
-            (sample_segments[1], 0.75, 0.45),
-            (sample_segments[2], 0.55, 0.25),
+            Judgment(segment=sample_segments[0], candidate_score=0.95, judgment_score=0.85),
+            Judgment(segment=sample_segments[1], candidate_score=0.75, judgment_score=0.45),
+            Judgment(segment=sample_segments[2], candidate_score=0.55, judgment_score=0.25),
         ],
         "q2": [
-            (sample_segments[1], 0.88, 0.72),
-            (sample_segments[0], 0.65, 0.38),
-            (sample_segments[2], 0.45, 0.15),
+            Judgment(segment=sample_segments[1], candidate_score=0.88, judgment_score=0.72),
+            Judgment(segment=sample_segments[0], candidate_score=0.65, judgment_score=0.38),
+            Judgment(segment=sample_segments[2], candidate_score=0.45, judgment_score=0.15),
         ],
     }
 
 
 @pytest.fixture
 def sample_simdict(sample_segments):
-    """Create a sample SimDict result."""
+    """Create a sample CandidateGeneratorOutput result."""
+    from locisimiles.pipeline._types import Candidate
     return {
         "q1": [
-            (sample_segments[0], 0.95),
-            (sample_segments[1], 0.75),
-            (sample_segments[2], 0.55),
+            Candidate(segment=sample_segments[0], score=0.95),
+            Candidate(segment=sample_segments[1], score=0.75),
+            Candidate(segment=sample_segments[2], score=0.55),
         ],
         "q2": [
-            (sample_segments[1], 0.88),
-            (sample_segments[0], 0.65),
-            (sample_segments[2], 0.45),
+            Candidate(segment=sample_segments[1], score=0.88),
+            Candidate(segment=sample_segments[0], score=0.65),
+            Candidate(segment=sample_segments[2], score=0.45),
         ],
     }
