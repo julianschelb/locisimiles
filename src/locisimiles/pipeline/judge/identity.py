@@ -36,14 +36,14 @@ class IdentityJudge(JudgeBase):
         **kwargs: Any,
     ) -> CandidateJudgeOutput:
         """Convert every ``Candidate`` to ``CandidateJudge`` with *judgment_score = 1.0*."""
-        return {
-            qid: [
-                CandidateJudge(
+        result: CandidateJudgeOutput = {}
+        for qid, cands in candidates.items():
+            judgments = []
+            for c in cands:
+                judgments.append(CandidateJudge(
                     segment=c.segment,
                     candidate_score=c.score,
                     judgment_score=1.0,
-                )
-                for c in cands
-            ]
-            for qid, cands in candidates.items()
-        }
+                ))
+            result[qid] = judgments
+        return result

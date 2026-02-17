@@ -211,14 +211,14 @@ class ClassificationPipeline:
             )
             
             # Build CandidateJudge objects (no candidate score since exhaustive)
-            results[query_segment.id] = [
-                CandidateJudge(
+            judgments = []
+            for source_seg, prob in zip(source_segments, probabilities):
+                judgments.append(CandidateJudge(
                     segment=source_seg,
                     candidate_score=None,
                     judgment_score=prob,
-                )
-                for source_seg, prob in zip(source_segments, probabilities)
-            ]
+                ))
+            results[query_segment.id] = judgments
         
         self._last_results = results
         return results

@@ -51,9 +51,10 @@ class ExhaustiveCandidateGenerator(CandidateGeneratorBase):
         """
         source_segments = list(source.segments.values())
 
-        return {
-            query_seg.id: [
-                Candidate(segment=src_seg, score=1.0) for src_seg in source_segments
-            ]
-            for query_seg in query.segments.values()
-        }
+        result: CandidateGeneratorOutput = {}
+        for query_seg in query.segments.values():
+            candidates = []
+            for src_seg in source_segments:
+                candidates.append(Candidate(segment=src_seg, score=1.0))
+            result[query_seg.id] = candidates
+        return result

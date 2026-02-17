@@ -274,10 +274,13 @@ class ClassificationPipelineWithCandidategeneration:
             
             # Map the results to Candidate objects
             # Convert cosine distance to cosine similarity: similarity = 1 - distance
-            similarity_results[query_segment.id] = [
-                Candidate(segment=source_document[idx], score=1.0 - float(distance))
-                for idx, distance in zip(results["ids"][0], results["distances"][0])
-            ]
+            candidates = []
+            for idx, distance in zip(results["ids"][0], results["distances"][0]):
+                candidates.append(Candidate(
+                    segment=source_document[idx],
+                    score=1.0 - float(distance),
+                ))
+            similarity_results[query_segment.id] = candidates
 
         return similarity_results
 
@@ -370,14 +373,14 @@ class ClassificationPipelineWithCandidategeneration:
             )
             
             # Combine candidates with classification probabilities
-            judge_results[query_id] = [
-                CandidateJudge(
+            judgments = []
+            for candidate, probability in zip(candidate_list, predicted_probabilities):
+                judgments.append(CandidateJudge(
                     segment=candidate.segment,
                     candidate_score=candidate.score,
                     judgment_score=probability,
-                )
-                for candidate, probability in zip(candidate_list, predicted_probabilities)
-            ]
+                ))
+            judge_results[query_id] = judgments
 
         self._last_judgments = judge_results
         return judge_results

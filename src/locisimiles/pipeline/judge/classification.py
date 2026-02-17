@@ -193,13 +193,13 @@ class ClassificationJudge(JudgeBase):
                 batch_size=batch_size,
             )
 
-            judge_results[query_id] = [
-                CandidateJudge(
+            judgments = []
+            for candidate, probability in zip(candidate_list, probabilities):
+                judgments.append(CandidateJudge(
                     segment=candidate.segment,
                     candidate_score=candidate.score,
                     judgment_score=probability,
-                )
-                for candidate, probability in zip(candidate_list, probabilities)
-            ]
+                ))
+            judge_results[query_id] = judgments
 
         return judge_results

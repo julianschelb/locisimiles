@@ -60,13 +60,11 @@ class RuleBasedCandidateGenerator(CandidateGeneratorBase):
         """
         judge_output = self._pipeline.run(query=query, source=source, **kwargs)
 
-        return {
-            qid: [
-                Candidate(
-                    segment=j.segment,
-                    score=j.candidate_score if j.candidate_score is not None else 0.0,
-                )
-                for j in judgments
-            ]
-            for qid, judgments in judge_output.items()
-        }
+        result: CandidateGeneratorOutput = {}
+        for qid, judgments in judge_output.items():
+            candidates = []
+            for j in judgments:
+                score = j.candidate_score if j.candidate_score is not None else 0.0
+                candidates.append(Candidate(segment=j.segment, score=score))
+            result[qid] = candidates
+        return result

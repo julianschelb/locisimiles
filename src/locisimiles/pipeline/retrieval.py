@@ -147,10 +147,13 @@ class RetrievalPipeline:
             )
             
             # Convert cosine distance to cosine similarity: similarity = 1 - distance
-            similarity_results[query_segment.id] = [
-                Candidate(segment=source_document[idx], score=1.0 - float(distance))
-                for idx, distance in zip(results["ids"][0], results["distances"][0])
-            ]
+            candidates = []
+            for idx, distance in zip(results["ids"][0], results["distances"][0]):
+                candidates.append(Candidate(
+                    segment=source_document[idx],
+                    score=1.0 - float(distance),
+                ))
+            similarity_results[query_segment.id] = candidates
 
         return similarity_results
 
