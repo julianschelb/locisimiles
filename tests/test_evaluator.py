@@ -13,7 +13,7 @@ from locisimiles.evaluator import (
     IntertextEvaluator
 )
 from locisimiles.document import Document, TextSegment
-from locisimiles.pipeline._types import Judgment
+from locisimiles.pipeline._types import CandidateJudge
 
 
 # =================== METRIC HELPER TESTS ===================
@@ -275,14 +275,14 @@ class TestIntertextEvaluatorMetrics:
         # Predictions: prob > 0.5 means positive
         mock_pipeline.run.return_value = {
             "q1": [
-                Judgment(segment=s1, candidate_score=0.9, judgment_score=0.8),
-                Judgment(segment=s2, candidate_score=0.7, judgment_score=0.3),
-                Judgment(segment=s3, candidate_score=0.5, judgment_score=0.6),
+                CandidateJudge(segment=s1, candidate_score=0.9, judgment_score=0.8),
+                CandidateJudge(segment=s2, candidate_score=0.7, judgment_score=0.3),
+                CandidateJudge(segment=s3, candidate_score=0.5, judgment_score=0.6),
             ],  # Pred: s1=1, s2=0, s3=1
             "q2": [
-                Judgment(segment=s1, candidate_score=0.8, judgment_score=0.7),
-                Judgment(segment=s2, candidate_score=0.6, judgment_score=0.9),
-                Judgment(segment=s3, candidate_score=0.4, judgment_score=0.2),
+                CandidateJudge(segment=s1, candidate_score=0.8, judgment_score=0.7),
+                CandidateJudge(segment=s2, candidate_score=0.6, judgment_score=0.9),
+                CandidateJudge(segment=s3, candidate_score=0.4, judgment_score=0.2),
             ],  # Pred: s1=1, s2=1, s3=0
         }
         
@@ -369,8 +369,8 @@ class TestIntertextEvaluatorThreshold:
         s2 = TextSegment("Source two.", "s2", row_id=1)
         mock_pipeline.run.return_value = {
             "q1": [
-                Judgment(segment=s1, candidate_score=0.9, judgment_score=0.75),
-                Judgment(segment=s2, candidate_score=0.5, judgment_score=0.25),
+                CandidateJudge(segment=s1, candidate_score=0.9, judgment_score=0.75),
+                CandidateJudge(segment=s2, candidate_score=0.5, judgment_score=0.25),
             ],
         }
         
@@ -439,8 +439,8 @@ class TestIntertextEvaluatorQueryIds:
         mock_pipeline = MagicMock()
         s1 = TextSegment("Source.", "s1", row_id=0)
         mock_pipeline.run.return_value = {
-            "q1": [Judgment(segment=s1, candidate_score=0.9, judgment_score=0.8)],
-            "q2": [Judgment(segment=s1, candidate_score=0.5, judgment_score=0.3)],
+            "q1": [CandidateJudge(segment=s1, candidate_score=0.9, judgment_score=0.8)],
+            "q2": [CandidateJudge(segment=s1, candidate_score=0.5, judgment_score=0.3)],
         }
         
         return IntertextEvaluator(

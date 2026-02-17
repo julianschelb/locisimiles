@@ -15,9 +15,9 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from locisimiles.document import Document, TextSegment
 from locisimiles.pipeline._types import (
     Candidate,
-    Judgment,
+    CandidateJudge,
     CandidateGeneratorOutput,
-    JudgeOutput,
+    CandidateJudgeOutput,
 )
 from tqdm import tqdm
 
@@ -88,7 +88,7 @@ class ClassificationPipelineWithCandidategeneration:
 
         # Keep results in memory for later access
         self._last_candidates: CandidateGeneratorOutput | None = None
-        self._last_judgments: JudgeOutput | None = None
+        self._last_judgments: CandidateJudgeOutput | None = None
 
     # ---------- Generate Embedding ----------
 
@@ -343,7 +343,7 @@ class ClassificationPipelineWithCandidategeneration:
         candidates: CandidateGeneratorOutput | None = None,
         batch_size: int = 32,
         **kwargs: Any,
-    ) -> JudgeOutput:
+    ) -> CandidateJudgeOutput:
         """
         Classify candidates generated from *source*.
 
@@ -354,12 +354,12 @@ class ClassificationPipelineWithCandidategeneration:
             batch_size: Batch size for the classifier.
 
         Returns:
-            JudgeOutput mapping query segment IDs to lists of ``Judgment``
-            objects with ``candidate_score`` (similarity) and
-            ``judgment_score`` (classification probability).
+            CandidateJudgeOutput mapping query segment IDs to lists of
+            ``CandidateJudge`` objects with ``candidate_score`` (similarity)
+            and ``judgment_score`` (classification probability).
         """
 
-        judge_results: JudgeOutput = {}
+        judge_results: CandidateJudgeOutput = {}
         
         for query_id, candidate_list in tqdm(candidates.items(), desc="Judging candidates"):
             
@@ -371,7 +371,7 @@ class ClassificationPipelineWithCandidategeneration:
             
             # Combine candidates with classification probabilities
             judge_results[query_id] = [
-                Judgment(
+                CandidateJudge(
                     segment=candidate.segment,
                     candidate_score=candidate.score,
                     judgment_score=probability,
@@ -396,13 +396,13 @@ class ClassificationPipelineWithCandidategeneration:
         query_prompt_name: str = "query",
         source_prompt_name: str = "match",
         **kwargs: Any,
-    ) -> JudgeOutput:
+    ) -> CandidateJudgeOutput:
         """
         Run the full pipeline: generate candidates and classify them.
 
         Returns:
-            JudgeOutput mapping query segment IDs to lists of ``Judgment``
-            objects.
+            CandidateJudgeOutput mapping query segment IDs to lists of
+            ``CandidateJudge`` objects.
         """
         candidates = self.generate_candidates(
             query=query,

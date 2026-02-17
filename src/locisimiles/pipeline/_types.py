@@ -12,10 +12,11 @@ Every pipeline follows a two-phase pattern:
 1. **Candidate Generation** — narrows the search space, producing a
    ``CandidateGeneratorOutput`` (mapping of query IDs → ``Candidate`` lists).
 2. **Judgment** — scores or classifies candidate pairs, producing a
-   ``JudgeOutput`` (mapping of query IDs → ``Judgment`` lists).
+   ``CandidateJudgeOutput`` (mapping of query IDs → ``CandidateJudge`` lists).
 
-The dataclasses ``Candidate`` and ``Judgment`` replace the previous unnamed
-tuple types (``SimPair`` / ``FullPair``), giving each field a clear name.
+The dataclasses ``Candidate`` and ``CandidateJudge`` replace the previous
+unnamed tuple types (``SimPair`` / ``FullPair``), giving each field a clear
+name.
 """
 from __future__ import annotations
 
@@ -39,7 +40,7 @@ class Candidate:
 
 
 @dataclass
-class Judgment:
+class CandidateJudge:
     """A single scored candidate after the judgment (classification / filtering) stage.
 
     Attributes:
@@ -62,19 +63,28 @@ CandidateGeneratorOutput = Dict[str, List[Candidate]]
 This is the output type of every candidate-generation stage.
 """
 
-JudgeOutput = Dict[str, List[Judgment]]
-"""Mapping from query segment IDs → lists of ``Judgment`` objects.
+CandidateJudgeOutput = Dict[str, List[CandidateJudge]]
+"""Mapping from query segment IDs → lists of ``CandidateJudge`` objects.
 
 This is the standard output type of every pipeline's ``run()`` method
 and is consumed by the evaluator.
 """
 
 # Alias so both names work (judge input == candidate-generator output)
-JudgeInput = CandidateGeneratorOutput
+CandidateJudgeInput = CandidateGeneratorOutput
 """Alias: the judge receives exactly what the generator produced."""
 
 
 # ============== BACKWARD-COMPATIBLE ALIASES (deprecated) ==============
+
+Judgment = CandidateJudge
+"""*Deprecated* — use ``CandidateJudge`` instead."""
+
+JudgeOutput = CandidateJudgeOutput
+"""*Deprecated* — use ``CandidateJudgeOutput`` instead."""
+
+JudgeInput = CandidateJudgeInput
+"""*Deprecated* — use ``CandidateJudgeInput`` instead."""
 
 ScoreT = float
 """*Deprecated* — use plain ``float`` instead."""
@@ -83,7 +93,7 @@ SimPair = Tuple[TextSegment, float]
 """*Deprecated* — use ``Candidate`` instead."""
 
 FullPair = Tuple[TextSegment, float, float]
-"""*Deprecated* — use ``Judgment`` instead."""
+"""*Deprecated* — use ``CandidateJudge`` instead."""
 
 SimDict = Dict[str, List[SimPair]]
 """*Deprecated* — use ``CandidateGeneratorOutput`` instead."""
@@ -94,7 +104,7 @@ FullDict = Dict[str, List[FullPair]]
 
 # ============== UTILITY HELPERS ==============
 
-def pretty_print(results: JudgeOutput) -> None:
+def pretty_print(results: CandidateJudgeOutput) -> None:
     """
     Print pipeline results in a human-readable format.
 
@@ -102,7 +112,7 @@ def pretty_print(results: JudgeOutput) -> None:
     scores and judgment scores.
 
     Args:
-        results: Pipeline output in ``JudgeOutput`` format.
+        results: Pipeline output in ``CandidateJudgeOutput`` format.
 
     Example:
         ```python
@@ -120,7 +130,7 @@ def pretty_print(results: JudgeOutput) -> None:
     for qid, lst in results.items():
         print(f"\n▶ Query segment {qid!r}:")
         for item in lst:
-            if isinstance(item, Judgment):
+            if isinstance(item, CandidateJudge):
                 seg = item.segment
                 cand = item.candidate_score
                 judg = item.judgment_score

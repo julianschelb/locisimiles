@@ -8,7 +8,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 from io import StringIO
 
-from locisimiles.pipeline._types import Judgment
+from locisimiles.pipeline._types import CandidateJudge
 
 
 class TestCLIArgumentParsing:
@@ -181,7 +181,7 @@ class TestCLIOutputGeneration:
         # Configure pipeline mock
         mock_pipeline = MagicMock()
         mock_pipeline.run.return_value = {
-            "q1": [Judgment(segment=source_segment, candidate_score=0.9, judgment_score=0.8)],
+            "q1": [CandidateJudge(segment=source_segment, candidate_score=0.9, judgment_score=0.8)],
         }
         mock_pipeline_class.return_value = mock_pipeline
         
@@ -224,7 +224,7 @@ class TestCLIOutputGeneration:
         
         mock_pipeline = MagicMock()
         mock_pipeline.run.return_value = {
-            "q1": [Judgment(segment=source_segment, candidate_score=0.9, judgment_score=0.8)],
+            "q1": [CandidateJudge(segment=source_segment, candidate_score=0.9, judgment_score=0.8)],
         }
         mock_pipeline_class.return_value = mock_pipeline
         
@@ -359,7 +359,7 @@ class TestCLIPipelineParameters:
         
         mock_pipeline = MagicMock()
         mock_pipeline.run.return_value = {
-            "q1": [Judgment(segment=source_segment, candidate_score=0.9, judgment_score=0.6)],  # judgment_score=0.6
+            "q1": [CandidateJudge(segment=source_segment, candidate_score=0.9, judgment_score=0.6)],  # judgment_score=0.6
         }
         mock_pipeline_class.return_value = mock_pipeline
         

@@ -32,10 +32,10 @@ except ImportError as exc:
     raise ImportError("Gradio is required for results page") from exc
 
 from locisimiles.document import Document, TextSegment
-from locisimiles.pipeline._types import Judgment, JudgeOutput
+from locisimiles.pipeline._types import CandidateJudge, CandidateJudgeOutput
 
 
-def update_results_display(results: JudgeOutput | None, query_doc: Document | None, threshold: float = 0.5) -> tuple[dict, dict, dict]:
+def update_results_display(results: CandidateJudgeOutput | None, query_doc: Document | None, threshold: float = 0.5) -> tuple[dict, dict, dict]:
     """Update the results display with new data.
     
     Args:
@@ -86,11 +86,11 @@ def _format_metric_with_bar(value: float, is_above_threshold: bool = False) -> s
     return html
 
 
-def _convert_results_to_display(results: JudgeOutput | None, query_doc: Document | None, threshold: float = 0.5) -> tuple[list[list], dict]:
+def _convert_results_to_display(results: CandidateJudgeOutput | None, query_doc: Document | None, threshold: float = 0.5) -> tuple[list[list], dict]:
     """Convert pipeline results to display format.
     
     Args:
-        results: Pipeline results (JudgeOutput format)
+        results: Pipeline results (CandidateJudgeOutput format)
         query_doc: Query document
         threshold: Classification probability threshold for counting finds
     

@@ -8,7 +8,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from locisimiles.document import Document, TextSegment
-from locisimiles.pipeline._types import Judgment, JudgeOutput
+from locisimiles.pipeline._types import CandidateJudge, CandidateJudgeOutput
 
 
 class TestRuleBasedPipelineInit:
@@ -478,7 +478,7 @@ class TestRuleBasedDocumentConversion:
         assert all(isinstance(item[1], str) for item in result)
 
     def test_matches_to_judge_output(self, sample_document, sample_source_document):
-        """Test converting matches to JudgeOutput format."""
+        """Test converting matches to CandidateJudgeOutput format."""
         from locisimiles.pipeline.rule_based import RuleBasedPipeline
         
         pipeline = RuleBasedPipeline()
@@ -538,17 +538,17 @@ class TestRuleBasedRun:
         assert isinstance(result, dict)
 
     def test_run_returns_judge_output_format(self, sample_document, sample_source_document):
-        """Test that run returns proper JudgeOutput format."""
+        """Test that run returns proper CandidateJudgeOutput format."""
         from locisimiles.pipeline.rule_based import RuleBasedPipeline
         
         pipeline = RuleBasedPipeline(min_shared_words=1)
         result = pipeline.run(query=sample_document, source=sample_source_document)
         
-        # All values should be lists of Judgment objects
+        # All values should be lists of CandidateJudge objects
         for seg_id, matches in result.items():
             assert isinstance(matches, list)
             for match in matches:
-                assert isinstance(match, Judgment)
+                assert isinstance(match, CandidateJudge)
                 assert isinstance(match.segment, TextSegment)
 
 

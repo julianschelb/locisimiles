@@ -9,7 +9,7 @@ from pathlib import Path
 
 from locisimiles.document import Document
 from locisimiles.pipeline import ClassificationPipelineWithCandidategeneration
-from locisimiles.pipeline._types import Judgment
+from locisimiles.pipeline._types import CandidateJudge
 
 
 def main() -> int:

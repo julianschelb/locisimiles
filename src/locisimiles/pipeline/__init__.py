@@ -17,11 +17,14 @@ from __future__ import annotations
 from locisimiles.pipeline._types import (
     # New dataclasses & type aliases
     Candidate,
-    Judgment,
+    CandidateJudge,
     CandidateGeneratorOutput,
+    CandidateJudgeInput,
+    CandidateJudgeOutput,
+    # Deprecated backward-compatible aliases
+    Judgment,
     JudgeInput,
     JudgeOutput,
-    # Deprecated backward-compatible aliases
     ScoreT,
     SimPair,
     FullPair,
@@ -41,11 +44,14 @@ from locisimiles.pipeline.rule_based import RuleBasedPipeline
 __all__ = [
     # New types
     "Candidate",
-    "Judgment",
+    "CandidateJudge",
     "CandidateGeneratorOutput",
+    "CandidateJudgeInput",
+    "CandidateJudgeOutput",
+    # Deprecated aliases (kept for backward compatibility)
+    "Judgment",
     "JudgeInput",
     "JudgeOutput",
-    # Deprecated aliases (kept for backward compatibility)
     "ScoreT",
     "SimPair",
     "FullPair",

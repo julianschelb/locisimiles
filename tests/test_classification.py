@@ -8,7 +8,7 @@ import numpy as np
 from unittest.mock import MagicMock, patch
 
 from locisimiles.document import Document, TextSegment
-from locisimiles.pipeline._types import Judgment, JudgeOutput
+from locisimiles.pipeline._types import CandidateJudge, CandidateJudgeOutput
 
 
 class TestClassificationPipelineTruncation:

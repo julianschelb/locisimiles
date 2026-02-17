@@ -9,7 +9,7 @@ import torch.nn.functional as F
 from typing import Dict, List, Tuple, Any, Sequence
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from locisimiles.document import Document
-from locisimiles.pipeline._types import Judgment, JudgeOutput
+from locisimiles.pipeline._types import CandidateJudge, CandidateJudgeOutput
 from tqdm import tqdm
 
 
@@ -76,7 +76,7 @@ class ClassificationPipeline:
         self.clf_model.to(self.device).eval()
 
         # Keep results in memory for later access
-        self._last_results: JudgeOutput | None = None
+        self._last_results: CandidateJudgeOutput | None = None
 
     # ---------- Predict Positive Probability ----------
 
@@ -182,18 +182,18 @@ class ClassificationPipeline:
         source: Document,
         batch_size: int = 32,
         **kwargs: Any,
-    ) -> JudgeOutput:
+    ) -> CandidateJudgeOutput:
         """
         Run classification on all query-source segment pairs.
 
         Since there is no retrieval stage the ``candidate_score`` on every
-        ``Judgment`` is set to ``None``.
+        ``CandidateJudge`` is set to ``None``.
 
         Returns:
-            JudgeOutput mapping query segment IDs to lists of ``Judgment``
-            objects.
+            CandidateJudgeOutput mapping query segment IDs to lists of
+            ``CandidateJudge`` objects.
         """
-        results: JudgeOutput = {}
+        results: CandidateJudgeOutput = {}
         
         # Extract all source segments
         source_segments = list(source.segments.values())
@@ -210,9 +210,9 @@ class ClassificationPipeline:
                 batch_size=batch_size
             )
             
-            # Build Judgment objects (no candidate score since exhaustive)
+            # Build CandidateJudge objects (no candidate score since exhaustive)
             results[query_segment.id] = [
-                Judgment(
+                CandidateJudge(
                     segment=source_seg,
                     candidate_score=None,
                     judgment_score=prob,

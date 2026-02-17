@@ -8,8 +8,8 @@ import sys
 
 from locisimiles.document import TextSegment
 from locisimiles.pipeline._types import (
-    pretty_print, Candidate, Judgment,
-    CandidateGeneratorOutput, JudgeOutput,
+    pretty_print, Candidate, CandidateJudge,
+    CandidateGeneratorOutput, CandidateJudgeOutput,
     # Deprecated aliases still importable
     SimDict, FullDict,
 )
@@ -40,14 +40,14 @@ class TestTypeStructures:
                 assert isinstance(cand.score, float)
 
     def test_judge_output_structure(self, sample_segments):
-        """Test JudgeOutput matches expected format."""
-        output: JudgeOutput = {
+        """Test CandidateJudgeOutput matches expected format."""
+        output: CandidateJudgeOutput = {
             "q1": [
-                Judgment(segment=sample_segments[0], candidate_score=0.95, judgment_score=0.88),
-                Judgment(segment=sample_segments[1], candidate_score=0.85, judgment_score=0.45),
+                CandidateJudge(segment=sample_segments[0], candidate_score=0.95, judgment_score=0.88),
+                CandidateJudge(segment=sample_segments[1], candidate_score=0.85, judgment_score=0.45),
             ],
             "q2": [
-                Judgment(segment=sample_segments[2], candidate_score=0.75, judgment_score=0.32),
+                CandidateJudge(segment=sample_segments[2], candidate_score=0.75, judgment_score=0.32),
             ],
         }
         # Verify structure
@@ -56,14 +56,14 @@ class TestTypeStructures:
             assert isinstance(qid, str)
             assert isinstance(judgments, list)
             for j in judgments:
-                assert isinstance(j, Judgment)
+                assert isinstance(j, CandidateJudge)
                 assert isinstance(j.segment, TextSegment)
                 assert isinstance(j.candidate_score, (float, type(None)))
                 assert isinstance(j.judgment_score, float)
 
     def test_judgment_with_none_candidate_score(self, sample_segments):
-        """Test Judgment can have None for candidate_score (classification-only pipeline)."""
-        j = Judgment(segment=sample_segments[0], candidate_score=None, judgment_score=0.88)
+        """Test CandidateJudge can have None for candidate_score (classification-only pipeline)."""
+        j = CandidateJudge(segment=sample_segments[0], candidate_score=None, judgment_score=0.88)
         assert j.candidate_score is None
         assert j.judgment_score == 0.88
 
@@ -73,10 +73,10 @@ class TestPrettyPrint:
 
     def test_pretty_print_output(self, sample_segments):
         """Test pretty_print produces formatted output."""
-        judge_output: JudgeOutput = {
+        judge_output: CandidateJudgeOutput = {
             "query_1": [
-                Judgment(segment=sample_segments[0], candidate_score=0.95, judgment_score=0.88),
-                Judgment(segment=sample_segments[1], candidate_score=0.75, judgment_score=0.45),
+                CandidateJudge(segment=sample_segments[0], candidate_score=0.95, judgment_score=0.88),
+                CandidateJudge(segment=sample_segments[1], candidate_score=0.75, judgment_score=0.45),
             ],
         }
         
@@ -97,10 +97,10 @@ class TestPrettyPrint:
 
     def test_pretty_print_multiple_queries(self, sample_segments):
         """Test pretty_print handles multiple queries."""
-        judge_output: JudgeOutput = {
-            "q1": [Judgment(segment=sample_segments[0], candidate_score=0.9, judgment_score=0.8)],
-            "q2": [Judgment(segment=sample_segments[1], candidate_score=0.7, judgment_score=0.6)],
-            "q3": [Judgment(segment=sample_segments[2], candidate_score=0.5, judgment_score=0.4)],
+        judge_output: CandidateJudgeOutput = {
+            "q1": [CandidateJudge(segment=sample_segments[0], candidate_score=0.9, judgment_score=0.8)],
+            "q2": [CandidateJudge(segment=sample_segments[1], candidate_score=0.7, judgment_score=0.6)],
+            "q3": [CandidateJudge(segment=sample_segments[2], candidate_score=0.5, judgment_score=0.4)],
         }
         
         captured_output = StringIO()
@@ -117,8 +117,8 @@ class TestPrettyPrint:
 
     def test_pretty_print_none_candidate_score(self, sample_segments):
         """Test pretty_print handles None candidate scores."""
-        judge_output: JudgeOutput = {
-            "q1": [Judgment(segment=sample_segments[0], candidate_score=None, judgment_score=0.88)],
+        judge_output: CandidateJudgeOutput = {
+            "q1": [CandidateJudge(segment=sample_segments[0], candidate_score=None, judgment_score=0.88)],
         }
         
         captured_output = StringIO()
@@ -133,8 +133,8 @@ class TestPrettyPrint:
         assert "N/A" in output
 
     def test_pretty_print_empty_dict(self):
-        """Test pretty_print handles empty JudgeOutput."""
-        judge_output: JudgeOutput = {}
+        """Test pretty_print handles empty CandidateJudgeOutput."""
+        judge_output: CandidateJudgeOutput = {}
         
         captured_output = StringIO()
         sys.stdout = captured_output
@@ -149,7 +149,7 @@ class TestPrettyPrint:
 
     def test_pretty_print_empty_results(self):
         """Test pretty_print handles query with no candidates."""
-        judge_output: JudgeOutput = {
+        judge_output: CandidateJudgeOutput = {
             "q1": [],
         }
         
@@ -165,8 +165,8 @@ class TestPrettyPrint:
 
     def test_pretty_print_formatting(self, sample_segments):
         """Test pretty_print uses correct number formatting."""
-        judge_output: JudgeOutput = {
-            "q1": [Judgment(segment=sample_segments[0], candidate_score=0.123456, judgment_score=0.987654)],
+        judge_output: CandidateJudgeOutput = {
+            "q1": [CandidateJudge(segment=sample_segments[0], candidate_score=0.123456, judgment_score=0.987654)],
         }
         
         captured_output = StringIO()

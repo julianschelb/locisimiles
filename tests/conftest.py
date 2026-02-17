@@ -231,18 +231,18 @@ def mock_chroma_collection():
 
 @pytest.fixture
 def sample_fulldict(sample_segments):
-    """Create a sample JudgeOutput result."""
-    from locisimiles.pipeline._types import Judgment
+    """Create a sample CandidateJudgeOutput result."""
+    from locisimiles.pipeline._types import CandidateJudge
     return {
         "q1": [
-            Judgment(segment=sample_segments[0], candidate_score=0.95, judgment_score=0.85),
-            Judgment(segment=sample_segments[1], candidate_score=0.75, judgment_score=0.45),
-            Judgment(segment=sample_segments[2], candidate_score=0.55, judgment_score=0.25),
+            CandidateJudge(segment=sample_segments[0], candidate_score=0.95, judgment_score=0.85),
+            CandidateJudge(segment=sample_segments[1], candidate_score=0.75, judgment_score=0.45),
+            CandidateJudge(segment=sample_segments[2], candidate_score=0.55, judgment_score=0.25),
         ],
         "q2": [
-            Judgment(segment=sample_segments[1], candidate_score=0.88, judgment_score=0.72),
-            Judgment(segment=sample_segments[0], candidate_score=0.65, judgment_score=0.38),
-            Judgment(segment=sample_segments[2], candidate_score=0.45, judgment_score=0.15),
+            CandidateJudge(segment=sample_segments[1], candidate_score=0.88, judgment_score=0.72),
+            CandidateJudge(segment=sample_segments[0], candidate_score=0.65, judgment_score=0.38),
+            CandidateJudge(segment=sample_segments[2], candidate_score=0.45, judgment_score=0.15),
         ],
     }
 

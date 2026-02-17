@@ -12,9 +12,9 @@ from sentence_transformers import SentenceTransformer
 from locisimiles.document import Document, TextSegment
 from locisimiles.pipeline._types import (
     Candidate,
-    Judgment,
+    CandidateJudge,
     CandidateGeneratorOutput,
-    JudgeOutput,
+    CandidateJudgeOutput,
 )
 from tqdm import tqdm
 
@@ -31,7 +31,7 @@ class RetrievalPipeline:
         - **Top-k**: The k most similar candidates are marked as positive
         - **Similarity threshold**: Candidates above a threshold are positive
     
-    The results are returned in ``JudgeOutput`` format for compatibility with
+    The results are returned in ``CandidateJudgeOutput`` format for compatibility with
     the evaluator, where ``judgment_score`` is 1.0 for positive and 0.0 for
     negative.
     
@@ -77,7 +77,7 @@ class RetrievalPipeline:
 
         # Keep results in memory for later access
         self._last_candidates: CandidateGeneratorOutput | None = None
-        self._last_judgments: JudgeOutput | None = None
+        self._last_judgments: CandidateJudgeOutput | None = None
 
     # ---------- Generate Embedding ----------
 
@@ -214,7 +214,7 @@ class RetrievalPipeline:
         query_prompt_name: str = "query",
         source_prompt_name: str = "match",
         **kwargs: Any,
-    ) -> JudgeOutput:
+    ) -> CandidateJudgeOutput:
         """
         Run the retrieval pipeline and return results compatible with the evaluator.
 
@@ -225,7 +225,8 @@ class RetrievalPipeline:
           threshold are predicted as positive, regardless of rank.
 
         Returns:
-            JudgeOutput mapping query IDs to lists of ``Judgment`` objects.
+            CandidateJudgeOutput mapping query IDs to lists of ``CandidateJudge``
+            objects.
         """
         # Retrieve more candidates than top_k to ensure we have enough for evaluation
         # When using similarity_threshold, we need all candidates
@@ -239,8 +240,8 @@ class RetrievalPipeline:
             source_prompt_name=source_prompt_name,
         )
         
-        # Convert to JudgeOutput format with binary judgment scores
-        judge_results: JudgeOutput = {}
+        # Convert to CandidateJudgeOutput format with binary judgment scores
+        judge_results: CandidateJudgeOutput = {}
         
         for query_id, candidate_list in candidate_dict.items():
             judge_results[query_id] = []
@@ -252,7 +253,7 @@ class RetrievalPipeline:
                 else:
                     is_positive = rank < top_k
                 
-                judge_results[query_id].append(Judgment(
+                judge_results[query_id].append(CandidateJudge(
                     segment=candidate.segment,
                     candidate_score=candidate.score,
                     judgment_score=1.0 if is_positive else 0.0,

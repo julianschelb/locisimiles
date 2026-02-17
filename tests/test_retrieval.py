@@ -7,7 +7,7 @@ import numpy as np
 from unittest.mock import MagicMock, patch, PropertyMock
 
 from locisimiles.document import Document, TextSegment
-from locisimiles.pipeline._types import Candidate, Judgment, CandidateGeneratorOutput, JudgeOutput
+from locisimiles.pipeline._types import Candidate, CandidateJudge, CandidateGeneratorOutput, CandidateJudgeOutput
 
 
 class TestRetrievalPipelineEmbedding:
@@ -278,7 +278,7 @@ class TestRetrievalPipelineRun:
     @patch("locisimiles.pipeline.retrieval.chromadb.EphemeralClient")
     @patch("locisimiles.pipeline.retrieval.tqdm", lambda x, **kwargs: x)
     def test_judge_output_format(self, mock_chroma_client, mock_st_class, temp_dir):
-        """Test output matches JudgeOutput type structure."""
+        """Test output matches CandidateJudgeOutput type structure."""
         from locisimiles.pipeline.retrieval import RetrievalPipeline
         
         mock_embedder = MagicMock()
@@ -306,12 +306,12 @@ class TestRetrievalPipelineRun:
             top_k=1,
         )
         
-        # Verify JudgeOutput structure
+        # Verify CandidateJudgeOutput structure
         assert isinstance(result, dict)
         for qid, judgments in result.items():
             assert isinstance(qid, str)
             for j in judgments:
-                assert isinstance(j, Judgment)
+                assert isinstance(j, CandidateJudge)
                 assert isinstance(j.segment, TextSegment)
                 assert isinstance(j.candidate_score, float)
                 assert isinstance(j.judgment_score, float)

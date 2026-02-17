@@ -32,7 +32,7 @@ from typing import Dict, List, Tuple, Set, Union, Any, Optional, Sequence
 import numpy as np
 
 from locisimiles.document import Document, TextSegment
-from locisimiles.pipeline._types import Judgment, JudgeOutput
+from locisimiles.pipeline._types import CandidateJudge, CandidateJudgeOutput
 
 # Optional heavy dependencies - loaded lazily
 try:
@@ -173,7 +173,7 @@ class RuleBasedPipeline:
         query_genre: str = "prose",
         source_genre: str = "poetry",
         threshold: float = 0.5,
-    ) -> JudgeOutput:
+    ) -> CandidateJudgeOutput:
         """
         Run the rule-based pipeline on query and source documents.
         
@@ -186,7 +186,7 @@ class RuleBasedPipeline:
             threshold: Not used (included for API compatibility).
         
         Returns:
-            JudgeOutput mapping query segment IDs to lists of ``Judgment``
+            CandidateJudgeOutput mapping query segment IDs to lists of ``CandidateJudge``
             objects.
         """
         # Convert documents to internal format
@@ -216,7 +216,7 @@ class RuleBasedPipeline:
         # Combine matches and complura matches
         all_matches = self._combine_matches(matches, complura_matches)
         
-        # Convert to JudgeOutput format
+        # Convert to CandidateJudgeOutput format
         results = self._matches_to_judge_output(all_matches, source, query)
         
         # Apply top_k limit if specified
@@ -251,9 +251,9 @@ class RuleBasedPipeline:
         matches: List[List[Any]],
         source: Document,
         query: Document,
-    ) -> JudgeOutput:
-        """Convert internal matches to JudgeOutput format."""
-        results: JudgeOutput = {str(seg.id): [] for seg in query}
+    ) -> CandidateJudgeOutput:
+        """Convert internal matches to CandidateJudgeOutput format."""
+        results: CandidateJudgeOutput = {str(seg.id): [] for seg in query}
         source_segments = {str(seg.id): seg for seg in source}
         
         for match in matches:
@@ -267,7 +267,7 @@ class RuleBasedPipeline:
                     shared_words = match[5].split(";") if len(match) > 5 else []
                     score = min(len(shared_words) / 5.0, 1.0)  # Normalize to [0, 1]
                     
-                    results[query_id].append(Judgment(
+                    results[query_id].append(CandidateJudge(
                         segment=source_segments[source_id],
                         candidate_score=score,
                         judgment_score=1.0,  # always positive for matches
