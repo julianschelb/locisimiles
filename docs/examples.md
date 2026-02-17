@@ -55,6 +55,76 @@ results = pipeline.run(
 )
 ```
 
+## Modular Pipeline (Recommended)
+
+Build custom pipelines by composing a generator and a judge:
+
+```python
+from locisimiles import Pipeline
+from locisimiles.pipeline.generator import EmbeddingCandidateGenerator
+from locisimiles.pipeline.judge import ClassificationJudge
+from locisimiles.document import Document
+
+# Load documents
+query_doc = Document("./hieronymus_samples.csv", author="Hieronymus")
+source_doc = Document("./vergil_samples.csv", author="Vergil")
+
+# Compose a custom pipeline
+pipeline = Pipeline(
+    generator=EmbeddingCandidateGenerator(
+        embedding_model_name="julian-schelb/SPhilBerta-emb-lat-intertext-v1",
+        device="cpu",
+    ),
+    judge=ClassificationJudge(
+        classification_name="julian-schelb/PhilBerta-class-latin-intertext-v1",
+        device="cpu",
+    ),
+)
+
+# Run end-to-end
+results = pipeline.run(query=query_doc, source=source_doc, top_k=10)
+
+# Or run stages separately
+candidates = pipeline.generate_candidates(query=query_doc, source=source_doc, top_k=10)
+results = pipeline.judge_candidates(query=query_doc, candidates=candidates)
+```
+
+### Custom Combinations
+
+Mix and match generators and judges:
+
+```python
+from locisimiles import Pipeline
+from locisimiles.pipeline.generator import (
+    EmbeddingCandidateGenerator,
+    ExhaustiveCandidateGenerator,
+    RuleBasedCandidateGenerator,
+)
+from locisimiles.pipeline.judge import (
+    ClassificationJudge,
+    ThresholdJudge,
+    IdentityJudge,
+)
+
+# Retrieval + threshold (fast, no classifier needed)
+pipeline = Pipeline(
+    generator=EmbeddingCandidateGenerator(device="cpu"),
+    judge=ThresholdJudge(top_k=5),
+)
+
+# Rule-based candidates + classification scoring
+pipeline = Pipeline(
+    generator=RuleBasedCandidateGenerator(min_shared_words=2),
+    judge=ClassificationJudge(device="cpu"),
+)
+
+# Exhaustive + identity (all pairs, no filtering)
+pipeline = Pipeline(
+    generator=ExhaustiveCandidateGenerator(),
+    judge=IdentityJudge(),
+)
+```
+
 ## Evaluation
 
 Evaluate your results against ground truth annotations:

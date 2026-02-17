@@ -54,49 +54,52 @@ The CSV should have columns for `id` and `text` (column names are configurable).
 
 ## Pipelines
 
-LociSimiles provides three main pipeline types:
+LociSimiles provides a **modular pipeline architecture** where you compose
+a **generator** (candidate selection) with a **judge** (scoring/classification)
+using the generic `Pipeline` class.
 
-### 1. Retrieval Pipeline
-
-Uses semantic embeddings to find similar passages:
+### Modular Approach (Recommended)
 
 ```python
-from locisimiles import RetrievalPipeline
+from locisimiles import Pipeline
+from locisimiles.pipeline.generator import EmbeddingCandidateGenerator
+from locisimiles.pipeline.judge import ClassificationJudge
 
-pipeline = RetrievalPipeline(
-    model_name="sentence-transformers/all-MiniLM-L6-v2"
+pipeline = Pipeline(
+    generator=EmbeddingCandidateGenerator(device="cpu"),
+    judge=ClassificationJudge(device="cpu"),
 )
 
-results = pipeline.retrieve(source_doc, target_doc, top_k=10)
+results = pipeline.run(query=query_doc, source=source_doc, top_k=10)
 ```
 
-### 2. Classification Pipeline
+Available **generators**:
 
-Uses a transformer model to classify text pairs:
+| Generator | Description |
+|-----------|-------------|
+| `EmbeddingCandidateGenerator` | Semantic similarity via sentence transformers + ChromaDB |
+| `ExhaustiveCandidateGenerator` | All pairs — no filtering |
+| `RuleBasedCandidateGenerator` | Lexical matching + linguistic filters |
+
+Available **judges**:
+
+| Judge | Description |
+|-------|-------------|
+| `ClassificationJudge` | Transformer sequence classification (P(positive)) |
+| `ThresholdJudge` | Binary decisions from candidate scores (top-k or threshold) |
+| `IdentityJudge` | Pass-through — `judgment_score = 1.0` |
+
+### Legacy Pipeline Classes
+
+The pre-composed pipeline classes are still available for convenience:
 
 ```python
-from locisimiles import ClassificationPipeline
-
-pipeline = ClassificationPipeline(
-    model_name="bert-base-uncased"
+from locisimiles import (
+    ClassificationPipelineWithCandidategeneration,  # embedding + classification
+    ClassificationPipeline,                         # exhaustive + classification
+    RetrievalPipeline,                              # embedding + threshold
+    RuleBasedPipeline,                              # rule-based + identity
 )
-
-results = pipeline.classify(pairs)
-```
-
-### 3. Two-Stage Pipeline
-
-Combines retrieval and classification for best results:
-
-```python
-from locisimiles import TwoStagePipeline
-
-pipeline = TwoStagePipeline(
-    retrieval_model="sentence-transformers/all-MiniLM-L6-v2",
-    classification_model="bert-base-uncased"
-)
-
-results = pipeline.run(source_doc, target_doc)
 ```
 
 ## Evaluation

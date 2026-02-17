@@ -2,6 +2,14 @@
 
 Processing pipelines for intertextual detection.
 
+## Pipeline (Composer)
+
+Compose any generator and judge into a full pipeline.
+
+::: locisimiles.pipeline.pipeline.Pipeline
+    options:
+      heading_level: 3
+
 ## RetrievalPipeline
 
 Find similar passages using semantic embeddings.

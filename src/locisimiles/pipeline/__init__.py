@@ -2,18 +2,29 @@
 """
 Pipeline submodule for intertextuality detection.
 
-This module provides four pipeline implementations:
-- ClassificationPipelineWithCandidategeneration: Two-stage (retrieval + classification)
-- ClassificationPipeline: Classification-only (exhaustive comparison)
-- RetrievalPipeline: Retrieval-only (embedding similarity, no classification)
-- RuleBasedPipeline: Rule-based (lexical matching + linguistic filters)
+This module provides:
 
-All exports are available at the package level for backward compatibility:
+**Modular components** (recommended for new code):
+
+- Generators: ``EmbeddingCandidateGenerator``, ``ExhaustiveCandidateGenerator``,
+  ``RuleBasedCandidateGenerator``
+- Judges: ``ClassificationJudge``, ``ThresholdJudge``, ``IdentityJudge``
+- Pipeline: Generic ``Pipeline(generator, judge)`` composer
+
+**Legacy pipeline classes** (backward-compatible):
+
+- ``ClassificationPipelineWithCandidategeneration``: Two-stage (retrieval + classification)
+- ``ClassificationPipeline``: Classification-only (exhaustive comparison)
+- ``RetrievalPipeline``: Retrieval-only (embedding similarity, no classification)
+- ``RuleBasedPipeline``: Rule-based (lexical matching + linguistic filters)
+
+All exports are available at the package level for backward compatibility::
+
     from locisimiles.pipeline import ClassificationPipeline, pretty_print
 """
 from __future__ import annotations
 
-# Import new types for re-export
+# --- Types ---
 from locisimiles.pipeline._types import (
     # New dataclasses & type aliases
     Candidate,
@@ -34,7 +45,26 @@ from locisimiles.pipeline._types import (
     pretty_print,
 )
 
-# Import pipeline classes
+# --- Modular components: generators ---
+from locisimiles.pipeline.generator import (
+    CandidateGeneratorBase,
+    EmbeddingCandidateGenerator,
+    ExhaustiveCandidateGenerator,
+    RuleBasedCandidateGenerator,
+)
+
+# --- Modular components: judges ---
+from locisimiles.pipeline.judge import (
+    JudgeBase,
+    ClassificationJudge,
+    ThresholdJudge,
+    IdentityJudge,
+)
+
+# --- Pipeline composer ---
+from locisimiles.pipeline.pipeline import Pipeline
+
+# --- Legacy pipeline classes ---
 from locisimiles.pipeline.two_stage import ClassificationPipelineWithCandidategeneration
 from locisimiles.pipeline.classification import ClassificationPipeline
 from locisimiles.pipeline.retrieval import RetrievalPipeline
@@ -42,7 +72,7 @@ from locisimiles.pipeline.rule_based import RuleBasedPipeline
 
 # Define public API
 __all__ = [
-    # New types
+    # Types
     "Candidate",
     "CandidateJudge",
     "CandidateGeneratorOutput",
@@ -59,7 +89,19 @@ __all__ = [
     "FullDict",
     # Utilities
     "pretty_print",
-    # Pipeline classes
+    # Generators
+    "CandidateGeneratorBase",
+    "EmbeddingCandidateGenerator",
+    "ExhaustiveCandidateGenerator",
+    "RuleBasedCandidateGenerator",
+    # Judges
+    "JudgeBase",
+    "ClassificationJudge",
+    "ThresholdJudge",
+    "IdentityJudge",
+    # Pipeline composer
+    "Pipeline",
+    # Legacy pipeline classes
     "ClassificationPipelineWithCandidategeneration",
     "ClassificationPipeline",
     "RetrievalPipeline",

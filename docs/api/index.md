@@ -15,9 +15,27 @@ The [Document](document.md) module provides classes for representing and loading
 
 The [Pipelines](pipelines.md) module provides the main processing pipelines:
 
+- `Pipeline` - Generic composer: combine any generator + judge
 - `RetrievalPipeline` - Semantic similarity retrieval
 - `ClassificationPipeline` - Text pair classification
 - `ClassificationPipelineWithCandidategeneration` - Two-stage retrieval + classification
+- `RuleBasedPipeline` - Lexical matching + linguistic filters
+
+### Generators Module
+
+The [Generators](generators.md) module provides candidate-generation components:
+
+- `EmbeddingCandidateGenerator` - Semantic embedding similarity
+- `ExhaustiveCandidateGenerator` - All-pairs (no filtering)
+- `RuleBasedCandidateGenerator` - Lexical matching + linguistic filters
+
+### Judges Module
+
+The [Judges](judges.md) module provides scoring/classification components:
+
+- `ClassificationJudge` - Transformer-based sequence classification
+- `ThresholdJudge` - Binary decisions from candidate scores
+- `IdentityJudge` - Pass-through (judgment_score = 1.0)
 
 ### Evaluator Module
 
