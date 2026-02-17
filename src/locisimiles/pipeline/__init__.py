@@ -43,6 +43,8 @@ from locisimiles.pipeline._types import (
     FullDict,
     # Utilities
     pretty_print,
+    results_to_csv,
+    results_to_json,
 )
 
 # --- Modular components: generators ---
@@ -97,6 +99,8 @@ __all__ = [
     "FullDict",
     # Utilities
     "pretty_print",
+    "results_to_csv",
+    "results_to_json",
     # Generators
     "CandidateGeneratorBase",
     "EmbeddingCandidateGenerator",

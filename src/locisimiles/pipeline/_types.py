@@ -20,8 +20,12 @@ name.
 """
 from __future__ import annotations
 
+import csv
+import json
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, Union
+
 from locisimiles.document import TextSegment
 
 
@@ -139,3 +143,104 @@ def pretty_print(results: CandidateJudgeOutput) -> None:
                 seg, cand, judg = item  # type: ignore[misc]
             cand_str = f"{cand:+.3f}" if cand is not None else "N/A"
             print(f"  {seg.id:<25}  candidate={cand_str}  judgment={judg:.3f}")
+
+
+def _unpack_item(item: Any) -> tuple[TextSegment, Optional[float], float]:
+    """Extract segment, candidate_score, judgment_score from a result item."""
+    if isinstance(item, CandidateJudge):
+        return item.segment, item.candidate_score, item.judgment_score
+    # Backward compat: tuple (segment, sim, prob)
+    seg, cand, judg = item
+    return seg, cand, judg
+
+
+def results_to_csv(
+    results: CandidateJudgeOutput,
+    path: Union[str, Path],
+) -> None:
+    """Save pipeline results to a CSV file.
+
+    Writes one row per query-source match with the following columns:
+
+    - ``query_id`` - identifier of the query segment.
+    - ``source_id`` - identifier of the matching source segment.
+    - ``source_text`` - raw text of the source segment.
+    - ``candidate_score`` - score from the candidate-generation stage
+      (empty when not available).
+    - ``judgment_score`` - final judgment / classification score.
+
+    Args:
+        results: Pipeline output in ``CandidateJudgeOutput`` format.
+        path: Destination file path (e.g. ``"results.csv"``).
+
+    Example:
+        ```python
+        from locisimiles.pipeline import results_to_csv
+
+        results = pipeline.run(query=query_doc, source=source_doc, top_k=5)
+        results_to_csv(results, "results.csv")
+        ```
+    """
+    path = Path(path)
+    fieldnames = [
+        "query_id",
+        "source_id",
+        "source_text",
+        "candidate_score",
+        "judgment_score",
+    ]
+    with path.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        for qid, lst in results.items():
+            for item in lst:
+                seg, cand, judg = _unpack_item(item)
+                writer.writerow({
+                    "query_id": qid,
+                    "source_id": seg.id,
+                    "source_text": seg.text,
+                    "candidate_score": cand if cand is not None else "",
+                    "judgment_score": judg,
+                })
+
+
+def results_to_json(
+    results: CandidateJudgeOutput,
+    path: Union[str, Path],
+    *,
+    indent: int = 2,
+) -> None:
+    """Save pipeline results to a JSON file.
+
+    Produces a JSON object keyed by query segment ID.  Each value is a
+    list of match objects with ``source_id``, ``source_text``,
+    ``candidate_score``, and ``judgment_score``.
+
+    Args:
+        results: Pipeline output in ``CandidateJudgeOutput`` format.
+        path: Destination file path (e.g. ``"results.json"``).
+        indent: JSON indentation level (default ``2``).
+
+    Example:
+        ```python
+        from locisimiles.pipeline import results_to_json
+
+        results = pipeline.run(query=query_doc, source=source_doc, top_k=5)
+        results_to_json(results, "results.json")
+        ```
+    """
+    path = Path(path)
+    data: Dict[str, list] = {}
+    for qid, lst in results.items():
+        matches = []
+        for item in lst:
+            seg, cand, judg = _unpack_item(item)
+            matches.append({
+                "source_id": str(seg.id),
+                "source_text": seg.text,
+                "candidate_score": cand,
+                "judgment_score": judg,
+            })
+        data[qid] = matches
+    with path.open("w", encoding="utf-8") as f:
+        json.dump(data, f, indent=indent, ensure_ascii=False)

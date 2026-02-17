@@ -20,6 +20,8 @@ from locisimiles.pipeline import (
     IdentityJudge,
     # Utilities
     pretty_print,
+    results_to_csv,
+    results_to_json,
 )
 from locisimiles.evaluator import IntertextEvaluator
 
@@ -45,4 +47,6 @@ __all__ = [
     # Utilities
     "IntertextEvaluator",
     "pretty_print",
+    "results_to_csv",
+    "results_to_json",
 ]

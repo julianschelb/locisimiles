@@ -2,10 +2,16 @@
 """Generic pipeline composer: generator + judge."""
 from __future__ import annotations
 
-from typing import Any
+from pathlib import Path
+from typing import Any, Union
 
 from locisimiles.document import Document
-from locisimiles.pipeline._types import CandidateGeneratorOutput, CandidateJudgeOutput
+from locisimiles.pipeline._types import (
+    CandidateGeneratorOutput,
+    CandidateJudgeOutput,
+    results_to_csv,
+    results_to_json,
+)
 from locisimiles.pipeline.generator._base import CandidateGeneratorBase
 from locisimiles.pipeline.judge._base import JudgeBase
 
@@ -130,3 +136,77 @@ class Pipeline:
         """
         candidates = self.generate_candidates(query=query, source=source, **kwargs)
         return self.judge_candidates(query=query, candidates=candidates, **kwargs)
+
+    # ---------- Result I/O ----------
+
+    def to_csv(
+        self,
+        path: Union[str, Path],
+        results: CandidateJudgeOutput | None = None,
+    ) -> None:
+        """Save pipeline results to a CSV file.
+
+        If *results* is ``None``, the results from the last ``run()`` call
+        are used.
+
+        Columns: ``query_id``, ``source_id``, ``source_text``,
+        ``candidate_score``, ``judgment_score``.
+
+        Args:
+            path: Destination file path (e.g. ``"results.csv"``).
+            results: Explicit results to save.  Defaults to the last
+                ``run()`` output.
+
+        Raises:
+            ValueError: If no results are available.
+
+        Example:
+            ```python
+            results = pipeline.run(query=query_doc, source=source_doc)
+            pipeline.to_csv("results.csv")
+            ```
+        """
+        data = results if results is not None else self._last_judgments
+        if data is None:
+            raise ValueError(
+                "No results to save. Call run() first or pass results explicitly."
+            )
+        results_to_csv(data, path)
+
+    def to_json(
+        self,
+        path: Union[str, Path],
+        results: CandidateJudgeOutput | None = None,
+        *,
+        indent: int = 2,
+    ) -> None:
+        """Save pipeline results to a JSON file.
+
+        If *results* is ``None``, the results from the last ``run()`` call
+        are used.
+
+        Produces a JSON object keyed by query segment ID, where each value
+        is a list of match objects with ``source_id``, ``source_text``,
+        ``candidate_score``, and ``judgment_score``.
+
+        Args:
+            path: Destination file path (e.g. ``"results.json"``).
+            results: Explicit results to save.  Defaults to the last
+                ``run()`` output.
+            indent: JSON indentation level (default ``2``).
+
+        Raises:
+            ValueError: If no results are available.
+
+        Example:
+            ```python
+            results = pipeline.run(query=query_doc, source=source_doc)
+            pipeline.to_json("results.json")
+            ```
+        """
+        data = results if results is not None else self._last_judgments
+        if data is None:
+            raise ValueError(
+                "No results to save. Call run() first or pass results explicitly."
+            )
+        results_to_json(data, path, indent=indent)
