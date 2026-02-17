@@ -16,8 +16,7 @@ class ExhaustiveCandidateGenerator(CandidateGeneratorBase):
     to ``1.0`` since all pairs are treated equally.
 
     This generator is typically paired with a judge
-    (e.g. :class:`~locisimiles.pipeline.judge.ClassificationJudge`)
-    that performs the actual scoring.
+    (e.g. ``ClassificationJudge``) that performs the actual scoring.
 
     Example:
         ```python

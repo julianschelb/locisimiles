@@ -2,7 +2,7 @@
 """
 Rule-based pipeline for lexical intertextuality detection.
 
-Provides :class:`RuleBasedPipeline` which identifies textual reuse
+Provides ``RuleBasedPipeline`` which identifies textual reuse
 between Latin documents through lexical matching combined with
 linguistic filters.
 """

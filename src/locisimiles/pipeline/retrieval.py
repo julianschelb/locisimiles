@@ -2,7 +2,7 @@
 """
 Retrieval-only pipeline based on embedding similarity.
 
-Provides :class:`RetrievalPipeline` which ranks source segments by
+Provides ``RetrievalPipeline`` which ranks source segments by
 embedding similarity and applies a top-k or threshold criterion to
 determine positive matches.
 """

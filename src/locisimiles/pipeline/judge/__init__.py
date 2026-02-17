@@ -7,9 +7,9 @@ results consumed by the evaluator.
 
 Available judges:
 
-- :class:`ClassificationJudge` — transformer-based sequence classification
-- :class:`ThresholdJudge` — binary decisions from candidate scores
-- :class:`IdentityJudge` — pass-through (``judgment_score = 1.0``)
+- ``ClassificationJudge`` — transformer-based sequence classification
+- ``ThresholdJudge`` — binary decisions from candidate scores
+- ``IdentityJudge`` — pass-through (``judgment_score = 1.0``)
 """
 from locisimiles.pipeline.judge._base import JudgeBase
 from locisimiles.pipeline.judge.classification import ClassificationJudge

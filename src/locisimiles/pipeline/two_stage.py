@@ -2,7 +2,7 @@
 """
 Two-stage pipeline: Embedding retrieval followed by classification.
 
-Provides :class:`ClassificationPipelineWithCandidategeneration` which first
+Provides ``ClassificationPipelineWithCandidategeneration`` which first
 narrows down candidates using embedding similarity and then classifies the
 remaining pairs with a fine-tuned sequence-classification model.
 """

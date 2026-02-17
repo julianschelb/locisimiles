@@ -20,9 +20,7 @@ class Pipeline:
     """Compose a candidate generator and a judge into a full pipeline.
 
     This is the recommended way to build custom pipelines.  Any
-    :class:`~locisimiles.pipeline.generator.CandidateGeneratorBase`
-    can be paired with any
-    :class:`~locisimiles.pipeline.judge.JudgeBase`.
+    ``CandidateGeneratorBase`` can be paired with any ``JudgeBase``.
 
     Args:
         generator: Candidate-generation component.

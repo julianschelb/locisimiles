@@ -13,11 +13,10 @@ class JudgeBase(ABC):
     """Abstract base class for candidate judges.
 
     A judge receives the output of a candidate generator and produces a
-    :data:`~locisimiles.pipeline._types.CandidateJudgeOutput` mapping
-    query-segment IDs to lists of
-    :class:`~locisimiles.pipeline._types.CandidateJudge` objects.
+    ``CandidateJudgeOutput`` mapping query-segment IDs to lists of
+    ``CandidateJudge`` objects.
 
-    Subclasses must implement :meth:`judge`.
+    Subclasses must implement ``judge()``.
     """
 
     @abstractmethod

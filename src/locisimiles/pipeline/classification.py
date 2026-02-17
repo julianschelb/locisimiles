@@ -2,7 +2,7 @@
 """
 Classification-only pipeline for exhaustive pairwise comparison.
 
-Provides :class:`ClassificationPipeline` which classifies every possible
+Provides ``ClassificationPipeline`` which classifies every possible
 query-source pair using a fine-tuned sequence-classification model.
 """
 from __future__ import annotations

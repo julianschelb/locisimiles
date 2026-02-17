@@ -14,11 +14,10 @@ class CandidateGeneratorBase(ABC):
 
     A candidate generator narrows the search space by producing a ranked
     list of source segments for each query segment.  The output is a
-    :data:`~locisimiles.pipeline._types.CandidateGeneratorOutput` mapping
-    query-segment IDs to lists of
-    :class:`~locisimiles.pipeline._types.Candidate` objects.
+    ``CandidateGeneratorOutput`` mapping query-segment IDs to lists of
+    ``Candidate`` objects.
 
-    Subclasses must implement :meth:`generate`.
+    Subclasses must implement ``generate()``.
     """
 
     @abstractmethod

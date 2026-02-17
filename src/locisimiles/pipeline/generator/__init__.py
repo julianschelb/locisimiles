@@ -7,9 +7,9 @@ are most likely to be relevant for each query segment.
 
 Available generators:
 
-- :class:`EmbeddingCandidateGenerator` — semantic embedding similarity
-- :class:`ExhaustiveCandidateGenerator` — all pairs (no filtering)
-- :class:`RuleBasedCandidateGenerator` — lexical matching + linguistic filters
+- ``EmbeddingCandidateGenerator`` — semantic embedding similarity
+- ``ExhaustiveCandidateGenerator`` — all pairs (no filtering)
+- ``RuleBasedCandidateGenerator`` — lexical matching + linguistic filters
 """
 from locisimiles.pipeline.generator._base import CandidateGeneratorBase
 from locisimiles.pipeline.generator.embedding import EmbeddingCandidateGenerator
