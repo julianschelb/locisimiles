@@ -2,11 +2,14 @@
 
 from locisimiles.document import Document, TextSegment
 from locisimiles.pipeline import (
-    # Legacy pipeline classes
-    ClassificationPipeline,
-    ClassificationPipelineWithCandidategeneration,
+    # Preconfigured pipelines
+    TwoStagePipeline,
+    ExhaustiveClassificationPipeline,
     RetrievalPipeline,
     RuleBasedPipeline,
+    # Backward-compatible aliases
+    ClassificationPipeline,
+    ClassificationPipelineWithCandidategeneration,
     # Modular components
     Pipeline,
     EmbeddingCandidateGenerator,
@@ -23,11 +26,14 @@ from locisimiles.evaluator import IntertextEvaluator
 __all__ = [
     "Document",
     "TextSegment",
-    # Legacy pipeline classes
-    "ClassificationPipeline",
-    "ClassificationPipelineWithCandidategeneration",
+    # Preconfigured pipelines
+    "TwoStagePipeline",
+    "ExhaustiveClassificationPipeline",
     "RetrievalPipeline",
     "RuleBasedPipeline",
+    # Backward-compatible aliases
+    "ClassificationPipeline",
+    "ClassificationPipelineWithCandidategeneration",
     # Modular components
     "Pipeline",
     "EmbeddingCandidateGenerator",

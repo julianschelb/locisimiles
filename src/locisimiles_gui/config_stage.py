@@ -18,7 +18,7 @@ except ImportError as exc:
     raise ImportError(base_msg) from exc
 
 from .utils import validate_csv
-from locisimiles.pipeline import ClassificationPipelineWithCandidategeneration
+from locisimiles.pipeline import TwoStagePipeline
 from locisimiles.document import Document
 
 
@@ -87,7 +87,7 @@ def _process_documents(
         
         # Initialize pipeline
         # Note: First run will download models (~500MB each), subsequent runs use cached models
-        pipeline = ClassificationPipelineWithCandidategeneration(
+        pipeline = TwoStagePipeline(
             classification_name=classification_model,
             embedding_model_name=embedding_model,
             device=device,

@@ -6,7 +6,8 @@ import pandas as pd
 
 from locisimiles.document import Document
 from locisimiles.pipeline import (
-    ClassificationPipelineWithCandidategeneration,
+    Pipeline,
+    TwoStagePipeline,
     CandidateJudge,
     CandidateJudgeOutput,
 )
@@ -74,7 +75,7 @@ class IntertextEvaluator:
     Example:
         ```python
         from locisimiles.evaluator import IntertextEvaluator
-        from locisimiles.pipeline import ClassificationPipelineWithCandidategeneration
+        from locisimiles.pipeline import TwoStagePipeline
         from locisimiles.document import Document
         
         # Load documents
@@ -82,7 +83,7 @@ class IntertextEvaluator:
         source_doc = Document("vergil.csv")
         
         # Initialize pipeline
-        pipeline = ClassificationPipelineWithCandidategeneration(device="cpu")
+        pipeline = TwoStagePipeline(device="cpu")
         
         # Create evaluator with auto-threshold
         evaluator = IntertextEvaluator(
@@ -115,7 +116,7 @@ class IntertextEvaluator:
         query_doc: Document,
         source_doc: Document,
         ground_truth_csv: str | pd.DataFrame,
-        pipeline: ClassificationPipelineWithCandidategeneration,
+        pipeline: Pipeline,
         top_k: int = 5,
         threshold: float | str = "auto",
         auto_threshold_metric: str = "smr",
@@ -471,7 +472,7 @@ class IntertextEvaluator:
 if __name__ == "__main__":
     qdoc = Document("../data/vergil_samples.csv")
     sdoc = Document("../data/hieronymus_samples.csv")
-    pipe = ClassificationPipelineWithCandidategeneration(device="cpu")
+    pipe = TwoStagePipeline(device="cpu")
 
     evaluator = IntertextEvaluator(
         query_doc=qdoc,

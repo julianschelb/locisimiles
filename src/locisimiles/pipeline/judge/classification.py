@@ -22,7 +22,7 @@ class ClassificationJudge(JudgeBase):
     """Judge candidates using a transformer classification model.
 
     Loads a pre-trained sequence-classification model and tokenizer.
-    For each query–candidate pair the model outputs P(positive), which
+    For each query-candidate pair the model outputs P(positive), which
     is stored as ``judgment_score``.
 
     Args:
@@ -130,7 +130,7 @@ class ClassificationJudge(JudgeBase):
         candidate_text: str,
         max_len: int = 512,
     ) -> Dict[str, Any]:
-        """Inspect how a query–candidate pair is tokenised and encoded.
+        """Inspect how a query-candidate pair is tokenised and encoded.
 
         Returns a dictionary with original / truncated texts, token IDs,
         attention mask, and decoded input text with special tokens visible.

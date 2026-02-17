@@ -86,7 +86,7 @@ class TestCLIFileValidation:
 class TestCLIDeviceSelection:
     """Tests for CLI device selection."""
 
-    @patch("locisimiles.cli.ClassificationPipelineWithCandidategeneration")
+    @patch("locisimiles.cli.TwoStagePipeline")
     @patch("locisimiles.cli.Document")
     def test_cli_device_auto_cpu(self, mock_doc, mock_pipeline, temp_dir, capsys):
         """Test auto device selection falls back to CPU when no GPU."""
@@ -120,7 +120,7 @@ class TestCLIDeviceSelection:
         captured = capsys.readouterr()
         assert "cpu" in captured.out.lower()
 
-    @patch("locisimiles.cli.ClassificationPipelineWithCandidategeneration")
+    @patch("locisimiles.cli.TwoStagePipeline")
     @patch("locisimiles.cli.Document")
     def test_cli_device_explicit(self, mock_doc, mock_pipeline, temp_dir):
         """Test explicit device selection is passed to pipeline."""
@@ -156,7 +156,7 @@ class TestCLIDeviceSelection:
 class TestCLIOutputGeneration:
     """Tests for CLI output file generation."""
 
-    @patch("locisimiles.cli.ClassificationPipelineWithCandidategeneration")
+    @patch("locisimiles.cli.TwoStagePipeline")
     @patch("locisimiles.cli.Document")
     def test_cli_output_csv_created(self, mock_doc_class, mock_pipeline_class, temp_dir):
         """Test that output CSV file is created."""
@@ -202,7 +202,7 @@ class TestCLIOutputGeneration:
         assert result == 0 or result is None
         assert output_path.exists()
 
-    @patch("locisimiles.cli.ClassificationPipelineWithCandidategeneration")
+    @patch("locisimiles.cli.TwoStagePipeline")
     @patch("locisimiles.cli.Document")
     def test_cli_output_csv_headers(self, mock_doc_class, mock_pipeline_class, temp_dir):
         """Test that output CSV has correct headers."""
@@ -257,7 +257,7 @@ class TestCLIOutputGeneration:
 class TestCLIVerboseMode:
     """Tests for CLI verbose mode."""
 
-    @patch("locisimiles.cli.ClassificationPipelineWithCandidategeneration")
+    @patch("locisimiles.cli.TwoStagePipeline")
     @patch("locisimiles.cli.Document")
     def test_cli_verbose_flag(self, mock_doc_class, mock_pipeline_class, temp_dir, capsys):
         """Test verbose output includes expected information."""
@@ -303,7 +303,7 @@ class TestCLIVerboseMode:
 class TestCLIPipelineParameters:
     """Tests for CLI pipeline parameters."""
 
-    @patch("locisimiles.cli.ClassificationPipelineWithCandidategeneration")
+    @patch("locisimiles.cli.TwoStagePipeline")
     @patch("locisimiles.cli.Document")
     def test_cli_topk_parameter(self, mock_doc_class, mock_pipeline_class, temp_dir):
         """Test that top-k parameter is passed to pipeline."""
@@ -337,7 +337,7 @@ class TestCLIPipelineParameters:
         call_kwargs = mock_pipeline.run.call_args[1]
         assert call_kwargs['top_k'] == 20
 
-    @patch("locisimiles.cli.ClassificationPipelineWithCandidategeneration")
+    @patch("locisimiles.cli.TwoStagePipeline")
     @patch("locisimiles.cli.Document")
     def test_cli_threshold_parameter(self, mock_doc_class, mock_pipeline_class, temp_dir):
         """Test that threshold parameter affects output filtering."""
@@ -386,7 +386,7 @@ class TestCLIPipelineParameters:
         if rows:  # If there are data rows
             assert rows[0]['above_threshold'] == 'No'
 
-    @patch("locisimiles.cli.ClassificationPipelineWithCandidategeneration")
+    @patch("locisimiles.cli.TwoStagePipeline")
     @patch("locisimiles.cli.Document")
     def test_cli_custom_models(self, mock_doc_class, mock_pipeline_class, temp_dir):
         """Test that custom model names are passed to pipeline."""
@@ -426,7 +426,7 @@ class TestCLIPipelineParameters:
 class TestCLIErrorHandling:
     """Tests for CLI error handling."""
 
-    @patch("locisimiles.cli.ClassificationPipelineWithCandidategeneration")
+    @patch("locisimiles.cli.TwoStagePipeline")
     @patch("locisimiles.cli.Document")
     def test_cli_pipeline_error(self, mock_doc_class, mock_pipeline_class, temp_dir, capsys):
         """Test that pipeline errors are handled gracefully."""

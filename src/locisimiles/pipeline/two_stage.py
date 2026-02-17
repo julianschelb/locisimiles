@@ -1,70 +1,56 @@
 # pipeline/two_stage.py
 """
-Two-stage pipeline: Retrieval (candidate generation) + Classification.
+Two-stage pipeline: Embedding retrieval followed by classification.
+
+Provides :class:`ClassificationPipelineWithCandidategeneration` which first
+narrows down candidates using embedding similarity and then classifies the
+remaining pairs with a fine-tuned sequence-classification model.
 """
 from __future__ import annotations
 
-import time
-import chromadb
-import numpy as np
-import torch
-import torch.nn.functional as F
-from typing import Dict, List, Tuple, Any, Sequence
-from sentence_transformers import SentenceTransformer
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
-from locisimiles.document import Document, TextSegment
-from locisimiles.pipeline._types import (
-    Candidate,
-    CandidateJudge,
-    CandidateGeneratorOutput,
-    CandidateJudgeOutput,
-)
-from tqdm import tqdm
+from locisimiles.pipeline.pipeline import Pipeline
+from locisimiles.pipeline.generator.embedding import EmbeddingCandidateGenerator
+from locisimiles.pipeline.judge.classification import ClassificationJudge
 
 
-class ClassificationPipelineWithCandidategeneration:
-    """
-    A two-stage pipeline combining retrieval and classification for intertextuality detection.
-    
-    This pipeline implements an efficient two-stage approach:
-        1. **Retrieval**: Generate candidate segments using embedding similarity
-        2. **Classification**: Classify the top-k candidates using a transformer model
-    
-    This approach is more efficient than exhaustive classification for large document
-    collections, while maintaining high accuracy by using learned classification.
-    
-    Attributes:
-        embedder: The sentence transformer model for candidate generation.
-        clf_model: The transformer classification model.
-        clf_tokenizer: The tokenizer for the classification model.
-        device: The device used for computation ('cpu' or 'cuda').
-    
+class TwoStagePipeline(Pipeline):
+    """Two-stage pipeline: embedding retrieval + classification.
+
+    Combines a fast embedding-based retrieval step with a more expensive
+    classification step to efficiently identify intertextual parallels
+    in large corpora.
+
+    Pipeline steps:
+
+    1. **Retrieval** - Encode all segments with a sentence-transformer
+       model and retrieve the *top_k* most similar source segments for
+       each query segment using cosine similarity.
+    2. **Classification** - Feed each query-candidate pair into a
+       fine-tuned sequence-classification model.  The positive-class
+       probability is used as the judgment score.
+
+    Args:
+        classification_name: HuggingFace model identifier for the
+            sequence-classification model.
+        embedding_model_name: HuggingFace model identifier for the
+            sentence-transformer.
+        device: Torch device string (``"cpu"``, ``"cuda"``, …).
+        pos_class_idx: Index of the positive class in the classifier output.
+
     Example:
         ```python
         from locisimiles.pipeline import ClassificationPipelineWithCandidategeneration
         from locisimiles.document import Document
-        
+
         # Load documents
-        query_doc = Document("hieronymus.csv")
-        source_doc = Document("vergil.csv")
-        
-        # Initialize two-stage pipeline
-        pipeline = ClassificationPipelineWithCandidategeneration(
-            classification_name="julian-schelb/PhilBerta-class-latin-intertext-v1",
-            embedding_model_name="julian-schelb/SPhilBerta-emb-lat-intertext-v1",
-            device="cpu",
-        )
-        
-        # Run pipeline: retrieve top 10 candidates, then classify
-        results = pipeline.run(
-            query=query_doc,
-            source=source_doc,
-            top_k=10,
-        )
-        
-        # Pretty print results
-        from locisimiles.pipeline import pretty_print
-        pretty_print(results)
+        query = Document("query.csv")
+        source = Document("source.csv")
+
+        # Define pipeline
+        pipeline = ClassificationPipelineWithCandidategeneration(device="cpu")
+
+        # Run pipeline
+        results = pipeline.run(query=query, source=source, top_k=10)
         ```
     """
 
@@ -74,349 +60,25 @@ class ClassificationPipelineWithCandidategeneration:
         classification_name: str = "julian-schelb/PhilBerta-class-latin-intertext-v1",
         embedding_model_name: str = "julian-schelb/SPhilBerta-emb-lat-intertext-v1",
         device: str | int | None = None,
-        pos_class_idx: int = 1,  # Index of the positive class in the classifier
+        pos_class_idx: int = 1,
     ):
-        self.device = device if device is not None else "cpu"
-        self.pos_class_idx = pos_class_idx
-        self._source_index: chromadb.Collection | None = None
-
-        # -------- Load Models ----------
-        self.embedder = SentenceTransformer(embedding_model_name, device=self.device)
-        self.clf_tokenizer = AutoTokenizer.from_pretrained(classification_name)
-        self.clf_model = AutoModelForSequenceClassification.from_pretrained(classification_name)
-        self.clf_model.to(self.device).eval()
-
-        # Keep results in memory for later access
-        self._last_candidates: CandidateGeneratorOutput | None = None
-        self._last_judgments: CandidateJudgeOutput | None = None
-
-    # ---------- Generate Embedding ----------
-
-    def _embed(self, texts: Sequence[str], prompt_name: str) -> np.ndarray:
-        """Vectorise *texts* → normalised float32 numpy array."""
-        return self.embedder.encode(
-            list(texts),
-            convert_to_numpy=True,
-            normalize_embeddings=True,
-            batch_size=32,
-            show_progress_bar=False,
-            prompt_name=prompt_name if prompt_name else None,
-        ).astype("float32")
-
-    # ---------- Predict Positive Probability ----------
-
-    def _count_special_tokens_added(self) -> int:
-        """Counts the number of special tokens added by the tokenizer."""
-        return self.clf_tokenizer.num_special_tokens_to_add(pair=True)
-    
-    def _truncate_pair(self, sentence1: str, sentence2: str, max_len: int = 512) -> Tuple[str, str]:
-        """Truncates sentence1 and sentence2 to fit within max_len including special tokens."""
-        num_special = self._count_special_tokens_added()
-        max_tokens = max_len - num_special
-        half = max_tokens // 2
-
-        # Tokenize and truncate
-        tokens1 = self.clf_tokenizer.tokenize(sentence1)[:half]
-        tokens2 = self.clf_tokenizer.tokenize(sentence2)[:half]
-
-        # Convert back to string
-        sentence1 = self.clf_tokenizer.convert_tokens_to_string(tokens1)
-        sentence2 = self.clf_tokenizer.convert_tokens_to_string(tokens2)
-        return sentence1, sentence2
-
-    def _predict_batch(
-        self,
-        query_text: str,
-        cand_texts: Sequence[str],
-        max_len: int = 512,
-    ) -> List[float]:
-        """Predict probabilities for a batch of (query, cand) pairs."""
-        # Truncate pairs intelligently before tokenization
-        truncated_pairs = [self._truncate_pair(query_text, cand_text, max_len) 
-                          for cand_text in cand_texts]
-        query_texts_trunc = [pair[0] for pair in truncated_pairs]
-        cand_texts_trunc = [pair[1] for pair in truncated_pairs]
-        
-        encoding = self.clf_tokenizer(
-            query_texts_trunc,
-            cand_texts_trunc,
-            add_special_tokens=True,
-            padding=True,
-            truncation=True,
-            max_length=max_len,
-            return_tensors="pt",
-        ).to(self.device)
-
-        with torch.no_grad():
-            logits = self.clf_model(**encoding).logits
-            return F.softmax(logits, dim=1)[:, self.pos_class_idx].cpu().tolist()
-        
-    def _predict(
-        self,
-        query_text: str,
-        cand_texts: Sequence[str],
-        *,
-        batch_size: int = 32,
-    ) -> List[float]:
-        """Return P(positive) for each (query, cand) pair in *cand_texts*."""
-        probs: List[float] = []
-        
-        # Predict in batches between a query and multiple candidates
-        for i in range(0, len(cand_texts), batch_size):
-            chunk = cand_texts[i: i + batch_size]
-            chunk_probs = self._predict_batch(query_text, chunk)
-            probs.extend(chunk_probs)
-        return probs
-
-    def debug_input_sequence(self, query_text: str, candidate_text: str, max_len: int = 512) -> Dict[str, Any]:
-        """Debug method to inspect how a query-candidate pair is encoded.
-        
-        Returns a dictionary with:
-        - query: Original query text
-        - candidate: Original candidate text
-        - query_truncated: Truncated query text
-        - candidate_truncated: Truncated candidate text
-        - input_ids: Token IDs as list
-        - input_text: Decoded text with special tokens visible
-        - attention_mask: Attention mask as list
-        """
-        # Truncate the pair
-        query_trunc, candidate_trunc = self._truncate_pair(query_text, candidate_text, max_len)
-        
-        # Encode the pair
-        encoding = self.clf_tokenizer(
-            query_trunc,
-            candidate_trunc,
-            add_special_tokens=True,
-            padding=True,
-            truncation=True,
-            max_length=max_len,
-            return_tensors="pt",
-        )
-        
-        # Decode with special tokens visible
-        decoded_text = self.clf_tokenizer.decode(encoding['input_ids'].squeeze(), skip_special_tokens=False)
-        
-        return {
-            "query": query_text,
-            "candidate": candidate_text,
-            "query_truncated": query_trunc,
-            "candidate_truncated": candidate_trunc,
-            "input_ids": encoding['input_ids'].squeeze().tolist(),
-            "attention_mask": encoding['attention_mask'].squeeze().tolist(),
-            "input_text": decoded_text,
-        }
-
-    # ---------- Stage 1: Retrieval ----------
-    
-    def build_source_index(
-        self,
-        source_segments: Sequence[TextSegment],
-        source_embeddings: np.ndarray,
-        collection_name: str = "source_segments",
-        batch_size: int = 5000,  # Safe batch size
-    ):
-        """Create a Chroma collection from *source_segments* and their embeddings."""
-        
-        # Use EphemeralClient for non-persistent, in-memory storage
-        # Create new client each time to ensure clean state
-        client = chromadb.EphemeralClient()
-        
-        # Use unique collection name to avoid conflicts in same session
-        unique_name = f"{collection_name}_{int(time.time() * 1000000)}"
-        
-        # Delete collection if it exists (should not happen with unique names, but just in case)
-        try:
-            client.delete_collection(name=unique_name)
-        except Exception:
-            pass  # Collection doesn't exist, which is fine
-        
-        # Create fresh collection with unique name
-        col = client.create_collection(
-            name=unique_name,
-            metadata={"hnsw:space": "cosine"}  # Use cosine distance
+        super().__init__(
+            generator=EmbeddingCandidateGenerator(
+                embedding_model_name=embedding_model_name,
+                device=device,
+            ),
+            judge=ClassificationJudge(
+                classification_name=classification_name,
+                device=device,
+                pos_class_idx=pos_class_idx,
+            ),
         )
 
-        # Extract IDs and embeddings
-        ids = [s.id for s in source_segments]
-        embeddings = source_embeddings.tolist()
+    @property
+    def device(self) -> str:
+        """Device used by the classification judge."""
+        return self.judge.device
 
-        # Add segments to the collection in batches
-        for i in range(0, len(ids), batch_size):
-            col.add(
-                ids=ids[i:i + batch_size],
-                embeddings=embeddings[i:i + batch_size],
-            )
 
-        return col
-    
-    def _compute_similarity(
-        self,
-        query_segments: List[TextSegment],
-        query_embeddings: np.ndarray,
-        source_document: Document,
-        top_k: int,
-    ) -> CandidateGeneratorOutput:
-        """
-        Compute cosine similarity between query embeddings and source embeddings
-        using the Chroma index, and return the top-k similar segments for each query segment.
-        """
-        similarity_results: CandidateGeneratorOutput = {}
-
-        # Iterate over each query segment and its embedding
-        for query_segment, query_embedding in zip(query_segments, query_embeddings):
-            
-            # Query the Chroma index for the top-k similar source segments
-            results = self._source_index.query(
-                query_embeddings=[query_embedding.tolist()],
-                n_results=top_k,
-            )
-            
-            # Map the results to Candidate objects
-            # Convert cosine distance to cosine similarity: similarity = 1 - distance
-            candidates = []
-            for idx, distance in zip(results["ids"][0], results["distances"][0]):
-                candidates.append(Candidate(
-                    segment=source_document[idx],
-                    score=1.0 - float(distance),
-                ))
-            similarity_results[query_segment.id] = candidates
-
-        return similarity_results
-
-    def generate_candidates(
-        self,
-        *,
-        query: Document,
-        source: Document,
-        top_k: int = 5,
-        query_prompt_name: str = "query",
-        source_prompt_name: str = "match",
-        **kwargs: Any,
-    ) -> CandidateGeneratorOutput:
-        """
-        Generate candidate segments from *source* based on similarity to *query*.
-
-        Returns:
-            CandidateGeneratorOutput mapping query segment IDs to lists of
-            ``Candidate`` objects.
-        """
-        # Extract segments from query and source documents
-        query_segments = list(query.segments.values())
-        source_segments = list(source.segments.values())
-
-        # Embed query and source segments
-        query_embeddings = self._embed(
-            [s.text for s in tqdm(query_segments, desc="Embedding query segments")],
-            prompt_name=query_prompt_name
-        )
-        
-        # Embed source segments with a progress bar
-        source_embeddings = self._embed(
-            [s.text for s in tqdm(source_segments, desc="Embedding source segments")],
-            prompt_name=source_prompt_name
-        )
-        
-        # Build the source index for fast retrieval
-        self._source_index = self.build_source_index(
-            source_segments=source_segments,
-            source_embeddings=source_embeddings,
-            collection_name="source_segments",
-        )
-        
-        # Compute similarity between query and source segments
-        similarity_results = self._compute_similarity(
-            query_segments=query_segments,
-            query_embeddings=query_embeddings,
-            source_document=source,
-            top_k=top_k,
-        )
-        
-        # Cache the results and return
-        self._last_candidates = similarity_results
-        return similarity_results
-
-    # ---------- Stage 2: Classification (Judge) ----------
-
-    def judge(
-        self,
-        *,
-        query: Document,
-        source: Document,
-        candidates: CandidateGeneratorOutput | None = None,
-        batch_size: int = 32,
-        **kwargs: Any,
-    ) -> CandidateJudgeOutput:
-        """
-        Classify candidates generated from *source*.
-
-        Args:
-            query: Query document.
-            source: Source document.
-            candidates: Output from ``generate_candidates``. Required.
-            batch_size: Batch size for the classifier.
-
-        Returns:
-            CandidateJudgeOutput mapping query segment IDs to lists of
-            ``CandidateJudge`` objects with ``candidate_score`` (similarity)
-            and ``judgment_score`` (classification probability).
-        """
-
-        judge_results: CandidateJudgeOutput = {}
-        
-        for query_id, candidate_list in tqdm(candidates.items(), desc="Judging candidates"):
-            
-            # Predict probabilities for the current query and its candidates
-            candidate_texts = [c.segment.text for c in candidate_list]
-            predicted_probabilities = self._predict(
-                query[query_id].text, candidate_texts, batch_size=batch_size
-            )
-            
-            # Combine candidates with classification probabilities
-            judgments = []
-            for candidate, probability in zip(candidate_list, predicted_probabilities):
-                judgments.append(CandidateJudge(
-                    segment=candidate.segment,
-                    candidate_score=candidate.score,
-                    judgment_score=probability,
-                ))
-            judge_results[query_id] = judgments
-
-        self._last_judgments = judge_results
-        return judge_results
-
-    # Backward-compatible alias
-    check_candidates = judge
-
-    # ---------- Full Pipeline ----------
-
-    def run(
-        self,
-        *,
-        query: Document,
-        source: Document,
-        top_k: int = 5,
-        query_prompt_name: str = "query",
-        source_prompt_name: str = "match",
-        **kwargs: Any,
-    ) -> CandidateJudgeOutput:
-        """
-        Run the full pipeline: generate candidates and classify them.
-
-        Returns:
-            CandidateJudgeOutput mapping query segment IDs to lists of
-            ``CandidateJudge`` objects.
-        """
-        candidates = self.generate_candidates(
-            query=query,
-            source=source,
-            top_k=top_k,
-            query_prompt_name=query_prompt_name,
-            source_prompt_name=source_prompt_name,
-        )
-        return self.judge(
-            query=query,
-            source=source,
-            candidates=candidates,
-            **kwargs,
-        )
+# Backward-compatible alias
+ClassificationPipelineWithCandidategeneration = TwoStagePipeline

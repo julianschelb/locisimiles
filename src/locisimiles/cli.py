@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 from locisimiles.document import Document
-from locisimiles.pipeline import ClassificationPipelineWithCandidategeneration
+from locisimiles.pipeline import TwoStagePipeline
 from locisimiles.pipeline._types import CandidateJudge
 
 
@@ -149,7 +149,7 @@ CSV Format:
             print(f"  Classification model: {args.classification_model}")
             print(f"  Embedding model: {args.embedding_model}")
         
-        pipeline = ClassificationPipelineWithCandidategeneration(
+        pipeline = TwoStagePipeline(
             classification_name=args.classification_model,
             embedding_model_name=args.embedding_model,
             device=device,

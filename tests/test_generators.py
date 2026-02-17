@@ -230,12 +230,12 @@ class TestRuleBasedCandidateGenerator:
         assert issubclass(RuleBasedCandidateGenerator, CandidateGeneratorBase)
 
     def test_initialization(self):
-        """Test that the adapter creates an internal RuleBasedPipeline."""
+        """Test that the generator stores configuration directly."""
         from locisimiles.pipeline.generator.rule_based import RuleBasedCandidateGenerator
 
         generator = RuleBasedCandidateGenerator(min_shared_words=3, max_distance=5)
-        assert generator._pipeline.min_shared_words == 3
-        assert generator._pipeline.max_distance == 5
+        assert generator.min_shared_words == 3
+        assert generator.max_distance == 5
 
     def test_generate_returns_candidates(self, query_document, source_document):
         """Test that generate() returns CandidateGeneratorOutput."""

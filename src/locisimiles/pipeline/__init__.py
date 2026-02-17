@@ -11,16 +11,16 @@ This module provides:
 - Judges: ``ClassificationJudge``, ``ThresholdJudge``, ``IdentityJudge``
 - Pipeline: Generic ``Pipeline(generator, judge)`` composer
 
-**Legacy pipeline classes** (backward-compatible):
+**Preconfigured pipelines** (convenience wrappers):
 
-- ``ClassificationPipelineWithCandidategeneration``: Two-stage (retrieval + classification)
-- ``ClassificationPipeline``: Classification-only (exhaustive comparison)
-- ``RetrievalPipeline``: Retrieval-only (embedding similarity, no classification)
-- ``RuleBasedPipeline``: Rule-based (lexical matching + linguistic filters)
+- ``TwoStagePipeline``: Embedding retrieval + classification
+- ``ExhaustiveClassificationPipeline``: Exhaustive pairs + classification
+- ``RetrievalPipeline``: Embedding retrieval + threshold judge
+- ``RuleBasedPipeline``: Rule-based lexical matching + linguistic filters
 
-All exports are available at the package level for backward compatibility::
+All exports are available at the package level::
 
-    from locisimiles.pipeline import ClassificationPipeline, pretty_print
+    from locisimiles.pipeline import TwoStagePipeline, pretty_print
 """
 from __future__ import annotations
 
@@ -64,10 +64,18 @@ from locisimiles.pipeline.judge import (
 # --- Pipeline composer ---
 from locisimiles.pipeline.pipeline import Pipeline
 
-# --- Legacy pipeline classes ---
-from locisimiles.pipeline.two_stage import ClassificationPipelineWithCandidategeneration
-from locisimiles.pipeline.classification import ClassificationPipeline
+# --- Preconfigured pipelines ---
+from locisimiles.pipeline.two_stage import (
+    TwoStagePipeline,
+    ClassificationPipelineWithCandidategeneration,  # backward-compat alias
+)
+from locisimiles.pipeline.classification import (
+    ExhaustiveClassificationPipeline,
+    ClassificationPipeline,  # backward-compat alias
+)
 from locisimiles.pipeline.retrieval import RetrievalPipeline
+
+# --- Rule-based pipeline ---
 from locisimiles.pipeline.rule_based import RuleBasedPipeline
 
 # Define public API
@@ -101,9 +109,12 @@ __all__ = [
     "IdentityJudge",
     # Pipeline composer
     "Pipeline",
-    # Legacy pipeline classes
-    "ClassificationPipelineWithCandidategeneration",
-    "ClassificationPipeline",
+    # Preconfigured pipelines
+    "TwoStagePipeline",
+    "ExhaustiveClassificationPipeline",
     "RetrievalPipeline",
     "RuleBasedPipeline",
+    # Backward-compatible aliases
+    "ClassificationPipelineWithCandidategeneration",
+    "ClassificationPipeline",
 ]

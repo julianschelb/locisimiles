@@ -1,62 +1,52 @@
 # pipeline/classification.py
 """
-Classification-only pipeline: Exhaustive pairwise comparison without retrieval.
+Classification-only pipeline for exhaustive pairwise comparison.
+
+Provides :class:`ClassificationPipeline` which classifies every possible
+query-source pair using a fine-tuned sequence-classification model.
 """
 from __future__ import annotations
 
-import torch
-import torch.nn.functional as F
-from typing import Dict, List, Tuple, Any, Sequence
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
-from locisimiles.document import Document
-from locisimiles.pipeline._types import CandidateJudge, CandidateJudgeOutput
-from tqdm import tqdm
+from locisimiles.pipeline.pipeline import Pipeline
+from locisimiles.pipeline.generator.exhaustive import ExhaustiveCandidateGenerator
+from locisimiles.pipeline.judge.classification import ClassificationJudge
 
 
-class ClassificationPipeline:
-    """
-    A classification-only pipeline for exhaustive pairwise intertextuality detection.
-    
-    This pipeline classifies **all possible pairs** between query and source segments
-    without a retrieval stage. It's suitable for smaller document collections or when
-    you need exhaustive comparison without missing any potential matches.
-    
-    Note:
-        For large documents, consider using `ClassificationPipelineWithCandidategeneration`
-        which first filters candidates using semantic similarity.
-    
-    Attributes:
-        clf_model: The transformer classification model.
-        clf_tokenizer: The tokenizer for the classification model.
-        device: The device used for computation ('cpu' or 'cuda').
-    
+class ExhaustiveClassificationPipeline(Pipeline):
+    """Classification pipeline for exhaustive pairwise comparison.
+
+    For each query segment every source segment is considered as a
+    candidate.  Each query-source pair is then fed to a fine-tuned
+    sequence-classification model that outputs the probability of the
+    pair being an intertextual match.
+
+    Pipeline steps:
+
+    1. **Candidate generation** - Create all possible query-source pairs.
+    2. **Classification** - Score each pair with a HuggingFace
+       sequence-classification model.  The positive-class probability
+       is used as the judgment score.
+
+    Args:
+        classification_name: HuggingFace model identifier for the
+            sequence-classification model.
+        device: Torch device string (``"cpu"``, ``"cuda"``, ...).
+        pos_class_idx: Index of the positive class in the classifier output.
+
     Example:
         ```python
         from locisimiles.pipeline import ClassificationPipeline
         from locisimiles.document import Document
-        
+
         # Load documents
-        query_doc = Document("hieronymus.csv")
-        source_doc = Document("vergil.csv")
-        
-        # Initialize pipeline
-        pipeline = ClassificationPipeline(
-            classification_name="julian-schelb/PhilBerta-class-latin-intertext-v1",
-            device="cpu",
-        )
-        
-        # Classify all pairs (exhaustive)
-        results = pipeline.run(
-            query=query_doc,
-            source=source_doc,
-            batch_size=32,
-        )
-        
-        # Filter results by probability threshold
-        for query_id, judgments in results.items():
-            matches = [j for j in judgments if j.judgment_score > 0.7]
-            if matches:
-                print(f"{query_id}: {len(matches)} matches")
+        query = Document("query.csv")
+        source = Document("source.csv")
+
+        # Define pipeline
+        pipeline = ClassificationPipeline(device="cpu")
+
+        # Run pipeline
+        results = pipeline.run(query=query, source=source)
         ```
     """
 
@@ -65,160 +55,22 @@ class ClassificationPipeline:
         *,
         classification_name: str = "julian-schelb/PhilBerta-class-latin-intertext-v1",
         device: str | int | None = None,
-        pos_class_idx: int = 1,  # Index of the positive class in the classifier
+        pos_class_idx: int = 1,
     ):
-        self.device = device if device is not None else "cpu"
-        self.pos_class_idx = pos_class_idx
-
-        # -------- Load Classification Model ----------
-        self.clf_tokenizer = AutoTokenizer.from_pretrained(classification_name)
-        self.clf_model = AutoModelForSequenceClassification.from_pretrained(classification_name)
-        self.clf_model.to(self.device).eval()
-
-        # Keep results in memory for later access
-        self._last_results: CandidateJudgeOutput | None = None
-
-    # ---------- Predict Positive Probability ----------
-
-    def _count_special_tokens_added(self) -> int:
-        """Counts the number of special tokens added by the tokenizer."""
-        return self.clf_tokenizer.num_special_tokens_to_add(pair=True)
-    
-    def _truncate_pair(self, sentence1: str, sentence2: str, max_len: int = 512) -> Tuple[str, str]:
-        """Truncates sentence1 and sentence2 to fit within max_len including special tokens."""
-        num_special = self._count_special_tokens_added()
-        max_tokens = max_len - num_special
-        half = max_tokens // 2
-
-        # Tokenize and truncate
-        tokens1 = self.clf_tokenizer.tokenize(sentence1)[:half]
-        tokens2 = self.clf_tokenizer.tokenize(sentence2)[:half]
-
-        # Convert back to string
-        sentence1 = self.clf_tokenizer.convert_tokens_to_string(tokens1)
-        sentence2 = self.clf_tokenizer.convert_tokens_to_string(tokens2)
-        return sentence1, sentence2
-
-    def _predict_batch(
-        self,
-        query_text: str,
-        cand_texts: Sequence[str],
-        max_len: int = 512,
-    ) -> List[float]:
-        """Predict probabilities for a batch of (query, cand) pairs."""
-        # Truncate pairs intelligently before tokenization
-        truncated_pairs = [self._truncate_pair(query_text, cand_text, max_len) 
-                          for cand_text in cand_texts]
-        query_texts_trunc = [pair[0] for pair in truncated_pairs]
-        cand_texts_trunc = [pair[1] for pair in truncated_pairs]
-        
-        encoding = self.clf_tokenizer(
-            query_texts_trunc,
-            cand_texts_trunc,
-            add_special_tokens=True,
-            padding=True,
-            truncation=True,
-            max_length=max_len,
-            return_tensors="pt",
-        ).to(self.device)
-
-        with torch.no_grad():
-            logits = self.clf_model(**encoding).logits
-            return F.softmax(logits, dim=1)[:, self.pos_class_idx].cpu().tolist()
-        
-    def _predict(
-        self,
-        query_text: str,
-        cand_texts: Sequence[str],
-        *,
-        batch_size: int = 32,
-        max_len: int = 512,
-    ) -> List[float]:
-        """Return P(positive) for each (query, cand) pair in *cand_texts*."""
-        probs: List[float] = []
-        
-        # Predict in batches between a query and multiple candidates
-        for i in range(0, len(cand_texts), batch_size):
-            chunk = cand_texts[i: i + batch_size]
-            chunk_probs = self._predict_batch(query_text, chunk, max_len=max_len)
-            probs.extend(chunk_probs)
-        return probs
-
-    def debug_input_sequence(self, query_text: str, candidate_text: str, max_len: int = 512) -> Dict[str, Any]:
-        """Debug method to inspect how a query-candidate pair is encoded."""
-        # Truncate the pair
-        query_trunc, candidate_trunc = self._truncate_pair(query_text, candidate_text, max_len)
-        
-        # Encode the pair
-        encoding = self.clf_tokenizer(
-            query_trunc,
-            candidate_trunc,
-            add_special_tokens=True,
-            padding=True,
-            truncation=True,
-            max_length=max_len,
-            return_tensors="pt",
+        super().__init__(
+            generator=ExhaustiveCandidateGenerator(),
+            judge=ClassificationJudge(
+                classification_name=classification_name,
+                device=device,
+                pos_class_idx=pos_class_idx,
+            ),
         )
-        
-        # Decode with special tokens visible
-        decoded_text = self.clf_tokenizer.decode(encoding['input_ids'].squeeze(), skip_special_tokens=False)
-        
-        return {
-            "query": query_text,
-            "candidate": candidate_text,
-            "query_truncated": query_trunc,
-            "candidate_truncated": candidate_trunc,
-            "input_ids": encoding['input_ids'].squeeze().tolist(),
-            "attention_mask": encoding['attention_mask'].squeeze().tolist(),
-            "input_text": decoded_text,
-        }
 
-    # ---------- Main Pipeline ----------
+    @property
+    def device(self) -> str:
+        """Device used by the classification judge."""
+        return self.judge.device
 
-    def run(
-        self,
-        *,
-        query: Document,
-        source: Document,
-        batch_size: int = 32,
-        **kwargs: Any,
-    ) -> CandidateJudgeOutput:
-        """
-        Run classification on all query-source segment pairs.
 
-        Since there is no retrieval stage the ``candidate_score`` on every
-        ``CandidateJudge`` is set to ``None``.
-
-        Returns:
-            CandidateJudgeOutput mapping query segment IDs to lists of
-            ``CandidateJudge`` objects.
-        """
-        results: CandidateJudgeOutput = {}
-        
-        # Extract all source segments
-        source_segments = list(source.segments.values())
-        source_texts = [s.text for s in source_segments]
-        
-        # For each query segment, classify against all source segments
-        for query_segment in tqdm(query.segments.values(), desc="Classifying pairs"):
-            query_text = query_segment.text
-            
-            # Predict probabilities for all source segments
-            probabilities = self._predict(
-                query_text, 
-                source_texts, 
-                batch_size=batch_size
-            )
-            
-            # Build CandidateJudge objects (no candidate score since exhaustive)
-            judgments = []
-            for source_seg, prob in zip(source_segments, probabilities):
-                judgments.append(CandidateJudge(
-                    segment=source_seg,
-                    candidate_score=None,
-                    judgment_score=prob,
-                ))
-            results[query_segment.id] = judgments
-        
-        self._last_results = results
-        return results
+# Backward-compatible alias
+ClassificationPipeline = ExhaustiveClassificationPipeline

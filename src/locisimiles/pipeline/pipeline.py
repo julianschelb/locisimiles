@@ -35,19 +35,19 @@ class Pipeline:
         results = pipeline.run(query=query_doc, source=source_doc, top_k=10)
         ```
 
-    Equivalent legacy pipelines composed with the new API:
+    Equivalent preconfigured pipelines:
 
         ```python
-        # ClassificationPipelineWithCandidategeneration
+        # TwoStagePipeline
         Pipeline(EmbeddingCandidateGenerator(), ClassificationJudge())
 
-        # ClassificationPipeline (exhaustive)
+        # ExhaustiveClassificationPipeline
         Pipeline(ExhaustiveCandidateGenerator(), ClassificationJudge())
 
         # RetrievalPipeline
         Pipeline(EmbeddingCandidateGenerator(), ThresholdJudge())
 
-        # RuleBasedPipeline
+        # RuleBasedPipeline (as a Pipeline)
         Pipeline(RuleBasedCandidateGenerator(), IdentityJudge())
         ```
     """
