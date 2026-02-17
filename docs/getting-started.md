@@ -89,6 +89,23 @@ Available **judges**:
 | `ThresholdJudge` | Binary decisions from candidate scores (top-k or threshold) |
 | `IdentityJudge` | Pass-through — `judgment_score = 1.0` |
 
+### Saving Results
+
+Save pipeline output to CSV or JSON:
+
+```python
+results = pipeline.run(query=query_doc, source=source_doc, top_k=10)
+
+# Save directly from the pipeline
+pipeline.to_csv("results.csv")
+pipeline.to_json("results.json")
+
+# Or use standalone utility functions
+from locisimiles.pipeline import results_to_csv, results_to_json
+results_to_csv(results, "results.csv")
+results_to_json(results, "results.json")
+```
+
 ### Legacy Pipeline Classes
 
 The pre-composed pipeline classes are still available for convenience:

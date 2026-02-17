@@ -125,6 +125,42 @@ pipeline = Pipeline(
 )
 ```
 
+## Saving Results
+
+Pipeline results can be saved to CSV or JSON directly from the pipeline
+object, or by using the standalone utility functions.
+
+### Save from the pipeline
+
+```python
+# Run the pipeline
+results = pipeline.run(query=query_doc, source=source_doc, top_k=10)
+
+# Save to CSV (columns: query_id, source_id, source_text, candidate_score, judgment_score)
+pipeline.to_csv("results.csv")
+
+# Save to JSON (object keyed by query_id)
+pipeline.to_json("results.json")
+```
+
+### Save with explicit results
+
+```python
+pipeline.to_csv("results.csv", results=results)
+pipeline.to_json("results.json", results=results)
+```
+
+### Standalone utility functions
+
+If you don't have a pipeline instance, use the standalone functions:
+
+```python
+from locisimiles.pipeline import results_to_csv, results_to_json
+
+results_to_csv(results, "results.csv")
+results_to_json(results, "results.json")
+```
+
 ## Evaluation
 
 Evaluate your results against ground truth annotations:

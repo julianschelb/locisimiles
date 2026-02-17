@@ -25,6 +25,10 @@ results = pipeline.run(
 )
 
 pretty_print(results)
+
+# Save results to CSV or JSON
+pipeline.to_csv("results.csv")
+pipeline.to_json("results.json")
 ```
 
 ## Command-Line Interface
