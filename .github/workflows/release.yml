@@ -16,6 +16,8 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.workflow_run.conclusion == 'success'
     concurrency: release
+    outputs:
+      released: ${{ steps.semrel.outputs.released }}
 
     steps:
       - uses: actions/checkout@v4
@@ -31,11 +33,42 @@ jobs:
         run: pip install -e ".[dev]"
 
       - name: Run semantic-release
+        id: semrel
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: semantic-release version
+        run: |
+          if semantic-release version; then
+            echo "released=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "released=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Publish to GitHub Release
+        if: steps.semrel.outputs.released == 'true'
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: semantic-release publish
+
+      - name: Upload dist artifacts
+        if: steps.semrel.outputs.released == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  pypi:
+    name: Publish to PyPI
+    needs: release
+    if: needs.release.outputs.released == 'true'
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
