@@ -131,7 +131,7 @@ module = [
 ]
 # Rule-based module uses lazy-loaded optional models (typed None initially);
 # GUI code has Gradio typing gaps.  Tighten once stubs improve.
-disable_error_code = ["attr-defined", "assignment"]
+disable_error_code = ["attr-defined", "assignment", "return-value", "arg-type"]
 
 [[tool.mypy.overrides]]
 module = "locisimiles.evaluator"

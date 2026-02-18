@@ -2,6 +2,11 @@
 
 __version__ = "1.0.0"
 
+from locisimiles.datasets import (
+    load_example_ground_truth,
+    load_example_query,
+    load_example_source,
+)
 from locisimiles.document import Document, TextSegment
 from locisimiles.evaluator import IntertextEvaluator
 from locisimiles.pipeline import (
@@ -51,4 +56,8 @@ __all__ = [
     "pretty_print",
     "results_to_csv",
     "results_to_json",
+    # Example datasets
+    "load_example_query",
+    "load_example_source",
+    "load_example_ground_truth",
 ]
