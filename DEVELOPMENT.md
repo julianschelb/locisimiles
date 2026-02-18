@@ -121,6 +121,65 @@ pull request to `main`. It executes four parallel jobs:
 | **Test** | Pytest on Python 3.10 – 3.13 |
 | **Docs Build** | `mkdocs build --strict` |
 
+After all CI jobs pass on `main`, a **Deploy Docs** job publishes the
+documentation to GitHub Pages.
+
+## Semantic Versioning & Releases
+
+The project uses [Conventional Commits](https://www.conventionalcommits.org/)
+and [python-semantic-release](https://python-semantic-release.readthedocs.io/)
+for fully automated version bumps and changelog generation.
+
+### Commit Message Format
+
+Every commit message must follow the Conventional Commits format:
+
+```
+<type>(<optional scope>): <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+**Common types and their effect on versioning:**
+
+| Prefix | Example | Version Bump |
+|---|---|---|
+| `fix:` | `fix: handle empty document` | Patch (0.3.6 → 0.3.7) |
+| `feat:` | `feat: add XML export` | Minor (0.3.6 → 0.4.0) |
+| `feat!:` or `BREAKING CHANGE:` | `feat!: rename Pipeline API` | Major (0.3.6 → 1.0.0) |
+| `docs:` | `docs: update getting started` | No release |
+| `chore:` | `chore: update deps` | No release |
+| `test:` | `test: add evaluator tests` | No release |
+| `refactor:` | `refactor: simplify judge` | No release |
+| `ci:` | `ci: add mypy step` | No release |
+
+A pre-commit hook validates your commit message automatically. To install:
+
+```bash
+pre-commit install --hook-type commit-msg
+```
+
+### How Releases Work
+
+1. Merge a PR into `main`
+2. CI runs all checks (lint, typecheck, test, docs)
+3. If CI passes, the **Release** workflow runs automatically
+4. `semantic-release` analyses commits since the last tag
+5. If there are `feat:` or `fix:` commits, it:
+   - Bumps the version in `pyproject.toml` and `__init__.py`
+   - Generates/updates `CHANGELOG.md`
+   - Creates a git tag (`v0.4.0`)
+   - Creates a GitHub Release with the changelog
+
+### Manual Version Check
+
+```bash
+# Preview what the next version would be (dry run)
+semantic-release version --print
+```
+
 ## Quick Reference
 
 | Task | Command |
@@ -132,3 +191,4 @@ pull request to `main`. It executes four parallel jobs:
 | All pre-commit hooks | `pre-commit run --all-files` |
 | Serve docs | `poe docs` |
 | Build docs | `poe docs-build` |
+| Preview next version | `semantic-release version --print` |

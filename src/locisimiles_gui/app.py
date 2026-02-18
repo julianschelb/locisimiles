@@ -26,32 +26,32 @@ from .results_stage import (
 )
 from .upload_stage import build_upload_stage, setup_upload_handlers
 
+# Custom theme matching the presentation color scheme
+# Colors extracted from the slide: warm beige background, blue accents, brown text
+_THEME = gr.themes.Soft(
+    primary_hue="blue",  # Blue from the numbered circles (#6B9BD1 area)
+    secondary_hue="orange",  # Warm accent color
+    neutral_hue="stone",  # Warm neutral matching the beige/cream background
+).set(
+    # Primary buttons - blue accent color
+    button_primary_background_fill="#6B9BD1",
+    button_primary_background_fill_hover="#5A8BC0",
+    button_primary_text_color="white",
+    # Body styling - warm cream/beige background
+    body_background_fill="#F5F3EF",
+    body_text_color="#5B4636",
+    # Blocks/panels - slightly lighter cream
+    block_background_fill="white",
+    block_border_color="#E5E3DF",
+    # Input elements
+    input_background_fill="white",
+    input_border_color="#D4D2CE",
+)
+
 
 def build_interface() -> gr.Blocks:
     """Create the main Gradio Blocks interface."""
-    # Custom theme matching the presentation color scheme
-    # Colors extracted from the slide: warm beige background, blue accents, brown text
-    theme = gr.themes.Soft(
-        primary_hue="blue",  # Blue from the numbered circles (#6B9BD1 area)
-        secondary_hue="orange",  # Warm accent color
-        neutral_hue="stone",  # Warm neutral matching the beige/cream background
-    ).set(
-        # Primary buttons - blue accent color
-        button_primary_background_fill="#6B9BD1",
-        button_primary_background_fill_hover="#5A8BC0",
-        button_primary_text_color="white",
-        # Body styling - warm cream/beige background
-        body_background_fill="#F5F3EF",
-        body_text_color="#5B4636",
-        # Blocks/panels - slightly lighter cream
-        block_background_fill="white",
-        block_border_color="#E5E3DF",
-        # Input elements
-        input_background_fill="white",
-        input_border_color="#D4D2CE",
-    )
-
-    with gr.Blocks(title="Loci Similes Demo", theme=theme) as demo:
+    with gr.Blocks(title="Loci Similes Demo", theme=_THEME) as demo:
         # State to store pipeline results and files
         results_state = gr.State(value=None)
         query_doc_state = gr.State(value=None)
@@ -128,7 +128,6 @@ def launch(**kwargs: Any) -> None:
     print("\n🌐 Starting web server...")
     print("-" * 60)
 
-    kwargs.setdefault("show_api", False)
     kwargs.setdefault("inbrowser", False)
     kwargs.setdefault("quiet", False)  # Changed to False to show URL
 
