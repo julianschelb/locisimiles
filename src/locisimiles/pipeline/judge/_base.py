@@ -1,5 +1,6 @@
 # pipeline/judge/_base.py
 """Abstract base class for judges."""
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod

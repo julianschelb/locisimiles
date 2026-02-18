@@ -1,5 +1,4 @@
 # pipeline/generator/rule_based.py
-# -*- coding: utf-8 -*-
 """
 Rule-based candidate generator for intertextuality detection in Latin texts.
 
@@ -19,19 +18,20 @@ des Briefcorpus des Kirchenlehrers Hieronymus." under the supervision of
 Prof. Dr. Barbara Feichtinger and Dr. Marie Revellio, and was supported by the
 German Research Foundation (DFG, Forschungsgemeinschaft) [382880410].
 """
+
 from __future__ import annotations
 
 import csv
+import itertools
 import re
 import string
-import itertools
 from itertools import combinations
 from pathlib import Path
-from typing import Dict, List, Tuple, Set, Union, Any, Optional, Sequence
+from typing import Any, List, Optional, Set, Tuple, Union
 
 import numpy as np
 
-from locisimiles.document import Document, TextSegment
+from locisimiles.document import Document
 from locisimiles.pipeline._types import Candidate, CandidateGeneratorOutput
 from locisimiles.pipeline.generator._base import CandidateGeneratorBase
 
@@ -39,13 +39,15 @@ from locisimiles.pipeline.generator._base import CandidateGeneratorBase
 try:
     import torch
     from transformers import XLMRobertaForTokenClassification, XLMRobertaTokenizer
+
     TORCH_AVAILABLE = True
 except ImportError:
     TORCH_AVAILABLE = False
 
 try:
-    import spacy
-    from spacy.language import Language
+    import spacy  # noqa: F401
+    from spacy.language import Language  # noqa: F401
+
     SPACY_AVAILABLE = True
 except ImportError:
     SPACY_AVAILABLE = False
@@ -54,10 +56,10 @@ except ImportError:
 # ============== DEFAULT CONFIGURATION ==============
 
 DEFAULT_CONFIG = {
-    "min_shared_words": 2,           # Minimum non-stopword matches required
-    "min_complura": 4,               # Minimum adjacent tokens for complura matches
-    "max_distance": 3,               # Maximum distance between shared words
-    "similarity_threshold": 0.3,     # Cosine similarity threshold for filtering
+    "min_shared_words": 2,  # Minimum non-stopword matches required
+    "min_complura": 4,  # Minimum adjacent tokens for complura matches
+    "max_distance": 3,  # Maximum distance between shared words
+    "similarity_threshold": 0.3,  # Cosine similarity threshold for filtering
     "pos_model": "enelpol/evalatin2022-pos-open",
     "spacy_model": "la_core_web_lg",
 }
@@ -67,16 +69,95 @@ DEFAULT_CONFIG = {
 
 # Default Latin stopwords (common function words)
 DEFAULT_STOPWORDS = {
-    "et", "in", "non", "est", "ut", "cum", "ad", "que", "sed", "si",
-    "quod", "enim", "nec", "per", "qui", "quae", "ex", "de", "ab",
-    "aut", "atque", "ac", "an", "ante", "apud", "at", "autem", "circa",
-    "contra", "cur", "dum", "ego", "ergo", "esse", "hic", "iam", "idem",
-    "ideo", "igitur", "ille", "inter", "ipse", "is", "iste", "ita",
-    "magis", "me", "mihi", "nam", "ne", "neque", "nihil", "nisi", "nos",
-    "noster", "nunc", "ob", "post", "pro", "propter", "quam", "quando",
-    "quia", "quid", "quidem", "quo", "quoque", "re", "sic", "sine",
-    "sub", "sum", "super", "suus", "tam", "tamen", "te", "tibi", "tu",
-    "tum", "tunc", "uel", "vel", "vero", "a", "e", "o", "i", "u",
+    "et",
+    "in",
+    "non",
+    "est",
+    "ut",
+    "cum",
+    "ad",
+    "que",
+    "sed",
+    "si",
+    "quod",
+    "enim",
+    "nec",
+    "per",
+    "qui",
+    "quae",
+    "ex",
+    "de",
+    "ab",
+    "aut",
+    "atque",
+    "ac",
+    "an",
+    "ante",
+    "apud",
+    "at",
+    "autem",
+    "circa",
+    "contra",
+    "cur",
+    "dum",
+    "ego",
+    "ergo",
+    "esse",
+    "hic",
+    "iam",
+    "idem",
+    "ideo",
+    "igitur",
+    "ille",
+    "inter",
+    "ipse",
+    "is",
+    "iste",
+    "ita",
+    "magis",
+    "me",
+    "mihi",
+    "nam",
+    "ne",
+    "neque",
+    "nihil",
+    "nisi",
+    "nos",
+    "noster",
+    "nunc",
+    "ob",
+    "post",
+    "pro",
+    "propter",
+    "quam",
+    "quando",
+    "quia",
+    "quid",
+    "quidem",
+    "quo",
+    "quoque",
+    "re",
+    "sic",
+    "sine",
+    "sub",
+    "sum",
+    "super",
+    "suus",
+    "tam",
+    "tamen",
+    "te",
+    "tibi",
+    "tu",
+    "tum",
+    "tunc",
+    "uel",
+    "vel",
+    "vero",
+    "a",
+    "e",
+    "o",
+    "i",
+    "u",
 }
 
 
@@ -221,9 +302,7 @@ class RuleBasedCandidateGenerator(CandidateGeneratorBase):
         query_processed = self._preprocess(query_list, query_genre)
 
         # Run text matching
-        matches, complura_matches = self._compare_texts(
-            source_processed, query_processed
-        )
+        matches, complura_matches = self._compare_texts(source_processed, query_processed)
 
         # Apply scissa filter
         matches = self._apply_scissa(matches)
@@ -258,7 +337,7 @@ class RuleBasedCandidateGenerator(CandidateGeneratorBase):
             filepath: Path to stopwords file.
         """
         filepath = Path(filepath)
-        with open(filepath, "r", encoding="utf-8") as f:
+        with open(filepath, encoding="utf-8") as f:
             reader = csv.reader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
             for row in reader:
                 if row:
@@ -291,10 +370,12 @@ class RuleBasedCandidateGenerator(CandidateGeneratorBase):
                     shared_words = match[5].split(";") if len(match) > 5 else []
                     score = min(len(shared_words) / 5.0, 1.0)  # Normalize to [0, 1]
 
-                    results[query_id].append(Candidate(
-                        segment=source_segments[source_id],
-                        score=score,
-                    ))
+                    results[query_id].append(
+                        Candidate(
+                            segment=source_segments[source_id],
+                            score=score,
+                        )
+                    )
 
         return results
 
@@ -325,7 +406,7 @@ class RuleBasedCandidateGenerator(CandidateGeneratorBase):
         for item in text_list:
             if len(item) > 1:
                 tokens = self._tokenize(item[1])
-                for i, token in enumerate(tokens):
+                for _i, token in enumerate(tokens):
                     transformed = self._transform_token(token)
                     if transformed != token:
                         item[1] = item[1].replace(token, transformed)
@@ -333,32 +414,59 @@ class RuleBasedCandidateGenerator(CandidateGeneratorBase):
 
     def _tokenize(self, text: str) -> List[str]:
         """Tokenize text into words and punctuation."""
-        return re.findall(r'\w+|[^\w\s]', text, re.UNICODE)
+        return re.findall(r"\w+|[^\w\s]", text, re.UNICODE)
 
     def _transform_token(self, token: str) -> str:
         """Apply prefix assimilation rules."""
         prefix_map = {
-            'adt': 'att', 'Adt': 'Att', 'adp': 'app', 'Adp': 'App',
-            'adc': 'acc', 'Adc': 'Acc', 'adg': 'agg', 'Adg': 'Agg',
-            'adf': 'aff', 'Adf': 'Aff', 'adl': 'all', 'Adl': 'All',
-            'adr': 'arr', 'Adr': 'Arr', 'ads': 'ass', 'Ads': 'Ass',
-            'adqu': 'acqu', 'Adqu': 'Acqu', 'inm': 'imm', 'Inm': 'Imm',
-            'inl': 'ill', 'Inl': 'Ill', 'inr': 'irr', 'Inr': 'Irr',
-            'inb': 'imb', 'Inb': 'Imb', 'conm': 'comm', 'Conm': 'Comm',
-            'conl': 'coll', 'Conl': 'Coll', 'conr': 'corr', 'Conr': 'Corr',
-            'conb': 'comb', 'Conb': 'Comb', 'conp': 'comp', 'Conp': 'Comp',
+            "adt": "att",
+            "Adt": "Att",
+            "adp": "app",
+            "Adp": "App",
+            "adc": "acc",
+            "Adc": "Acc",
+            "adg": "agg",
+            "Adg": "Agg",
+            "adf": "aff",
+            "Adf": "Aff",
+            "adl": "all",
+            "Adl": "All",
+            "adr": "arr",
+            "Adr": "Arr",
+            "ads": "ass",
+            "Ads": "Ass",
+            "adqu": "acqu",
+            "Adqu": "Acqu",
+            "inm": "imm",
+            "Inm": "Imm",
+            "inl": "ill",
+            "Inl": "Ill",
+            "inr": "irr",
+            "Inr": "Irr",
+            "inb": "imb",
+            "Inb": "Imb",
+            "conm": "comm",
+            "Conm": "Comm",
+            "conl": "coll",
+            "Conl": "Coll",
+            "conr": "corr",
+            "Conr": "Corr",
+            "conb": "comb",
+            "Conb": "Comb",
+            "conp": "comp",
+            "Conp": "Comp",
         }
-        vowels = 'aeiou'
+        vowels = "aeiou"
 
         for prefix, replacement in prefix_map.items():
             if token.lower().startswith(prefix):
-                if prefix.lower() == 'ads' and len(token) > 3:
+                if prefix.lower() == "ads" and len(token) > 3:
                     if token[3].lower() in vowels:
                         return token[0] + replacement[1:] + token[3:]
                     else:
                         return token[0] + token[2:]
-                elif prefix.lower() != 'ads':
-                    return token[0] + replacement[1:] + token[len(prefix):]
+                elif prefix.lower() != "ads":
+                    return token[0] + replacement[1:] + token[len(prefix) :]
                 break
         return token
 
@@ -366,7 +474,7 @@ class RuleBasedCandidateGenerator(CandidateGeneratorBase):
 
     def _normalize_quotation_marks(self, text_list: List[List[str]]) -> List[List[str]]:
         """Normalize quotation marks to standard apostrophe."""
-        quote_pattern = '[\u0022\u201c\u201d\u201e\u0027\u2018\u2019]'
+        quote_pattern = "[\u0022\u201c\u201d\u201e\u0027\u2018\u2019]"
         result = []
         for item in text_list:
             if len(item) > 1:
@@ -408,7 +516,7 @@ class RuleBasedCandidateGenerator(CandidateGeneratorBase):
     def _phrasing_poetry(self, text_list: List[List[str]]) -> List[List[str]]:
         """Apply poetry-specific phrasing rules."""
         # Mark verse endings
-        text_list = [[item[0], item[1] + ' /'] for item in text_list if len(item) > 1]
+        text_list = [[item[0], item[1] + " /"] for item in text_list if len(item) > 1]
         text_list = self._normalize_quotation_marks(text_list)
         text_list = self._remove_whitespace_connectors(text_list)
         text_list = self._strip_whitespaces(text_list)
@@ -439,9 +547,12 @@ class RuleBasedCandidateGenerator(CandidateGeneratorBase):
 
         # Match texts
         matches, complura = self._text_matching(
-            source_tokens, target_tokens,
-            source_texts, target_texts,
-            source_meta, target_meta,
+            source_tokens,
+            target_tokens,
+            source_texts,
+            target_texts,
+            source_meta,
+            target_meta,
         )
 
         # Apply distance criterion
@@ -457,9 +568,9 @@ class RuleBasedCandidateGenerator(CandidateGeneratorBase):
             normalized = []
             for text in sublist:
                 text = text.translate(trans).lower().strip()
-                text = ' ' + text + ' '
+                text = " " + text + " "
                 # Remove typography artifacts
-                text = re.sub(r'\xe2\x80\x9c|\xe2\x80\x9d|\x9c|\x9d|\xef\xbb\xbf', '', text)
+                text = re.sub(r"\xe2\x80\x9c|\xe2\x80\x9d|\x9c|\x9d|\xef\xbb\xbf", "", text)
                 normalized.append(text)
             result.append(normalized)
         return result
@@ -475,15 +586,15 @@ class RuleBasedCandidateGenerator(CandidateGeneratorBase):
 
     def _simple_tokenize(self, text: str) -> List[str]:
         """Simple tokenizer for matching."""
-        separators = ' \u2014?!-,.()[]:;\'/\u201c\u201d\u201e'
-        word = ''
+        separators = " \u2014?!-,.()[]:;'/\u201c\u201d\u201e"
+        word = ""
         tokens = []
-        for char in text + '.':
+        for char in text + ".":
             if char not in separators:
                 word += char
             elif word:
                 tokens.append(word)
-                word = ''
+                word = ""
         return tokens
 
     def _text_matching(
@@ -496,8 +607,8 @@ class RuleBasedCandidateGenerator(CandidateGeneratorBase):
         target_meta: List[str],
     ) -> Tuple[List[List[Any]], List[List[Any]]]:
         """Find matching passages between source and target."""
-        matches = []
-        complura_matches = []
+        matches: list[list[Any]] = []
+        complura_matches: list[list[Any]] = []
         count = 0
 
         for src_idx, src_tokens in enumerate(source_tokens):
@@ -509,9 +620,11 @@ class RuleBasedCandidateGenerator(CandidateGeneratorBase):
                     for pos_tgt, token_tgt in enumerate(tgt_tokens):
                         if token_src == token_tgt and token_src:
                             complura_items.append((token_src, pos_src, pos_tgt))
-                            if token_src not in matched_items:
-                                if token_src.lower() not in self.stopwords:
-                                    matched_items.append(token_src)
+                            if (
+                                token_src not in matched_items
+                                and token_src.lower() not in self.stopwords
+                            ):
+                                matched_items.append(token_src)
 
                 # Check for complura matches (adjacent sequences)
                 if len(complura_items) >= self.min_complura:
@@ -522,34 +635,42 @@ class RuleBasedCandidateGenerator(CandidateGeneratorBase):
 
                     if len(seq_src) >= self.min_complura and len(seq_tgt) >= self.min_complura:
                         shared = [src_tokens[i] for i in seq_src]
-                        src_text = ' ' + source_texts[src_idx][0] + ' '
-                        tgt_text = ' ' + target_texts[tgt_idx][0] + ' '
+                        src_text = " " + source_texts[src_idx][0] + " "
+                        tgt_text = " " + target_texts[tgt_idx][0] + " "
                         src_text = self._highlight_words(src_text, shared)
                         tgt_text = self._highlight_words(tgt_text, shared)
-                        shared_str = '; '.join(shared)
+                        shared_str = "; ".join(shared)
 
-                        complura_matches.append([
-                            len(complura_matches) + 1,
-                            source_meta[src_idx], src_text,
-                            target_meta[tgt_idx], tgt_text,
-                            shared_str
-                        ])
+                        complura_matches.append(
+                            [
+                                len(complura_matches) + 1,
+                                source_meta[src_idx],
+                                src_text,
+                                target_meta[tgt_idx],
+                                tgt_text,
+                                shared_str,
+                            ]
+                        )
 
                 # Regular matches
                 if len(matched_items) >= self.min_shared_words:
                     count += 1
-                    src_text = ' ' + source_texts[src_idx][0] + ' '
-                    tgt_text = ' ' + target_texts[tgt_idx][0] + ' '
+                    src_text = " " + source_texts[src_idx][0] + " "
+                    tgt_text = " " + target_texts[tgt_idx][0] + " "
                     src_text = self._highlight_words(src_text, matched_items)
                     tgt_text = self._highlight_words(tgt_text, matched_items)
-                    shared_str = '; '.join(matched_items)
+                    shared_str = "; ".join(matched_items)
 
-                    matches.append([
-                        count,
-                        source_meta[src_idx], src_text,
-                        target_meta[tgt_idx], tgt_text,
-                        shared_str
-                    ])
+                    matches.append(
+                        [
+                            count,
+                            source_meta[src_idx],
+                            src_text,
+                            target_meta[tgt_idx],
+                            tgt_text,
+                            shared_str,
+                        ]
+                    )
 
         return matches, complura_matches
 
@@ -559,11 +680,11 @@ class RuleBasedCandidateGenerator(CandidateGeneratorBase):
             return []
 
         sorted_indices = sorted(set(indices))
-        longest = []
+        longest: list[int] = []
         current = [sorted_indices[0]]
 
         for i in range(1, len(sorted_indices)):
-            if sorted_indices[i] == sorted_indices[i-1] + 1:
+            if sorted_indices[i] == sorted_indices[i - 1] + 1:
                 current.append(sorted_indices[i])
             else:
                 if len(current) > len(longest):
@@ -577,28 +698,28 @@ class RuleBasedCandidateGenerator(CandidateGeneratorBase):
 
     def _highlight_words(self, text: str, words: List[str]) -> str:
         """Highlight matched words with **markers**."""
-        separators = ' \u2014?!-,.()[]:;\'/\u201c\u201d\u201e'
-        current_word = ''
-        result = ''
+        separators = " \u2014?!-,.()[]:;'/\u201c\u201d\u201e"
+        current_word = ""
+        result = ""
 
         for char in text:
             if char not in separators:
                 current_word += char
             else:
                 if current_word.lower() in [w.lower() for w in words]:
-                    result += '**' + current_word + '**'
+                    result += "**" + current_word + "**"
                 else:
                     result += current_word
                 result += char
-                current_word = ''
+                current_word = ""
 
         if current_word:
             if current_word.lower() in [w.lower() for w in words]:
-                result += '**' + current_word + '**'
+                result += "**" + current_word + "**"
             else:
                 result += current_word
 
-        return result.replace('****', '**').strip()
+        return result.replace("****", "**").strip()
 
     # ============== FILTERS ==============
 
@@ -611,12 +732,10 @@ class RuleBasedCandidateGenerator(CandidateGeneratorBase):
             text_tgt = match[4]
 
             tokens_src = [
-                t for t in self._simple_tokenize(text_src)
-                if t.lower() not in self.stopwords
+                t for t in self._simple_tokenize(text_src) if t.lower() not in self.stopwords
             ]
             tokens_tgt = [
-                t for t in self._simple_tokenize(text_tgt)
-                if t.lower() not in self.stopwords
+                t for t in self._simple_tokenize(text_tgt) if t.lower() not in self.stopwords
             ]
 
             shared_src = [(t, i) for i, t in enumerate(tokens_src) if t.startswith("**")]
@@ -633,13 +752,13 @@ class RuleBasedCandidateGenerator(CandidateGeneratorBase):
     def _min_distance(self, shared_tokens: List[Tuple[str, int]]) -> float:
         """Calculate minimum distance between shared token indices."""
         if len(shared_tokens) < 2:
-            return float('inf')
+            return float("inf")
         indices = [idx for _, idx in shared_tokens]
         distances = []
         for i in range(len(indices)):
             for j in range(i + 1, len(indices)):
                 distances.append(abs(indices[i] - indices[j]))
-        return min(distances) if distances else float('inf')
+        return min(distances) if distances else float("inf")
 
     def _apply_scissa(self, matches: List[List[Any]]) -> List[List[Any]]:
         """Filter based on punctuation agreement between shared words."""
@@ -657,9 +776,9 @@ class RuleBasedCandidateGenerator(CandidateGeneratorBase):
                 substr_tgt = self._extract_substrings(text_tgt, shared)
 
                 if substr_src and substr_tgt:
-                    commas_match = self._compare_punctuation(substr_src, substr_tgt, ',')
-                    semicolons_match = self._compare_punctuation(substr_src, substr_tgt, ';')
-                    colons_match = self._compare_punctuation(substr_src, substr_tgt, ':')
+                    commas_match = self._compare_punctuation(substr_src, substr_tgt, ",")
+                    semicolons_match = self._compare_punctuation(substr_src, substr_tgt, ";")
+                    colons_match = self._compare_punctuation(substr_src, substr_tgt, ":")
 
                     if all(commas_match) and all(semicolons_match) and all(colons_match):
                         filtered.append(match)
@@ -676,8 +795,8 @@ class RuleBasedCandidateGenerator(CandidateGeneratorBase):
         text_lower = text.lower()
         shared = [s.lower().strip() for s in shared]
 
-        marker1 = '**' + shared[0] + '**'
-        marker2 = '**' + shared[1] + '**'
+        marker1 = "**" + shared[0] + "**"
+        marker2 = "**" + shared[1] + "**"
 
         if marker1 in text_lower and marker2 in text_lower:
             idx1 = text_lower.index(marker1)
@@ -695,10 +814,7 @@ class RuleBasedCandidateGenerator(CandidateGeneratorBase):
         return collection
 
     def _compare_punctuation(
-        self,
-        substr_src: List[str],
-        substr_tgt: List[str],
-        punct: str
+        self, substr_src: List[str], substr_tgt: List[str], punct: str
     ) -> List[bool]:
         """Compare punctuation counts between substrings."""
         results = []
@@ -708,9 +824,7 @@ class RuleBasedCandidateGenerator(CandidateGeneratorBase):
         return results if results else [True]
 
     def _combine_matches(
-        self,
-        matches: List[List[Any]],
-        complura: List[List[Any]]
+        self, matches: List[List[Any]], complura: List[List[Any]]
     ) -> List[List[Any]]:
         """Combine regular matches with complura matches, avoiding duplicates."""
         combined = list(matches)
@@ -748,16 +862,22 @@ class RuleBasedCandidateGenerator(CandidateGeneratorBase):
 
         # Valid POS tag combinations
         valid_grammar = {
-            ('NOUN', 'VERB'), ('VERB', 'NOUN'), ('NOUN', 'NOUN'),
-            ('VERB', 'VERB'), ('PROPN', 'NOUN'), ('PROPN', 'VERB'),
-            ('NOUN', 'PROPN'), ('VERB', 'PROPN'), ('PROPN', 'PROPN'),
+            ("NOUN", "VERB"),
+            ("VERB", "NOUN"),
+            ("NOUN", "NOUN"),
+            ("VERB", "VERB"),
+            ("PROPN", "NOUN"),
+            ("PROPN", "VERB"),
+            ("NOUN", "PROPN"),
+            ("VERB", "PROPN"),
+            ("PROPN", "PROPN"),
         }
 
         filtered = []
         for match in matches:
             shared = [w.strip() for w in match[5].split(";")]
-            text_src = match[2].replace('**', ' ')
-            text_tgt = match[4].replace('**', ' ')
+            text_src = match[2].replace("**", " ")
+            text_tgt = match[4].replace("**", " ")
 
             tags_src = self._tag_text(text_src)
             tags_tgt = self._tag_text(text_tgt)
@@ -770,7 +890,7 @@ class RuleBasedCandidateGenerator(CandidateGeneratorBase):
             if self._has_valid_grammar(pos_src, pos_tgt, valid_grammar):
                 match.append(pos_src)
                 match.append(pos_tgt)
-                match.append('in')
+                match.append("in")
                 filtered.append(match)
 
         return filtered
@@ -782,7 +902,7 @@ class RuleBasedCandidateGenerator(CandidateGeneratorBase):
 
         # Preprocess
         for punct in string.punctuation:
-            text = text.replace(punct, f' {punct} ')
+            text = text.replace(punct, f" {punct} ")
         text = " et " + text  # Dummy word for first token
 
         tokens = self._pos_tokenizer.tokenize(text)
@@ -800,10 +920,24 @@ class RuleBasedCandidateGenerator(CandidateGeneratorBase):
             predictions = torch.argmax(outputs.logits, dim=2).squeeze().tolist()
 
         id2label = {
-            0: "", 1: "ADJ", 2: "ADP", 3: "ADV", 4: "AUX", 5: "CCONJ",
-            6: "DET", 7: "INTJ", 8: "NOUN", 9: "NUM", 10: "PART",
-            11: "PRON", 12: "PROPN", 13: "PUNCT", 14: "SCONJ", 15: "VERB",
-            16: "X", 17: "O"
+            0: "",
+            1: "ADJ",
+            2: "ADP",
+            3: "ADV",
+            4: "AUX",
+            5: "CCONJ",
+            6: "DET",
+            7: "INTJ",
+            8: "NOUN",
+            9: "NUM",
+            10: "PART",
+            11: "PRON",
+            12: "PROPN",
+            13: "PUNCT",
+            14: "SCONJ",
+            15: "VERB",
+            16: "X",
+            17: "O",
         }
 
         token_tags = [id2label.get(id, "") for id in predictions]
@@ -835,9 +969,7 @@ class RuleBasedCandidateGenerator(CandidateGeneratorBase):
         return grouped
 
     def _get_pos_for_words(
-        self,
-        words: List[str],
-        word_tags: List[Tuple[str, str]]
+        self, words: List[str], word_tags: List[Tuple[str, str]]
     ) -> List[List[str]]:
         """Get POS tags for specific words."""
         tokens = [t[0] for t in word_tags]
@@ -853,10 +985,7 @@ class RuleBasedCandidateGenerator(CandidateGeneratorBase):
         return result
 
     def _has_valid_grammar(
-        self,
-        pos_src: List[List[str]],
-        pos_tgt: List[List[str]],
-        valid: Set[Tuple[str, str]]
+        self, pos_src: List[List[str]], pos_tgt: List[List[str]], valid: Set[Tuple[str, str]]
     ) -> bool:
         """Check if any valid grammar combination exists."""
         combos_src = list(itertools.product(*pos_src)) if pos_src else []
@@ -883,6 +1012,7 @@ class RuleBasedCandidateGenerator(CandidateGeneratorBase):
             shared = [w.strip() for w in match[5].split(";")]
 
             if len(shared) == 2:
+                assert self._spacy_nlp is not None
                 doc1 = self._spacy_nlp(shared[0])
                 doc2 = self._spacy_nlp(shared[1])
 

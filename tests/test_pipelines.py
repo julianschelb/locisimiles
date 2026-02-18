@@ -3,20 +3,18 @@ Unit tests for locisimiles.pipeline.pipeline module (Pipeline composer).
 
 Tests the generic Pipeline(generator, judge) composition.
 """
-import pytest
+
 from unittest.mock import MagicMock
 
-from locisimiles.document import Document, TextSegment
+import pytest
+
 from locisimiles.pipeline._types import (
     Candidate,
     CandidateJudge,
-    CandidateGeneratorOutput,
-    CandidateJudgeOutput,
 )
-from locisimiles.pipeline.pipeline import Pipeline
 from locisimiles.pipeline.generator._base import CandidateGeneratorBase
 from locisimiles.pipeline.judge._base import JudgeBase
-
+from locisimiles.pipeline.pipeline import Pipeline
 
 # ============== Fixtures ==============
 
@@ -97,25 +95,19 @@ class TestPipelineComposition:
         judge, _ = mock_judge
 
         pipeline = Pipeline(generator=gen, judge=judge)
-        result = pipeline.generate_candidates(
-            query=query_document, source=source_document
-        )
+        result = pipeline.generate_candidates(query=query_document, source=source_document)
 
         gen.generate.assert_called_once()
         judge.judge.assert_not_called()
         assert result == expected_candidates
 
-    def test_judge_candidates_only(
-        self, mock_generator, mock_judge, query_document
-    ):
+    def test_judge_candidates_only(self, mock_generator, mock_judge, query_document):
         """judge_candidates() should only call the judge."""
         gen, candidates = mock_generator
         judge, expected_judgments = mock_judge
 
         pipeline = Pipeline(generator=gen, judge=judge)
-        result = pipeline.judge_candidates(
-            query=query_document, candidates=candidates
-        )
+        result = pipeline.judge_candidates(query=query_document, candidates=candidates)
 
         gen.generate.assert_not_called()
         judge.judge.assert_called_once()
@@ -251,9 +243,7 @@ class TestPipelineWithRealComponents:
                 assert isinstance(j, CandidateJudge)
                 assert j.judgment_score == 1.0
 
-    def test_two_stage_generate_then_judge_separately(
-        self, query_document, source_document
-    ):
+    def test_two_stage_generate_then_judge_separately(self, query_document, source_document):
         """Test using generate_candidates() then judge_candidates() separately."""
         from locisimiles.pipeline.generator.exhaustive import ExhaustiveCandidateGenerator
         from locisimiles.pipeline.judge.threshold import ThresholdJudge
@@ -263,16 +253,12 @@ class TestPipelineWithRealComponents:
             judge=ThresholdJudge(top_k=1),
         )
 
-        candidates = pipeline.generate_candidates(
-            query=query_document, source=source_document
-        )
+        candidates = pipeline.generate_candidates(query=query_document, source=source_document)
         assert isinstance(candidates, dict)
         for qid, cands in candidates.items():
             assert all(isinstance(c, Candidate) for c in cands)
 
-        result = pipeline.judge_candidates(
-            query=query_document, candidates=candidates
-        )
+        result = pipeline.judge_candidates(query=query_document, candidates=candidates)
         assert isinstance(result, dict)
         for qid, judgments in result.items():
             positive = [j for j in judgments if j.judgment_score == 1.0]
@@ -287,12 +273,9 @@ class TestPipelineImports:
 
     def test_import_from_pipeline_module(self):
         """Pipeline should be importable from the pipeline module."""
-        from locisimiles.pipeline.pipeline import Pipeline
 
     def test_import_from_pipeline_package(self):
         """Pipeline should be importable from the pipeline package."""
-        from locisimiles.pipeline import Pipeline
 
     def test_import_from_top_level(self):
         """Pipeline should be importable from the top-level package."""
-        from locisimiles import Pipeline

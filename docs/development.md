@@ -147,15 +147,15 @@ def compute_similarity(
     model: Optional[str] = None
 ) -> float:
     """Compute semantic similarity between two texts.
-    
+
     Args:
         text_a: First text string.
         text_b: Second text string.
         model: Optional model name. Defaults to MiniLM.
-    
+
     Returns:
         Similarity score between 0 and 1.
-    
+
     Raises:
         ValueError: If either text is empty.
     """

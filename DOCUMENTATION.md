@@ -35,10 +35,10 @@ Example docstring format:
 ```python
 def my_function(param: str) -> int:
     """Short description.
-    
+
     Args:
         param: Description of parameter.
-    
+
     Returns:
         Description of return value.
     """

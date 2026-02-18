@@ -6,13 +6,14 @@ Provides ``RetrievalPipeline`` which ranks source segments by
 embedding similarity and applies a top-k or threshold criterion to
 determine positive matches.
 """
+
 from __future__ import annotations
 
 from typing import Optional
 
-from locisimiles.pipeline.pipeline import Pipeline
 from locisimiles.pipeline.generator.embedding import EmbeddingCandidateGenerator
 from locisimiles.pipeline.judge.threshold import ThresholdJudge
+from locisimiles.pipeline.pipeline import Pipeline
 
 
 class RetrievalPipeline(Pipeline):

@@ -11,6 +11,7 @@ Available generators:
 - ``ExhaustiveCandidateGenerator`` — all pairs (no filtering)
 - ``RuleBasedCandidateGenerator`` — lexical matching + linguistic filters
 """
+
 from locisimiles.pipeline.generator._base import CandidateGeneratorBase
 from locisimiles.pipeline.generator.embedding import EmbeddingCandidateGenerator
 from locisimiles.pipeline.generator.exhaustive import ExhaustiveCandidateGenerator

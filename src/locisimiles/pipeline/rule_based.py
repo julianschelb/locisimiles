@@ -6,20 +6,19 @@ Provides ``RuleBasedPipeline`` which identifies textual reuse
 between Latin documents through lexical matching combined with
 linguistic filters.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
 from typing import Optional, Set, Union
 
-from locisimiles.pipeline.pipeline import Pipeline
 from locisimiles.pipeline.generator.rule_based import (
+    SPACY_AVAILABLE,  # noqa: F401
+    TORCH_AVAILABLE,  # noqa: F401
     RuleBasedCandidateGenerator,
-    DEFAULT_STOPWORDS,
-    DEFAULT_CONFIG,
-    TORCH_AVAILABLE,
-    SPACY_AVAILABLE,
 )
 from locisimiles.pipeline.judge.identity import IdentityJudge
+from locisimiles.pipeline.pipeline import Pipeline
 
 
 class RuleBasedPipeline(Pipeline):

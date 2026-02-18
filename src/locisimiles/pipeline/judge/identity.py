@@ -1,13 +1,14 @@
 # pipeline/judge/identity.py
 """Identity judge — passes candidates through unchanged."""
+
 from __future__ import annotations
 
 from typing import Any
 
 from locisimiles.document import Document
 from locisimiles.pipeline._types import (
-    CandidateJudge,
     CandidateGeneratorOutput,
+    CandidateJudge,
     CandidateJudgeOutput,
 )
 from locisimiles.pipeline.judge._base import JudgeBase
@@ -46,10 +47,12 @@ class IdentityJudge(JudgeBase):
         for qid, cands in candidates.items():
             judgments = []
             for c in cands:
-                judgments.append(CandidateJudge(
-                    segment=c.segment,
-                    candidate_score=c.score,
-                    judgment_score=1.0,
-                ))
+                judgments.append(
+                    CandidateJudge(
+                        segment=c.segment,
+                        candidate_score=c.score,
+                        judgment_score=1.0,
+                    )
+                )
             result[qid] = judgments
         return result

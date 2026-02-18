@@ -6,13 +6,12 @@ Pipeline(ExhaustiveCandidateGenerator, ClassificationJudge).
 Deep component behaviour is already covered in test_generators.py,
 test_judges.py, and test_pipelines.py.
 """
-import pytest
-from unittest.mock import patch, MagicMock
 
-from locisimiles.pipeline.pipeline import Pipeline
+from unittest.mock import MagicMock, patch
+
 from locisimiles.pipeline.generator.exhaustive import ExhaustiveCandidateGenerator
 from locisimiles.pipeline.judge.classification import ClassificationJudge
-
+from locisimiles.pipeline.pipeline import Pipeline
 
 # ============== Initialization ==============
 
@@ -26,11 +25,13 @@ class TestClassificationPipelineInitialization:
         """Test pipeline initializes with classification model."""
         from locisimiles.pipeline.classification import ExhaustiveClassificationPipeline
 
-        m = MagicMock(); m.to.return_value = m; m.eval.return_value = m
+        m = MagicMock()
+        m.to.return_value = m
+        m.eval.return_value = m
         mock_mdl.from_pretrained.return_value = m
         mock_tok.from_pretrained.return_value = MagicMock()
 
-        pipeline = ExhaustiveClassificationPipeline(device="cpu")
+        _pipeline = ExhaustiveClassificationPipeline(device="cpu")
 
         mock_tok.from_pretrained.assert_called_once()
         mock_mdl.from_pretrained.assert_called_once()
@@ -41,7 +42,9 @@ class TestClassificationPipelineInitialization:
         """Test device is properly configured."""
         from locisimiles.pipeline.classification import ExhaustiveClassificationPipeline
 
-        m = MagicMock(); m.to.return_value = m; m.eval.return_value = m
+        m = MagicMock()
+        m.to.return_value = m
+        m.eval.return_value = m
         mock_mdl.from_pretrained.return_value = m
         mock_tok.from_pretrained.return_value = MagicMock()
 
@@ -56,7 +59,9 @@ class TestClassificationPipelineInitialization:
         """Test default device is CPU."""
         from locisimiles.pipeline.classification import ExhaustiveClassificationPipeline
 
-        m = MagicMock(); m.to.return_value = m; m.eval.return_value = m
+        m = MagicMock()
+        m.to.return_value = m
+        m.eval.return_value = m
         mock_mdl.from_pretrained.return_value = m
         mock_tok.from_pretrained.return_value = MagicMock()
 
@@ -77,7 +82,9 @@ class TestClassificationPipelineComposition:
         """Should subclass Pipeline."""
         from locisimiles.pipeline.classification import ExhaustiveClassificationPipeline
 
-        m = MagicMock(); m.to.return_value = m; m.eval.return_value = m
+        m = MagicMock()
+        m.to.return_value = m
+        m.eval.return_value = m
         mock_mdl.from_pretrained.return_value = m
         mock_tok.from_pretrained.return_value = MagicMock()
 
@@ -90,7 +97,9 @@ class TestClassificationPipelineComposition:
         """Generator should be ExhaustiveCandidateGenerator."""
         from locisimiles.pipeline.classification import ExhaustiveClassificationPipeline
 
-        m = MagicMock(); m.to.return_value = m; m.eval.return_value = m
+        m = MagicMock()
+        m.to.return_value = m
+        m.eval.return_value = m
         mock_mdl.from_pretrained.return_value = m
         mock_tok.from_pretrained.return_value = MagicMock()
 
@@ -103,7 +112,9 @@ class TestClassificationPipelineComposition:
         """Judge should be ClassificationJudge."""
         from locisimiles.pipeline.classification import ExhaustiveClassificationPipeline
 
-        m = MagicMock(); m.to.return_value = m; m.eval.return_value = m
+        m = MagicMock()
+        m.to.return_value = m
+        m.eval.return_value = m
         mock_mdl.from_pretrained.return_value = m
         mock_tok.from_pretrained.return_value = MagicMock()
 
@@ -116,7 +127,9 @@ class TestClassificationPipelineComposition:
         """pos_class_idx should be forwarded to the ClassificationJudge."""
         from locisimiles.pipeline.classification import ExhaustiveClassificationPipeline
 
-        m = MagicMock(); m.to.return_value = m; m.eval.return_value = m
+        m = MagicMock()
+        m.to.return_value = m
+        m.eval.return_value = m
         mock_mdl.from_pretrained.return_value = m
         mock_tok.from_pretrained.return_value = MagicMock()
 
@@ -129,7 +142,9 @@ class TestClassificationPipelineComposition:
         """Default positive class index should be 1."""
         from locisimiles.pipeline.classification import ExhaustiveClassificationPipeline
 
-        m = MagicMock(); m.to.return_value = m; m.eval.return_value = m
+        m = MagicMock()
+        m.to.return_value = m
+        m.eval.return_value = m
         mock_mdl.from_pretrained.return_value = m
         mock_tok.from_pretrained.return_value = MagicMock()
 
@@ -142,7 +157,9 @@ class TestClassificationPipelineComposition:
         """Intermediate result caches should be None before run()."""
         from locisimiles.pipeline.classification import ExhaustiveClassificationPipeline
 
-        m = MagicMock(); m.to.return_value = m; m.eval.return_value = m
+        m = MagicMock()
+        m.to.return_value = m
+        m.eval.return_value = m
         mock_mdl.from_pretrained.return_value = m
         mock_tok.from_pretrained.return_value = MagicMock()
 
@@ -160,9 +177,10 @@ class TestClassificationPipelineBackwardCompat:
     def test_alias_defined(self):
         """ClassificationPipeline should be an alias."""
         from locisimiles.pipeline.classification import (
-            ExhaustiveClassificationPipeline,
             ClassificationPipeline,
+            ExhaustiveClassificationPipeline,
         )
+
         assert ClassificationPipeline is ExhaustiveClassificationPipeline
 
     def test_importable_from_pipeline_package(self):

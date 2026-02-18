@@ -5,11 +5,12 @@ Classification-only pipeline for exhaustive pairwise comparison.
 Provides ``ClassificationPipeline`` which classifies every possible
 query-source pair using a fine-tuned sequence-classification model.
 """
+
 from __future__ import annotations
 
-from locisimiles.pipeline.pipeline import Pipeline
 from locisimiles.pipeline.generator.exhaustive import ExhaustiveCandidateGenerator
 from locisimiles.pipeline.judge.classification import ClassificationJudge
+from locisimiles.pipeline.pipeline import Pipeline
 
 
 class ExhaustiveClassificationPipeline(Pipeline):

@@ -7,20 +7,19 @@ Tests the modular judge components:
 - ClassificationJudge (requires mocking)
 - JudgeBase         (ABC contract)
 """
+
+from unittest.mock import MagicMock, patch
+
 import pytest
 import torch
-import numpy as np
-from unittest.mock import MagicMock, patch
 
 from locisimiles.document import Document, TextSegment
 from locisimiles.pipeline._types import (
     Candidate,
-    CandidateJudge,
     CandidateGeneratorOutput,
-    CandidateJudgeOutput,
+    CandidateJudge,
 )
 from locisimiles.pipeline.judge._base import JudgeBase
-
 
 # ============== Fixtures ==============
 
@@ -46,9 +45,7 @@ def judge_query_document(temp_dir):
     """Create a query document whose IDs match sample_candidates keys."""
     csv_path = temp_dir / "judge_query.csv"
     csv_path.write_text(
-        "seg_id,text\n"
-        "q1,First query segment text.\n"
-        "q2,Second query segment text.\n",
+        "seg_id,text\nq1,First query segment text.\nq2,Second query segment text.\n",
         encoding="utf-8",
     )
     return Document(csv_path)
@@ -356,10 +353,14 @@ class TestClassificationJudge:
             TextSegment("Source two.", "s2", row_id=1),
         ]
         candidates: CandidateGeneratorOutput = {
-            "q1": [Candidate(segment=source_segs[0], score=0.9),
-                   Candidate(segment=source_segs[1], score=0.7)],
-            "q2": [Candidate(segment=source_segs[0], score=0.8),
-                   Candidate(segment=source_segs[1], score=0.6)],
+            "q1": [
+                Candidate(segment=source_segs[0], score=0.9),
+                Candidate(segment=source_segs[1], score=0.7),
+            ],
+            "q2": [
+                Candidate(segment=source_segs[0], score=0.8),
+                Candidate(segment=source_segs[1], score=0.6),
+            ],
         }
 
         result = judge.judge(query=query_doc, candidates=candidates)
@@ -388,26 +389,9 @@ class TestJudgeImports:
 
     def test_import_from_judge_package(self):
         """All judges should be importable from the judge package."""
-        from locisimiles.pipeline.judge import (
-            JudgeBase,
-            ClassificationJudge,
-            ThresholdJudge,
-            IdentityJudge,
-        )
 
     def test_import_from_pipeline_package(self):
         """All judges should be importable from the pipeline package."""
-        from locisimiles.pipeline import (
-            JudgeBase,
-            ClassificationJudge,
-            ThresholdJudge,
-            IdentityJudge,
-        )
 
     def test_import_from_top_level(self):
         """Key judges should be importable from the top-level package."""
-        from locisimiles import (
-            ClassificationJudge,
-            ThresholdJudge,
-            IdentityJudge,
-        )

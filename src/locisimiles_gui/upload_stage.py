@@ -15,21 +15,23 @@ except ImportError as exc:
         raise ImportError(f"{base_msg} (missing package: {missing})") from exc
     raise ImportError(base_msg) from exc
 
-from .utils import validate_and_notify, load_csv_preview
+from .utils import load_csv_preview, validate_and_notify
 
 
 def build_upload_stage() -> tuple[gr.Step, dict]:
     """Build the upload stage UI.
-    
+
     Returns:
         Tuple of (Step component, dict of components for external access)
     """
     components = {}
-    
+
     with gr.Step("Upload Files", id=0) as step:
         gr.Markdown("### 📄 Step 1: Upload Documents")
-        gr.Markdown("Upload two CSV files containing Latin text segments. Each CSV must have two columns: `seg_id` and `text`.")
-        
+        gr.Markdown(
+            "Upload two CSV files containing Latin text segments. Each CSV must have two columns: `seg_id` and `text`."
+        )
+
         with gr.Row():
             with gr.Column():
                 gr.Markdown("**🔍 Query Document**")
@@ -46,7 +48,7 @@ def build_upload_stage() -> tuple[gr.Step, dict]:
                     max_height=400,
                     wrap=True,
                 )
-            
+
             with gr.Column():
                 gr.Markdown("**📚 Source Document**")
                 gr.Markdown("The document to search for potential references.")
@@ -62,16 +64,18 @@ def build_upload_stage() -> tuple[gr.Step, dict]:
                     max_height=400,
                     wrap=True,
                 )
-        
+
         with gr.Row():
-            components["next_btn"] = gr.Button("Next: Configuration →", variant="primary", size="lg")
-    
+            components["next_btn"] = gr.Button(
+                "Next: Configuration →", variant="primary", size="lg"
+            )
+
     return step, components
 
 
 def setup_upload_handlers(components: dict, file_states: dict) -> None:
     """Set up event handlers for the upload stage.
-    
+
     Args:
         components: Dictionary of UI components from build_upload_stage
         file_states: Dictionary with query_file_state and source_file_state
@@ -86,7 +90,7 @@ def setup_upload_handlers(components: dict, file_states: dict) -> None:
             file_states["query_file_state"],
         ],
     )
-    
+
     # Source file upload handler
     components["source_upload"].change(
         fn=lambda f: (validate_and_notify(f), load_csv_preview(f), f),

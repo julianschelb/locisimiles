@@ -2,21 +2,27 @@
 Unit tests for locisimiles.evaluator module.
 Tests metric helper functions and IntertextEvaluator class.
 """
-import pytest
+
+from unittest.mock import MagicMock
+
 import numpy as np
 import pandas as pd
-from unittest.mock import MagicMock, patch
-from pathlib import Path
+import pytest
 
-from locisimiles.evaluator import (
-    _precision, _recall, _f1, _smr, _fp_rate, _fn_rate,
-    IntertextEvaluator
-)
 from locisimiles.document import Document, TextSegment
+from locisimiles.evaluator import (
+    IntertextEvaluator,
+    _f1,
+    _fn_rate,
+    _fp_rate,
+    _precision,
+    _recall,
+    _smr,
+)
 from locisimiles.pipeline._types import CandidateJudge
 
-
 # =================== METRIC HELPER TESTS ===================
+
 
 class TestPrecision:
     """Tests for _precision function."""
@@ -158,6 +164,7 @@ class TestFNRate:
 
 # =================== INTERTEXT EVALUATOR TESTS ===================
 
+
 class TestIntertextEvaluatorLoadGoldLabels:
     """Tests for IntertextEvaluator ground truth loading."""
 
@@ -177,19 +184,13 @@ class TestIntertextEvaluatorLoadGoldLabels:
         """Create query and source documents for testing."""
         query_csv = temp_dir / "query.csv"
         query_csv.write_text(
-            "seg_id,text\n"
-            "q1,Query one text.\n"
-            "q2,Query two text.\n"
-            "q3,Query three text.\n",
-            encoding="utf-8"
+            "seg_id,text\nq1,Query one text.\nq2,Query two text.\nq3,Query three text.\n",
+            encoding="utf-8",
         )
         source_csv = temp_dir / "source.csv"
         source_csv.write_text(
-            "seg_id,text\n"
-            "s1,Source one text.\n"
-            "s2,Source two text.\n"
-            "s3,Source three text.\n",
-            encoding="utf-8"
+            "seg_id,text\ns1,Source one text.\ns2,Source two text.\ns3,Source three text.\n",
+            encoding="utf-8",
         )
         return Document(query_csv), Document(source_csv)
 
@@ -212,11 +213,13 @@ class TestIntertextEvaluatorLoadGoldLabels:
     def test_load_gold_labels_from_dataframe(self, evaluator_docs, mock_pipeline):
         """Test loading gold labels from DataFrame."""
         query_doc, source_doc = evaluator_docs
-        gt_df = pd.DataFrame({
-            "query_id": ["q1", "q1", "q2"],
-            "source_id": ["s1", "s2", "s1"],
-            "label": [1, 0, 1],
-        })
+        gt_df = pd.DataFrame(
+            {
+                "query_id": ["q1", "q1", "q2"],
+                "source_id": ["s1", "s2", "s1"],
+                "label": [1, 0, 1],
+            }
+        )
         evaluator = IntertextEvaluator(
             query_doc=query_doc,
             source_doc=source_doc,
@@ -236,42 +239,27 @@ class TestIntertextEvaluatorMetrics:
         """Create a fully configured evaluator with known predictions."""
         # Create documents
         query_csv = temp_dir / "query.csv"
-        query_csv.write_text(
-            "seg_id,text\n"
-            "q1,Query one.\n"
-            "q2,Query two.\n",
-            encoding="utf-8"
-        )
+        query_csv.write_text("seg_id,text\nq1,Query one.\nq2,Query two.\n", encoding="utf-8")
         source_csv = temp_dir / "source.csv"
         source_csv.write_text(
-            "seg_id,text\n"
-            "s1,Source one.\n"
-            "s2,Source two.\n"
-            "s3,Source three.\n",
-            encoding="utf-8"
+            "seg_id,text\ns1,Source one.\ns2,Source two.\ns3,Source three.\n", encoding="utf-8"
         )
         query_doc = Document(query_csv)
         source_doc = Document(source_csv)
-        
+
         # Create ground truth
         gt_csv = temp_dir / "gt.csv"
         gt_csv.write_text(
-            "query_id,source_id,label\n"
-            "q1,s1,1\n"
-            "q1,s2,0\n"
-            "q1,s3,0\n"
-            "q2,s1,0\n"
-            "q2,s2,1\n"
-            "q2,s3,1\n",
-            encoding="utf-8"
+            "query_id,source_id,label\nq1,s1,1\nq1,s2,0\nq1,s3,0\nq2,s1,0\nq2,s2,1\nq2,s3,1\n",
+            encoding="utf-8",
         )
-        
+
         # Create mock pipeline with specific predictions
         mock_pipeline = MagicMock()
         s1 = TextSegment("Source one.", "s1", row_id=0)
         s2 = TextSegment("Source two.", "s2", row_id=1)
         s3 = TextSegment("Source three.", "s3", row_id=2)
-        
+
         # Predictions: prob > 0.5 means positive
         mock_pipeline.run.return_value = {
             "q1": [
@@ -285,7 +273,7 @@ class TestIntertextEvaluatorMetrics:
                 CandidateJudge(segment=s3, candidate_score=0.4, judgment_score=0.2),
             ],  # Pred: s1=1, s2=1, s3=0
         }
-        
+
         evaluator = IntertextEvaluator(
             query_doc=query_doc,
             source_doc=source_doc,
@@ -350,20 +338,10 @@ class TestIntertextEvaluatorThreshold:
         query_csv = temp_dir / "query.csv"
         query_csv.write_text("seg_id,text\nq1,Query.\n", encoding="utf-8")
         source_csv = temp_dir / "source.csv"
-        source_csv.write_text(
-            "seg_id,text\n"
-            "s1,Source one.\n"
-            "s2,Source two.\n",
-            encoding="utf-8"
-        )
+        source_csv.write_text("seg_id,text\ns1,Source one.\ns2,Source two.\n", encoding="utf-8")
         gt_csv = temp_dir / "gt.csv"
-        gt_csv.write_text(
-            "query_id,source_id,label\n"
-            "q1,s1,1\n"
-            "q1,s2,0\n",
-            encoding="utf-8"
-        )
-        
+        gt_csv.write_text("query_id,source_id,label\nq1,s1,1\nq1,s2,0\n", encoding="utf-8")
+
         mock_pipeline = MagicMock()
         s1 = TextSegment("Source one.", "s1", row_id=0)
         s2 = TextSegment("Source two.", "s2", row_id=1)
@@ -373,7 +351,7 @@ class TestIntertextEvaluatorThreshold:
                 CandidateJudge(segment=s2, candidate_score=0.5, judgment_score=0.25),
             ],
         }
-        
+
         return IntertextEvaluator(
             query_doc=Document(query_csv),
             source_doc=Document(source_csv),
@@ -395,8 +373,7 @@ class TestIntertextEvaluatorThreshold:
         """Test finding best threshold with custom threshold list."""
         thresholds = [0.3, 0.5, 0.7]
         best_result, df = evaluator_for_threshold.find_best_threshold(
-            metric="f1",
-            thresholds=thresholds
+            metric="f1", thresholds=thresholds
         )
         assert best_result["best_threshold"] in thresholds
         assert len(df) == 3
@@ -421,10 +398,7 @@ class TestIntertextEvaluatorQueryIds:
         """Create evaluator with some queries having matches, some not."""
         query_csv = temp_dir / "query.csv"
         query_csv.write_text(
-            "seg_id,text\n"
-            "q1,Query with match.\n"
-            "q2,Query without match.\n",
-            encoding="utf-8"
+            "seg_id,text\nq1,Query with match.\nq2,Query without match.\n", encoding="utf-8"
         )
         source_csv = temp_dir / "source.csv"
         source_csv.write_text("seg_id,text\ns1,Source.\n", encoding="utf-8")
@@ -433,16 +407,16 @@ class TestIntertextEvaluatorQueryIds:
             "query_id,source_id,label\n"
             "q1,s1,1\n"  # q1 has a match
             "q2,s1,0\n",  # q2 has no match
-            encoding="utf-8"
+            encoding="utf-8",
         )
-        
+
         mock_pipeline = MagicMock()
         s1 = TextSegment("Source.", "s1", row_id=0)
         mock_pipeline.run.return_value = {
             "q1": [CandidateJudge(segment=s1, candidate_score=0.9, judgment_score=0.8)],
             "q2": [CandidateJudge(segment=s1, candidate_score=0.5, judgment_score=0.3)],
         }
-        
+
         return IntertextEvaluator(
             query_doc=Document(query_csv),
             source_doc=Document(source_csv),

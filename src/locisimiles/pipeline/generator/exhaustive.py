@@ -1,5 +1,6 @@
 # pipeline/generator/exhaustive.py
 """Exhaustive candidate generator — returns all query×source pairs."""
+
 from __future__ import annotations
 
 from typing import Any

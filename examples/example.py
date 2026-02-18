@@ -1,10 +1,9 @@
+from locisimiles.document import Document
 from locisimiles.evaluator import IntertextEvaluator
 from locisimiles.pipeline import (
-    ClassificationPipeline,
     ClassificationPipelineWithCandidategeneration,
     pretty_print,
 )
-from locisimiles.document import Document
 
 # Load example query and source documents
 query_doc = Document("./hieronymus_samples.csv", author="Hieronymus")
@@ -25,9 +24,9 @@ pipeline_two_stage = ClassificationPipelineWithCandidategeneration(
 
 # Run the pipeline with the query and source documents
 results_two_stage = pipeline_two_stage.run(
-    query=query_doc,    # Query document
+    query=query_doc,  # Query document
     source=source_doc,  # Source document
-    top_k=10            # Number of top similar candidates to classify
+    top_k=10,  # Number of top similar candidates to classify
 )
 print("\nResults of the two-stage pipeline run:")
 pretty_print(results_two_stage)
