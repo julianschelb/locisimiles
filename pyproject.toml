@@ -57,6 +57,10 @@ python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-v"
+filterwarnings = [
+    # pydantic v1 compat layer uses deprecated ForwardRef._evaluate on Python 3.13+
+    "ignore::DeprecationWarning:pydantic",
+]
 
 [tool.poe.tasks]
 test = "pytest"

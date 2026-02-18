@@ -8,7 +8,8 @@ import sys
 from pathlib import Path
 
 from locisimiles.document import Document
-from locisimiles.pipeline import ClassificationPipelineWithCandidategeneration
+from locisimiles.pipeline import TwoStagePipeline
+from locisimiles.pipeline._types import CandidateJudge
 
 
 def main() -> int:
@@ -148,7 +149,7 @@ CSV Format:
             print(f"  Classification model: {args.classification_model}")
             print(f"  Embedding model: {args.embedding_model}")
         
-        pipeline = ClassificationPipelineWithCandidategeneration(
+        pipeline = TwoStagePipeline(
             classification_name=args.classification_model,
             embedding_model_name=args.embedding_model,
             device=device,
@@ -168,7 +169,7 @@ CSV Format:
         num_queries = len(results)
         total_matches = sum(len(matches) for matches in results.values())
         above_threshold = sum(
-            sum(1 for _, _, prob in matches if prob >= args.threshold)
+            sum(1 for j in matches if j.judgment_score >= args.threshold)
             for matches in results.values()
         )
         
@@ -200,17 +201,20 @@ CSV Format:
                 matches = results.get(query_id, [])
                 
                 if matches:
-                    for source_segment, similarity, probability in matches:
-                        source_id = source_segment.id
-                        source_text = source_segment.text
+                    for judgment in matches:
+                        source_id = judgment.segment.id
+                        source_text = judgment.segment.text
+                        similarity = judgment.candidate_score
+                        probability = judgment.judgment_score
                         above_threshold_flag = "Yes" if probability >= args.threshold else "No"
                         
+                        sim_str = f"{similarity:.6f}" if similarity is not None else ""
                         writer.writerow([
                             query_id,
                             query_text,
                             source_id,
                             source_text,
-                            f"{similarity:.6f}",
+                            sim_str,
                             f"{probability:.6f}",
                             above_threshold_flag
                         ])

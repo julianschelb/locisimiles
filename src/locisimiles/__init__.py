@@ -2,21 +2,51 @@
 
 from locisimiles.document import Document, TextSegment
 from locisimiles.pipeline import (
-    ClassificationPipeline,
-    ClassificationPipelineWithCandidategeneration,
+    # Preconfigured pipelines
+    TwoStagePipeline,
+    ExhaustiveClassificationPipeline,
     RetrievalPipeline,
     RuleBasedPipeline,
+    # Backward-compatible aliases
+    ClassificationPipeline,
+    ClassificationPipelineWithCandidategeneration,
+    # Modular components
+    Pipeline,
+    EmbeddingCandidateGenerator,
+    ExhaustiveCandidateGenerator,
+    RuleBasedCandidateGenerator,
+    ClassificationJudge,
+    ThresholdJudge,
+    IdentityJudge,
+    # Utilities
     pretty_print,
+    results_to_csv,
+    results_to_json,
 )
 from locisimiles.evaluator import IntertextEvaluator
 
 __all__ = [
     "Document",
     "TextSegment",
-    "ClassificationPipeline",
-    "ClassificationPipelineWithCandidategeneration",
+    # Preconfigured pipelines
+    "TwoStagePipeline",
+    "ExhaustiveClassificationPipeline",
     "RetrievalPipeline",
     "RuleBasedPipeline",
+    # Backward-compatible aliases
+    "ClassificationPipeline",
+    "ClassificationPipelineWithCandidategeneration",
+    # Modular components
+    "Pipeline",
+    "EmbeddingCandidateGenerator",
+    "ExhaustiveCandidateGenerator",
+    "RuleBasedCandidateGenerator",
+    "ClassificationJudge",
+    "ThresholdJudge",
+    "IdentityJudge",
+    # Utilities
     "IntertextEvaluator",
     "pretty_print",
+    "results_to_csv",
+    "results_to_json",
 ]

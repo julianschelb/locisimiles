@@ -6,8 +6,10 @@ import pandas as pd
 
 from locisimiles.document import Document
 from locisimiles.pipeline import (
-    ClassificationPipelineWithCandidategeneration,
-    FullDict,  # alias exported by pipeline.py
+    Pipeline,
+    TwoStagePipeline,
+    CandidateJudge,
+    CandidateJudgeOutput,
 )
 
 # ────────────────────────────────
@@ -66,14 +68,14 @@ class IntertextEvaluator:
     Attributes:
         query_doc: The query document being analyzed.
         source_doc: The source document containing potential quotation origins.
-        predictions: Cached pipeline predictions (FullDict format).
+        predictions: Cached pipeline predictions (CandidateJudgeOutput format).
         threshold: Probability threshold for positive classification.
         gold_labels: Ground truth annotations loaded from CSV.
     
     Example:
         ```python
         from locisimiles.evaluator import IntertextEvaluator
-        from locisimiles.pipeline import ClassificationPipelineWithCandidategeneration
+        from locisimiles.pipeline import TwoStagePipeline
         from locisimiles.document import Document
         
         # Load documents
@@ -81,7 +83,7 @@ class IntertextEvaluator:
         source_doc = Document("vergil.csv")
         
         # Initialize pipeline
-        pipeline = ClassificationPipelineWithCandidategeneration(device="cpu")
+        pipeline = TwoStagePipeline(device="cpu")
         
         # Create evaluator with auto-threshold
         evaluator = IntertextEvaluator(
@@ -114,7 +116,7 @@ class IntertextEvaluator:
         query_doc: Document,
         source_doc: Document,
         ground_truth_csv: str | pd.DataFrame,
-        pipeline: ClassificationPipelineWithCandidategeneration,
+        pipeline: Pipeline,
         top_k: int = 5,
         threshold: float | str = "auto",
         auto_threshold_metric: str = "smr",
@@ -131,7 +133,7 @@ class IntertextEvaluator:
         self.gold_labels = self._load_gold_labels(ground_truth_csv)
 
         # 2) RUN PIPELINE ONCE ──────────────────────────────────────────
-        self.predictions: FullDict = pipeline.run(
+        self.predictions: CandidateJudgeOutput = pipeline.run(
             query=query_doc,
             source=source_doc,
             top_k=top_k,
@@ -403,7 +405,7 @@ class IntertextEvaluator:
 
         # Evaluate for each k
         for k in k_values:
-            filtered_predictions: FullDict = {}
+            filtered_predictions: CandidateJudgeOutput = {}
             for q_id, result_list in original_predictions.items():
                 filtered_predictions[q_id] = result_list[:k]
             
@@ -455,10 +457,14 @@ class IntertextEvaluator:
         """
         link_set: set[Tuple[str, str]] = set()
         for q_id, result_list in self.predictions.items():
-            link_set.update(
-                {(q_id, seg.id)
-                 for seg, _sim, prob in result_list if prob >= self.threshold}
-            )
+            for item in result_list:
+                if isinstance(item, CandidateJudge):
+                    seg, prob = item.segment, item.judgment_score
+                else:
+                    # Backward compat: tuple (segment, sim, prob)
+                    seg, _sim, prob = item  # type: ignore[misc]
+                if prob >= self.threshold:
+                    link_set.add((q_id, seg.id))
         return link_set
 
 
@@ -466,7 +472,7 @@ class IntertextEvaluator:
 if __name__ == "__main__":
     qdoc = Document("../data/vergil_samples.csv")
     sdoc = Document("../data/hieronymus_samples.csv")
-    pipe = ClassificationPipelineWithCandidategeneration(device="cpu")
+    pipe = TwoStagePipeline(device="cpu")
 
     evaluator = IntertextEvaluator(
         query_doc=qdoc,

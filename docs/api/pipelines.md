@@ -1,44 +1,32 @@
-# Pipelines Module
+# Pipelines
 
-Processing pipelines for intertextual detection.
+Ready-to-use pipelines for detecting intertextual parallels in Latin literature.
+
+Each pipeline loads its own models and exposes a single `run()` method that
+accepts two `Document` objects and returns scored results.
+
+## ClassificationPipelineWithCandidategeneration
+
+::: locisimiles.pipeline.two_stage.TwoStagePipeline
+    options:
+      heading_level: 3
+      show_root_heading: false
+
+## ClassificationPipeline
+
+::: locisimiles.pipeline.classification.ExhaustiveClassificationPipeline
+    options:
+      heading_level: 3
+      show_root_heading: false
 
 ## RetrievalPipeline
-
-Find similar passages using semantic embeddings.
 
 ::: locisimiles.pipeline.retrieval.RetrievalPipeline
     options:
       heading_level: 3
 
-## ClassificationPipeline
-
-Classify text pairs using transformer models (exhaustive comparison).
-
-::: locisimiles.pipeline.classification.ClassificationPipeline
-    options:
-      heading_level: 3
-
-## ClassificationPipelineWithCandidategeneration
-
-Two-stage pipeline: retrieval for candidate generation, then classification.
-
-::: locisimiles.pipeline.two_stage.ClassificationPipelineWithCandidategeneration
-    options:
-      heading_level: 3
-
 ## RuleBasedPipeline
-
-Rule-based pipeline using lexical matching and linguistic filters.
 
 ::: locisimiles.pipeline.rule_based.RuleBasedPipeline
     options:
       heading_level: 3
-
-## Type Definitions
-
-Data classes for pipeline results.
-
-::: locisimiles.pipeline._types
-    options:
-      heading_level: 3
-      show_category_heading: false

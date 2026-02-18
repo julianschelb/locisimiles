@@ -55,6 +55,112 @@ results = pipeline.run(
 )
 ```
 
+## Modular Pipeline (Recommended)
+
+Build custom pipelines by composing a generator and a judge:
+
+```python
+from locisimiles import Pipeline
+from locisimiles.pipeline.generator import EmbeddingCandidateGenerator
+from locisimiles.pipeline.judge import ClassificationJudge
+from locisimiles.document import Document
+
+# Load documents
+query_doc = Document("./hieronymus_samples.csv", author="Hieronymus")
+source_doc = Document("./vergil_samples.csv", author="Vergil")
+
+# Compose a custom pipeline
+pipeline = Pipeline(
+    generator=EmbeddingCandidateGenerator(
+        embedding_model_name="julian-schelb/SPhilBerta-emb-lat-intertext-v1",
+        device="cpu",
+    ),
+    judge=ClassificationJudge(
+        classification_name="julian-schelb/PhilBerta-class-latin-intertext-v1",
+        device="cpu",
+    ),
+)
+
+# Run end-to-end
+results = pipeline.run(query=query_doc, source=source_doc, top_k=10)
+
+# Or run stages separately
+candidates = pipeline.generate_candidates(query=query_doc, source=source_doc, top_k=10)
+results = pipeline.judge_candidates(query=query_doc, candidates=candidates)
+```
+
+### Custom Combinations
+
+Mix and match generators and judges:
+
+```python
+from locisimiles import Pipeline
+from locisimiles.pipeline.generator import (
+    EmbeddingCandidateGenerator,
+    ExhaustiveCandidateGenerator,
+    RuleBasedCandidateGenerator,
+)
+from locisimiles.pipeline.judge import (
+    ClassificationJudge,
+    ThresholdJudge,
+    IdentityJudge,
+)
+
+# Retrieval + threshold (fast, no classifier needed)
+pipeline = Pipeline(
+    generator=EmbeddingCandidateGenerator(device="cpu"),
+    judge=ThresholdJudge(top_k=5),
+)
+
+# Rule-based candidates + classification scoring
+pipeline = Pipeline(
+    generator=RuleBasedCandidateGenerator(min_shared_words=2),
+    judge=ClassificationJudge(device="cpu"),
+)
+
+# Exhaustive + identity (all pairs, no filtering)
+pipeline = Pipeline(
+    generator=ExhaustiveCandidateGenerator(),
+    judge=IdentityJudge(),
+)
+```
+
+## Saving Results
+
+Pipeline results can be saved to CSV or JSON directly from the pipeline
+object, or by using the standalone utility functions.
+
+### Save from the pipeline
+
+```python
+# Run the pipeline
+results = pipeline.run(query=query_doc, source=source_doc, top_k=10)
+
+# Save to CSV (columns: query_id, source_id, source_text, candidate_score, judgment_score)
+pipeline.to_csv("results.csv")
+
+# Save to JSON (object keyed by query_id)
+pipeline.to_json("results.json")
+```
+
+### Save with explicit results
+
+```python
+pipeline.to_csv("results.csv", results=results)
+pipeline.to_json("results.json", results=results)
+```
+
+### Standalone utility functions
+
+If you don't have a pipeline instance, use the standalone functions:
+
+```python
+from locisimiles.pipeline import results_to_csv, results_to_json
+
+results_to_csv(results, "results.csv")
+results_to_json(results, "results.json")
+```
+
 ## Evaluation
 
 Evaluate your results against ground truth annotations:
@@ -113,12 +219,12 @@ results = pipeline_clf.run(
 
 # Filter high-probability matches
 threshold = 0.7
-for query_id, pairs in results.items():
-    high_prob = [(seg, prob) for seg, sim, prob in pairs if prob > threshold]
+for query_id, judgments in results.items():
+    high_prob = [j for j in judgments if j.judgment_score > threshold]
     if high_prob:
         print(f"Query {query_id}:")
-        for seg, prob in high_prob:
-            print(f"  {seg.id}: P={prob:.3f}")
+        for j in high_prob:
+            print(f"  {j.segment.id}: P={j.judgment_score:.3f}")
 ```
 
 ## Running the Examples

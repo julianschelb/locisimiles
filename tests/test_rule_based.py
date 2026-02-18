@@ -8,7 +8,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from locisimiles.document import Document, TextSegment
-from locisimiles.pipeline._types import FullDict
+from locisimiles.pipeline._types import CandidateJudge, CandidateJudgeOutput
 
 
 class TestRuleBasedPipelineInit:
@@ -72,7 +72,7 @@ class TestRuleBasedTokenization:
         from locisimiles.pipeline.rule_based import RuleBasedPipeline
         
         pipeline = RuleBasedPipeline()
-        tokens = pipeline._tokenize("Hello, world!")
+        tokens = pipeline.generator._tokenize("Hello, world!")
         
         assert "Hello" in tokens
         assert "world" in tokens
@@ -84,7 +84,7 @@ class TestRuleBasedTokenization:
         from locisimiles.pipeline.rule_based import RuleBasedPipeline
         
         pipeline = RuleBasedPipeline()
-        tokens = pipeline._tokenize("Gallia est omnis divisa")
+        tokens = pipeline.generator._tokenize("Gallia est omnis divisa")
         
         assert tokens == ["Gallia", "est", "omnis", "divisa"]
 
@@ -93,7 +93,7 @@ class TestRuleBasedTokenization:
         from locisimiles.pipeline.rule_based import RuleBasedPipeline
         
         pipeline = RuleBasedPipeline()
-        tokens = pipeline._simple_tokenize("Hello, world! How are you?")
+        tokens = pipeline.generator._simple_tokenize("Hello, world! How are you?")
         
         assert "Hello" in tokens
         assert "world" in tokens
@@ -111,8 +111,8 @@ class TestRuleBasedTransformToken:
         
         pipeline = RuleBasedPipeline()
         
-        assert pipeline._transform_token("adtingo") == "attingo"
-        assert pipeline._transform_token("Adtingo") == "Attingo"
+        assert pipeline.generator._transform_token("adtingo") == "attingo"
+        assert pipeline.generator._transform_token("Adtingo") == "Attingo"
 
     def test_transform_adp_to_app(self):
         """Test prefix assimilation adp -> app."""
@@ -120,7 +120,7 @@ class TestRuleBasedTransformToken:
         
         pipeline = RuleBasedPipeline()
         
-        assert pipeline._transform_token("adpono") == "appono"
+        assert pipeline.generator._transform_token("adpono") == "appono"
 
     def test_transform_inm_to_imm(self):
         """Test prefix assimilation inm -> imm."""
@@ -128,7 +128,7 @@ class TestRuleBasedTransformToken:
         
         pipeline = RuleBasedPipeline()
         
-        assert pipeline._transform_token("inmortalis") == "immortalis"
+        assert pipeline.generator._transform_token("inmortalis") == "immortalis"
 
     def test_transform_conm_to_comm(self):
         """Test prefix assimilation conm -> comm."""
@@ -136,7 +136,7 @@ class TestRuleBasedTransformToken:
         
         pipeline = RuleBasedPipeline()
         
-        assert pipeline._transform_token("conmitto") == "committo"
+        assert pipeline.generator._transform_token("conmitto") == "committo"
 
     def test_transform_no_change(self):
         """Test that non-matching tokens remain unchanged."""
@@ -144,8 +144,8 @@ class TestRuleBasedTransformToken:
         
         pipeline = RuleBasedPipeline()
         
-        assert pipeline._transform_token("Roma") == "Roma"
-        assert pipeline._transform_token("Caesar") == "Caesar"
+        assert pipeline.generator._transform_token("Roma") == "Roma"
+        assert pipeline.generator._transform_token("Caesar") == "Caesar"
 
     def test_transform_ads_before_vowel(self):
         """Test ads prefix before vowel."""
@@ -154,7 +154,7 @@ class TestRuleBasedTransformToken:
         pipeline = RuleBasedPipeline()
         
         # ads before vowel -> ass
-        assert pipeline._transform_token("adserit") == "asserit"
+        assert pipeline.generator._transform_token("adserit") == "asserit"
 
     def test_transform_ads_before_consonant(self):
         """Test ads prefix before consonant."""
@@ -163,7 +163,7 @@ class TestRuleBasedTransformToken:
         pipeline = RuleBasedPipeline()
         
         # ads before consonant -> as (removes d)
-        assert pipeline._transform_token("adstringit") == "astringit"
+        assert pipeline.generator._transform_token("adstringit") == "astringit"
 
 
 class TestRuleBasedPhrasing:
@@ -177,7 +177,7 @@ class TestRuleBasedPhrasing:
         # Use raw string with escaped fancy quotes
         text_list = [["id1", 'He said \u201chello\u201d and \u2018goodbye\u2019']]
         
-        result = pipeline._normalize_quotation_marks(text_list)
+        result = pipeline.generator._normalize_quotation_marks(text_list)
         
         assert "'" in result[0][1]
         assert '\u201c' not in result[0][1]  # left double quote
@@ -190,7 +190,7 @@ class TestRuleBasedPhrasing:
         pipeline = RuleBasedPipeline()
         text_list = [["id1", "Roma que Carthago"]]
         
-        result = pipeline._remove_whitespace_connectors(text_list)
+        result = pipeline.generator._remove_whitespace_connectors(text_list)
         
         assert "Romaque" in result[0][1]
 
@@ -201,7 +201,7 @@ class TestRuleBasedPhrasing:
         pipeline = RuleBasedPipeline()
         text_list = [["id1", "  Hello World  "]]
         
-        result = pipeline._strip_whitespaces(text_list)
+        result = pipeline.generator._strip_whitespaces(text_list)
         
         assert result[0][1] == "Hello World"
 
@@ -216,7 +216,7 @@ class TestRuleBasedPhrasing:
             ["id3", "Another valid"],
         ]
         
-        result = pipeline._cleanup(text_list)
+        result = pipeline.generator._cleanup(text_list)
         
         assert len(result) == 2
         assert result[0][0] == "id1"
@@ -229,7 +229,7 @@ class TestRuleBasedPhrasing:
         pipeline = RuleBasedPipeline()
         text_list = [["id1", '  \u201cHello\u201d Roma que Carthago  ']]
         
-        result = pipeline._phrasing_prose(text_list)
+        result = pipeline.generator._phrasing_prose(text_list)
         
         assert len(result) == 1
         # Should have normalized quotes and connectors
@@ -243,7 +243,7 @@ class TestRuleBasedPhrasing:
         pipeline = RuleBasedPipeline()
         text_list = [["id1", "Arma virumque cano"]]
         
-        result = pipeline._phrasing_poetry(text_list)
+        result = pipeline.generator._phrasing_poetry(text_list)
         
         assert result[0][1].endswith(" /")
 
@@ -258,7 +258,7 @@ class TestRuleBasedNormalization:
         pipeline = RuleBasedPipeline()
         text_list = [["virtus"]]
         
-        result = pipeline._normalize_for_matching(text_list)
+        result = pipeline.generator._normalize_for_matching(text_list)
         
         assert "uirtus" in result[0][0].strip()
 
@@ -269,7 +269,7 @@ class TestRuleBasedNormalization:
         pipeline = RuleBasedPipeline()
         text_list = [["Julius"]]
         
-        result = pipeline._normalize_for_matching(text_list)
+        result = pipeline.generator._normalize_for_matching(text_list)
         
         assert "iulius" in result[0][0].strip()
 
@@ -280,7 +280,7 @@ class TestRuleBasedNormalization:
         pipeline = RuleBasedPipeline()
         text_list = [["ROMA"]]
         
-        result = pipeline._normalize_for_matching(text_list)
+        result = pipeline.generator._normalize_for_matching(text_list)
         
         assert "roma" in result[0][0].strip()
 
@@ -296,7 +296,7 @@ class TestRuleBasedTextMatching:
         
         # Sequence of 4 adjacent
         indices = [1, 2, 3, 4, 7, 8]
-        result = pipeline._find_adjacent_sequence(indices)
+        result = pipeline.generator._find_adjacent_sequence(indices)
         
         assert result == [1, 2, 3, 4]
 
@@ -308,7 +308,7 @@ class TestRuleBasedTextMatching:
         
         # Two sequences, second is longer
         indices = [1, 2, 3, 4, 10, 11, 12, 13, 14]
-        result = pipeline._find_adjacent_sequence(indices)
+        result = pipeline.generator._find_adjacent_sequence(indices)
         
         assert result == [10, 11, 12, 13, 14]
 
@@ -320,7 +320,7 @@ class TestRuleBasedTextMatching:
         
         # Only 3 adjacent (less than 4)
         indices = [1, 2, 3, 10, 20]
-        result = pipeline._find_adjacent_sequence(indices)
+        result = pipeline.generator._find_adjacent_sequence(indices)
         
         assert result == []
 
@@ -332,7 +332,7 @@ class TestRuleBasedTextMatching:
         text = " Roma et Carthago "
         words = ["roma", "carthago"]
         
-        result = pipeline._highlight_words(text, words)
+        result = pipeline.generator._highlight_words(text, words)
         
         assert "**Roma**" in result
         assert "**Carthago**" in result
@@ -346,7 +346,7 @@ class TestRuleBasedTextMatching:
         pipeline = RuleBasedPipeline()
         shared = [("**roma**", 2), ("**carthago**", 5)]
         
-        result = pipeline._min_distance(shared)
+        result = pipeline.generator._min_distance(shared)
         
         assert result == 3
 
@@ -357,7 +357,7 @@ class TestRuleBasedTextMatching:
         pipeline = RuleBasedPipeline()
         shared = [("**roma**", 2)]
         
-        result = pipeline._min_distance(shared)
+        result = pipeline.generator._min_distance(shared)
         
         assert result == float('inf')
 
@@ -373,7 +373,7 @@ class TestRuleBasedFilters:
         text = "Before **roma** middle text **carthago** after"
         shared = ["roma", "carthago"]
         
-        result = pipeline._extract_substrings(text, shared)
+        result = pipeline.generator._extract_substrings(text, shared)
         
         assert len(result) == 1
         assert "middle text" in result[0]
@@ -386,7 +386,7 @@ class TestRuleBasedFilters:
         substr1 = [", hello,"]
         substr2 = [", world,"]
         
-        result = pipeline._compare_punctuation(substr1, substr2, ",")
+        result = pipeline.generator._compare_punctuation(substr1, substr2, ",")
         
         assert all(result)
 
@@ -398,7 +398,7 @@ class TestRuleBasedFilters:
         substr1 = [", hello,,"]
         substr2 = [", world,"]
         
-        result = pipeline._compare_punctuation(substr1, substr2, ",")
+        result = pipeline.generator._compare_punctuation(substr1, substr2, ",")
         
         assert not all(result)
 
@@ -413,7 +413,7 @@ class TestRuleBasedFilters:
             [3, "s2", "text", "t2", "text", "shared"],  # new
         ]
         
-        result = pipeline._combine_matches(matches, complura)
+        result = pipeline.generator._combine_matches(matches, complura)
         
         assert len(result) == 2
 
@@ -470,15 +470,15 @@ class TestRuleBasedDocumentConversion:
         from locisimiles.pipeline.rule_based import RuleBasedPipeline
         
         pipeline = RuleBasedPipeline()
-        result = pipeline._document_to_list(sample_document)
+        result = pipeline.generator._document_to_list(sample_document)
         
         assert len(result) == len(sample_document)
         assert all(len(item) == 2 for item in result)
         assert all(isinstance(item[0], str) for item in result)
         assert all(isinstance(item[1], str) for item in result)
 
-    def test_matches_to_fulldict(self, sample_document, sample_source_document):
-        """Test converting matches to FullDict format."""
+    def test_matches_to_candidates(self, sample_document, sample_source_document):
+        """Test converting matches to CandidateGeneratorOutput format."""
         from locisimiles.pipeline.rule_based import RuleBasedPipeline
         
         pipeline = RuleBasedPipeline()
@@ -488,7 +488,7 @@ class TestRuleBasedDocumentConversion:
             [1, "src1", "source text", "seg1", "target text", "shared; words"]
         ]
         
-        result = pipeline._matches_to_fulldict(matches, sample_source_document, sample_document)
+        result = pipeline.generator._matches_to_candidates(matches, sample_source_document, sample_document)
         
         assert isinstance(result, dict)
         assert "seg1" in result
@@ -537,19 +537,19 @@ class TestRuleBasedRun:
         
         assert isinstance(result, dict)
 
-    def test_run_returns_fulldict_format(self, sample_document, sample_source_document):
-        """Test that run returns proper FullDict format."""
+    def test_run_returns_judge_output_format(self, sample_document, sample_source_document):
+        """Test that run returns proper CandidateJudgeOutput format."""
         from locisimiles.pipeline.rule_based import RuleBasedPipeline
         
         pipeline = RuleBasedPipeline(min_shared_words=1)
         result = pipeline.run(query=sample_document, source=sample_source_document)
         
-        # All values should be lists of tuples
+        # All values should be lists of CandidateJudge objects
         for seg_id, matches in result.items():
             assert isinstance(matches, list)
             for match in matches:
-                assert len(match) == 3  # (segment, similarity, probability)
-                assert isinstance(match[0], TextSegment)
+                assert isinstance(match, CandidateJudge)
+                assert isinstance(match.segment, TextSegment)
 
 
 class TestRuleBasedPreprocess:
@@ -562,7 +562,7 @@ class TestRuleBasedPreprocess:
         pipeline = RuleBasedPipeline()
         text_list = [["id1", '  \u201cGallia\u201d est omnis divisa  ']]
         
-        result = pipeline._preprocess(text_list, "prose")
+        result = pipeline.generator._preprocess(text_list, "prose")
         
         assert len(result) == 1
         # Should be cleaned up
@@ -575,7 +575,7 @@ class TestRuleBasedPreprocess:
         pipeline = RuleBasedPipeline()
         text_list = [["id1", "Arma virumque cano"]]
         
-        result = pipeline._preprocess(text_list, "poetry")
+        result = pipeline.generator._preprocess(text_list, "poetry")
         
         assert len(result) == 1
         # Poetry should have verse ending marker
@@ -595,10 +595,10 @@ class TestRuleBasedCompareTexts:
         target = [["t1", "Carthago magna urbs nova est"]]
         
         # Preprocess
-        source = pipeline._preprocess(source, "prose")
-        target = pipeline._preprocess(target, "prose")
+        source = pipeline.generator._preprocess(source, "prose")
+        target = pipeline.generator._preprocess(target, "prose")
         
-        matches, complura = pipeline._compare_texts(source, target)
+        matches, complura = pipeline.generator._compare_texts(source, target)
         
         # Should find matches (magna, urbs are shared non-stopwords)
         assert isinstance(matches, list)

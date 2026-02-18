@@ -7,63 +7,65 @@ from io import StringIO
 import sys
 
 from locisimiles.document import TextSegment
-from locisimiles.pipeline._types import pretty_print, SimDict, FullDict
+from locisimiles.pipeline._types import (
+    pretty_print, Candidate, CandidateJudge,
+    CandidateGeneratorOutput, CandidateJudgeOutput,
+    # Deprecated aliases still importable
+    SimDict, FullDict,
+)
 
 
 class TestTypeStructures:
     """Tests for type structure definitions."""
 
-    def test_simdict_structure(self, sample_segments):
-        """Test SimDict matches expected format: Dict[str, List[Tuple[TextSegment, float]]]."""
-        sim_dict: SimDict = {
+    def test_candidate_generator_output_structure(self, sample_segments):
+        """Test CandidateGeneratorOutput matches expected format."""
+        output: CandidateGeneratorOutput = {
             "q1": [
-                (sample_segments[0], 0.95),
-                (sample_segments[1], 0.85),
+                Candidate(segment=sample_segments[0], score=0.95),
+                Candidate(segment=sample_segments[1], score=0.85),
             ],
             "q2": [
-                (sample_segments[2], 0.75),
+                Candidate(segment=sample_segments[2], score=0.75),
             ],
         }
         # Verify structure
-        assert isinstance(sim_dict, dict)
-        for qid, pairs in sim_dict.items():
+        assert isinstance(output, dict)
+        for qid, candidates in output.items():
             assert isinstance(qid, str)
-            assert isinstance(pairs, list)
-            for segment, score in pairs:
-                assert isinstance(segment, TextSegment)
-                assert isinstance(score, float)
+            assert isinstance(candidates, list)
+            for cand in candidates:
+                assert isinstance(cand, Candidate)
+                assert isinstance(cand.segment, TextSegment)
+                assert isinstance(cand.score, float)
 
-    def test_fulldict_structure(self, sample_segments):
-        """Test FullDict matches expected format: Dict[str, List[Tuple[TextSegment, float, float]]]."""
-        full_dict: FullDict = {
+    def test_judge_output_structure(self, sample_segments):
+        """Test CandidateJudgeOutput matches expected format."""
+        output: CandidateJudgeOutput = {
             "q1": [
-                (sample_segments[0], 0.95, 0.88),
-                (sample_segments[1], 0.85, 0.45),
+                CandidateJudge(segment=sample_segments[0], candidate_score=0.95, judgment_score=0.88),
+                CandidateJudge(segment=sample_segments[1], candidate_score=0.85, judgment_score=0.45),
             ],
             "q2": [
-                (sample_segments[2], 0.75, 0.32),
+                CandidateJudge(segment=sample_segments[2], candidate_score=0.75, judgment_score=0.32),
             ],
         }
         # Verify structure
-        assert isinstance(full_dict, dict)
-        for qid, pairs in full_dict.items():
+        assert isinstance(output, dict)
+        for qid, judgments in output.items():
             assert isinstance(qid, str)
-            assert isinstance(pairs, list)
-            for segment, sim, prob in pairs:
-                assert isinstance(segment, TextSegment)
-                assert isinstance(sim, (float, type(None)))
-                assert isinstance(prob, float)
+            assert isinstance(judgments, list)
+            for j in judgments:
+                assert isinstance(j, CandidateJudge)
+                assert isinstance(j.segment, TextSegment)
+                assert isinstance(j.candidate_score, (float, type(None)))
+                assert isinstance(j.judgment_score, float)
 
-    def test_fulldict_with_none_similarity(self, sample_segments):
-        """Test FullDict can have None for similarity (classification-only pipeline)."""
-        full_dict: FullDict = {
-            "q1": [
-                (sample_segments[0], None, 0.88),  # None similarity
-            ],
-        }
-        segment, sim, prob = full_dict["q1"][0]
-        assert sim is None
-        assert prob == 0.88
+    def test_judgment_with_none_candidate_score(self, sample_segments):
+        """Test CandidateJudge can have None for candidate_score (classification-only pipeline)."""
+        j = CandidateJudge(segment=sample_segments[0], candidate_score=None, judgment_score=0.88)
+        assert j.candidate_score is None
+        assert j.judgment_score == 0.88
 
 
 class TestPrettyPrint:
@@ -71,10 +73,10 @@ class TestPrettyPrint:
 
     def test_pretty_print_output(self, sample_segments):
         """Test pretty_print produces formatted output."""
-        full_dict: FullDict = {
+        judge_output: CandidateJudgeOutput = {
             "query_1": [
-                (sample_segments[0], 0.95, 0.88),
-                (sample_segments[1], 0.75, 0.45),
+                CandidateJudge(segment=sample_segments[0], candidate_score=0.95, judgment_score=0.88),
+                CandidateJudge(segment=sample_segments[1], candidate_score=0.75, judgment_score=0.45),
             ],
         }
         
@@ -82,7 +84,7 @@ class TestPrettyPrint:
         captured_output = StringIO()
         sys.stdout = captured_output
         
-        pretty_print(full_dict)
+        pretty_print(judge_output)
         
         sys.stdout = sys.__stdout__
         output = captured_output.getvalue()
@@ -90,21 +92,21 @@ class TestPrettyPrint:
         # Verify output contains expected elements
         assert "query_1" in output
         assert "seg1" in output
-        assert "sim=" in output
-        assert "P(pos)=" in output
+        assert "candidate=" in output
+        assert "judgment=" in output
 
     def test_pretty_print_multiple_queries(self, sample_segments):
         """Test pretty_print handles multiple queries."""
-        full_dict: FullDict = {
-            "q1": [(sample_segments[0], 0.9, 0.8)],
-            "q2": [(sample_segments[1], 0.7, 0.6)],
-            "q3": [(sample_segments[2], 0.5, 0.4)],
+        judge_output: CandidateJudgeOutput = {
+            "q1": [CandidateJudge(segment=sample_segments[0], candidate_score=0.9, judgment_score=0.8)],
+            "q2": [CandidateJudge(segment=sample_segments[1], candidate_score=0.7, judgment_score=0.6)],
+            "q3": [CandidateJudge(segment=sample_segments[2], candidate_score=0.5, judgment_score=0.4)],
         }
         
         captured_output = StringIO()
         sys.stdout = captured_output
         
-        pretty_print(full_dict)
+        pretty_print(judge_output)
         
         sys.stdout = sys.__stdout__
         output = captured_output.getvalue()
@@ -113,31 +115,31 @@ class TestPrettyPrint:
         assert "q2" in output
         assert "q3" in output
 
-    def test_pretty_print_none_similarity(self, sample_segments):
-        """Test pretty_print handles None similarity scores."""
-        full_dict: FullDict = {
-            "q1": [(sample_segments[0], None, 0.88)],
+    def test_pretty_print_none_candidate_score(self, sample_segments):
+        """Test pretty_print handles None candidate scores."""
+        judge_output: CandidateJudgeOutput = {
+            "q1": [CandidateJudge(segment=sample_segments[0], candidate_score=None, judgment_score=0.88)],
         }
         
         captured_output = StringIO()
         sys.stdout = captured_output
         
-        pretty_print(full_dict)
+        pretty_print(judge_output)
         
         sys.stdout = sys.__stdout__
         output = captured_output.getvalue()
         
-        # Should show "N/A" for None similarity
+        # Should show "N/A" for None candidate_score
         assert "N/A" in output
 
     def test_pretty_print_empty_dict(self):
-        """Test pretty_print handles empty FullDict."""
-        full_dict: FullDict = {}
+        """Test pretty_print handles empty CandidateJudgeOutput."""
+        judge_output: CandidateJudgeOutput = {}
         
         captured_output = StringIO()
         sys.stdout = captured_output
         
-        pretty_print(full_dict)
+        pretty_print(judge_output)
         
         sys.stdout = sys.__stdout__
         output = captured_output.getvalue()
@@ -147,14 +149,14 @@ class TestPrettyPrint:
 
     def test_pretty_print_empty_results(self):
         """Test pretty_print handles query with no candidates."""
-        full_dict: FullDict = {
+        judge_output: CandidateJudgeOutput = {
             "q1": [],
         }
         
         captured_output = StringIO()
         sys.stdout = captured_output
         
-        pretty_print(full_dict)
+        pretty_print(judge_output)
         
         sys.stdout = sys.__stdout__
         output = captured_output.getvalue()
@@ -163,19 +165,19 @@ class TestPrettyPrint:
 
     def test_pretty_print_formatting(self, sample_segments):
         """Test pretty_print uses correct number formatting."""
-        full_dict: FullDict = {
-            "q1": [(sample_segments[0], 0.123456, 0.987654)],
+        judge_output: CandidateJudgeOutput = {
+            "q1": [CandidateJudge(segment=sample_segments[0], candidate_score=0.123456, judgment_score=0.987654)],
         }
         
         captured_output = StringIO()
         sys.stdout = captured_output
         
-        pretty_print(full_dict)
+        pretty_print(judge_output)
         
         sys.stdout = sys.__stdout__
         output = captured_output.getvalue()
         
-        # Check formatting (3 decimal places for sim and prob)
+        # Check formatting (3 decimal places for candidate and judgment)
         assert "+0.123" in output or "0.123" in output
         assert "0.988" in output  # Rounded
 

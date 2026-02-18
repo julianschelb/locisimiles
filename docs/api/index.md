@@ -15,9 +15,27 @@ The [Document](document.md) module provides classes for representing and loading
 
 The [Pipelines](pipelines.md) module provides the main processing pipelines:
 
+- `Pipeline` - Generic composer: combine any generator + judge
 - `RetrievalPipeline` - Semantic similarity retrieval
 - `ClassificationPipeline` - Text pair classification
 - `ClassificationPipelineWithCandidategeneration` - Two-stage retrieval + classification
+- `RuleBasedPipeline` - Lexical matching + linguistic filters
+
+### Generators Module
+
+The [Generators](generators.md) module provides candidate-generation components:
+
+- `EmbeddingCandidateGenerator` - Semantic embedding similarity
+- `ExhaustiveCandidateGenerator` - All-pairs (no filtering)
+- `RuleBasedCandidateGenerator` - Lexical matching + linguistic filters
+
+### Judges Module
+
+The [Judges](judges.md) module provides scoring/classification components:
+
+- `ClassificationJudge` - Transformer-based sequence classification
+- `ThresholdJudge` - Binary decisions from candidate scores
+- `IdentityJudge` - Pass-through (judgment_score = 1.0)
 
 ### Evaluator Module
 
@@ -32,11 +50,21 @@ The [Evaluator](evaluator.md) module provides tools for assessing detection qual
 ```python
 from locisimiles import Document
 
-# From CSV file
-doc = Document.from_csv("texts.csv")
+doc = Document("texts.csv")
+```
 
-# From list of d# From list of d# From list of dre#ords([
-    {"id"    {"id"    {"id"    {"id"    {"id"    {"id"    {"id"    {"id"    {"id"    {"id"    {"id"    {"id"    {"id"    {"id"  om     {"id"    mpor    {"id"    {"id"pel    {"id"    {"id"    {"id"    {"id"    {"id"    {"id"    {"id"    {"id"    {"id"    {"id"    {"ipip    {"id"    {"id"    {"id"    {"id"    {"id" 0.5)
+### Saving Results
+
+```python
+# Save from a pipeline instance
+results = pipeline.run(query=query_doc, source=source_doc, top_k=10)
+pipeline.to_csv("results.csv")
+pipeline.to_json("results.json")
+
+# Or use standalone functions
+from locisimiles.pipeline import results_to_csv, results_to_json
+results_to_csv(results, "results.csv")
+results_to_json(results, "results.json")
 ```
 
 ### Evaluating Results

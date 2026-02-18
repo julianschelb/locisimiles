@@ -32,12 +32,10 @@ except ImportError as exc:
     raise ImportError("Gradio is required for results page") from exc
 
 from locisimiles.document import Document, TextSegment
-
-# Type aliases from pipeline
-FullDict = Dict[str, List[Tuple[TextSegment, float, float]]]
+from locisimiles.pipeline._types import CandidateJudge, CandidateJudgeOutput
 
 
-def update_results_display(results: FullDict | None, query_doc: Document | None, threshold: float = 0.5) -> tuple[dict, dict, dict]:
+def update_results_display(results: CandidateJudgeOutput | None, query_doc: Document | None, threshold: float = 0.5) -> tuple[dict, dict, dict]:
     """Update the results display with new data.
     
     Args:
@@ -88,11 +86,11 @@ def _format_metric_with_bar(value: float, is_above_threshold: bool = False) -> s
     return html
 
 
-def _convert_results_to_display(results: FullDict | None, query_doc: Document | None, threshold: float = 0.5) -> tuple[list[list], dict]:
+def _convert_results_to_display(results: CandidateJudgeOutput | None, query_doc: Document | None, threshold: float = 0.5) -> tuple[list[list], dict]:
     """Convert pipeline results to display format.
     
     Args:
-        results: Pipeline results (FullDict format)
+        results: Pipeline results (CandidateJudgeOutput format)
         query_doc: Query document
         threshold: Classification probability threshold for counting finds
     
@@ -108,14 +106,14 @@ def _convert_results_to_display(results: FullDict | None, query_doc: Document | 
     find_counts = {}
     
     for query_id, match_list in results.items():
-        # Sort by probability (descending) to show most likely matches first
-        sorted_matches = sorted(match_list, key=lambda x: x[2], reverse=True)  # x[2] is probability
+        # Sort by judgment_score (descending) to show most likely matches first
+        sorted_matches = sorted(match_list, key=lambda x: x.judgment_score, reverse=True)
         
-        # Store raw numeric values
+        # Store raw values
         raw_matches[query_id] = sorted_matches
         
         # Count finds above threshold
-        find_counts[query_id] = sum(1 for _, _, prob in sorted_matches if prob >= threshold)
+        find_counts[query_id] = sum(1 for j in sorted_matches if j.judgment_score >= threshold)
     
     # Convert query document to list format with find counts
     # Document is iterable and returns TextSegments in order
@@ -129,12 +127,15 @@ def _convert_results_to_display(results: FullDict | None, query_doc: Document | 
     for query_id, match_list in raw_matches.items():
         matches_dict[query_id] = [
             [
-                source_seg.id,
-                source_seg.text,
-                _format_metric_with_bar(round(similarity, 3), probability >= threshold),
-                _format_metric_with_bar(round(probability, 3), probability >= threshold)
+                j.segment.id,
+                j.segment.text,
+                _format_metric_with_bar(
+                    round(j.candidate_score, 3) if j.candidate_score is not None else 0.0,
+                    j.judgment_score >= threshold,
+                ),
+                _format_metric_with_bar(round(j.judgment_score, 3), j.judgment_score >= threshold)
             ]
-            for source_seg, similarity, probability in match_list
+            for j in match_list
         ]
     
     return query_segments, matches_dict
