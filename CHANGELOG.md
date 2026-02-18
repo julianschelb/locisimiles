@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.1.0 (2026-02-18)
+
+### Features
+
+- Add built-in example datasets and loaders for quick experimentation
+  ([#7](https://github.com/julianschelb/locisimiles/pull/7),
+  [`6809635`](https://github.com/julianschelb/locisimiles/commit/6809635d5d0c3cfacee962ce57a515ed191e11a6))
+
+
 ## v1.0.1 (2026-02-18)
 
 ### Bug Fixes
