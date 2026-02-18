@@ -22,29 +22,34 @@ All exports are available at the package level::
 
     from locisimiles.pipeline import TwoStagePipeline, pretty_print
 """
+
 from __future__ import annotations
 
 # --- Types ---
 from locisimiles.pipeline._types import (
     # New dataclasses & type aliases
     Candidate,
-    CandidateJudge,
     CandidateGeneratorOutput,
+    CandidateJudge,
     CandidateJudgeInput,
     CandidateJudgeOutput,
-    # Deprecated backward-compatible aliases
-    Judgment,
+    FullDict,
+    FullPair,
     JudgeInput,
     JudgeOutput,
+    # Deprecated backward-compatible aliases
+    Judgment,
     ScoreT,
-    SimPair,
-    FullPair,
     SimDict,
-    FullDict,
+    SimPair,
     # Utilities
     pretty_print,
     results_to_csv,
     results_to_json,
+)
+from locisimiles.pipeline.classification import (
+    ClassificationPipeline,  # backward-compat alias
+    ExhaustiveClassificationPipeline,
 )
 
 # --- Modular components: generators ---
@@ -57,28 +62,24 @@ from locisimiles.pipeline.generator import (
 
 # --- Modular components: judges ---
 from locisimiles.pipeline.judge import (
-    JudgeBase,
     ClassificationJudge,
-    ThresholdJudge,
     IdentityJudge,
+    JudgeBase,
+    ThresholdJudge,
 )
 
 # --- Pipeline composer ---
 from locisimiles.pipeline.pipeline import Pipeline
-
-# --- Preconfigured pipelines ---
-from locisimiles.pipeline.two_stage import (
-    TwoStagePipeline,
-    ClassificationPipelineWithCandidategeneration,  # backward-compat alias
-)
-from locisimiles.pipeline.classification import (
-    ExhaustiveClassificationPipeline,
-    ClassificationPipeline,  # backward-compat alias
-)
 from locisimiles.pipeline.retrieval import RetrievalPipeline
 
 # --- Rule-based pipeline ---
 from locisimiles.pipeline.rule_based import RuleBasedPipeline
+
+# --- Preconfigured pipelines ---
+from locisimiles.pipeline.two_stage import (
+    ClassificationPipelineWithCandidategeneration,  # backward-compat alias
+    TwoStagePipeline,
+)
 
 # Define public API
 __all__ = [

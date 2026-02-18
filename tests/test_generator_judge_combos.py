@@ -14,6 +14,7 @@ Judges:
 Each combination: create temp CSVs → load Documents → Pipeline.run() → save
 CSV & JSON → validate output files.
 """
+
 import csv
 import json
 import tempfile
@@ -26,16 +27,13 @@ import torch
 
 from locisimiles.document import Document
 from locisimiles.pipeline._types import CandidateJudge
-from locisimiles.pipeline.pipeline import Pipeline
-
-from locisimiles.pipeline.generator.exhaustive import ExhaustiveCandidateGenerator
 from locisimiles.pipeline.generator.embedding import EmbeddingCandidateGenerator
+from locisimiles.pipeline.generator.exhaustive import ExhaustiveCandidateGenerator
 from locisimiles.pipeline.generator.rule_based import RuleBasedCandidateGenerator
-
+from locisimiles.pipeline.judge.classification import ClassificationJudge
 from locisimiles.pipeline.judge.identity import IdentityJudge
 from locisimiles.pipeline.judge.threshold import ThresholdJudge
-from locisimiles.pipeline.judge.classification import ClassificationJudge
-
+from locisimiles.pipeline.pipeline import Pipeline
 
 # ============== Fixtures ==============
 
@@ -134,8 +132,11 @@ def _assert_valid_csv(path: Path, expected_qids: set[str]):
         reader = csv.DictReader(f)
         rows = list(reader)
     assert set(reader.fieldnames) == {
-        "query_id", "source_id", "source_text",
-        "candidate_score", "judgment_score",
+        "query_id",
+        "source_id",
+        "source_text",
+        "candidate_score",
+        "judgment_score",
     }
     found = {r["query_id"] for r in rows}
     assert found == expected_qids
@@ -175,7 +176,6 @@ def _run_and_save(pipeline: Pipeline, query_doc, source_doc, out_dir, **run_kw):
 
 
 class TestExhaustiveWithIdentity:
-
     def test_run_and_save(self, query_doc, source_doc, combo_dir):
         pipeline = Pipeline(
             generator=ExhaustiveCandidateGenerator(),
@@ -192,7 +192,6 @@ class TestExhaustiveWithIdentity:
 
 
 class TestExhaustiveWithThreshold:
-
     def test_run_and_save(self, query_doc, source_doc, combo_dir):
         pipeline = Pipeline(
             generator=ExhaustiveCandidateGenerator(),
@@ -209,11 +208,9 @@ class TestExhaustiveWithThreshold:
 
 
 class TestExhaustiveWithClassification:
-
     @patch("locisimiles.pipeline.judge.classification.AutoModelForSequenceClassification")
     @patch("locisimiles.pipeline.judge.classification.AutoTokenizer")
-    def test_run_and_save(self, mock_tok_cls, mock_mdl_cls,
-                          query_doc, source_doc, combo_dir):
+    def test_run_and_save(self, mock_tok_cls, mock_mdl_cls, query_doc, source_doc, combo_dir):
         model, tokenizer = _mock_classifier()
         mock_mdl_cls.from_pretrained.return_value = model
         mock_tok_cls.from_pretrained.return_value = tokenizer
@@ -234,7 +231,6 @@ class TestExhaustiveWithClassification:
 
 
 class TestEmbeddingWithIdentity:
-
     @patch("locisimiles.pipeline.generator.embedding.SentenceTransformer")
     def test_run_and_save(self, mock_st_cls, query_doc, source_doc, combo_dir):
         mock_st_cls.return_value = _mock_sentence_transformer()
@@ -243,8 +239,7 @@ class TestEmbeddingWithIdentity:
             generator=EmbeddingCandidateGenerator(device="cpu"),
             judge=IdentityJudge(),
         )
-        results = _run_and_save(pipeline, query_doc, source_doc, combo_dir,
-                                top_k=2)
+        results = _run_and_save(pipeline, query_doc, source_doc, combo_dir, top_k=2)
         assert set(results.keys()) == {"q1", "q2"}
         for lst in results.values():
             assert len(lst) == 2
@@ -254,7 +249,6 @@ class TestEmbeddingWithIdentity:
 
 
 class TestEmbeddingWithThreshold:
-
     @patch("locisimiles.pipeline.generator.embedding.SentenceTransformer")
     def test_run_and_save(self, mock_st_cls, query_doc, source_doc, combo_dir):
         mock_st_cls.return_value = _mock_sentence_transformer()
@@ -267,10 +261,14 @@ class TestEmbeddingWithThreshold:
         # judge receives top_k=3 from kwargs which overrides instance top_k.
         # Use a separate run to exercise the threshold judge properly.
         candidates = pipeline.generate_candidates(
-            query=query_doc, source=source_doc, top_k=3,
+            query=query_doc,
+            source=source_doc,
+            top_k=3,
         )
         results = pipeline.judge_candidates(
-            query=query_doc, candidates=candidates, top_k=1,
+            query=query_doc,
+            candidates=candidates,
+            top_k=1,
         )
         pipeline.to_csv(combo_dir / "results.csv", results=results)
         pipeline.to_json(combo_dir / "results.json", results=results)
@@ -285,12 +283,12 @@ class TestEmbeddingWithThreshold:
 
 
 class TestEmbeddingWithClassification:
-
     @patch("locisimiles.pipeline.generator.embedding.SentenceTransformer")
     @patch("locisimiles.pipeline.judge.classification.AutoModelForSequenceClassification")
     @patch("locisimiles.pipeline.judge.classification.AutoTokenizer")
-    def test_run_and_save(self, mock_tok_cls, mock_mdl_cls, mock_st_cls,
-                          query_doc, source_doc, combo_dir):
+    def test_run_and_save(
+        self, mock_tok_cls, mock_mdl_cls, mock_st_cls, query_doc, source_doc, combo_dir
+    ):
         mock_st_cls.return_value = _mock_sentence_transformer()
         model, tokenizer = _mock_classifier()
         mock_mdl_cls.from_pretrained.return_value = model
@@ -300,8 +298,7 @@ class TestEmbeddingWithClassification:
             generator=EmbeddingCandidateGenerator(device="cpu"),
             judge=ClassificationJudge(device="cpu"),
         )
-        results = _run_and_save(pipeline, query_doc, source_doc, combo_dir,
-                                top_k=2)
+        results = _run_and_save(pipeline, query_doc, source_doc, combo_dir, top_k=2)
         assert set(results.keys()) == {"q1", "q2"}
         for lst in results.values():
             assert len(lst) == 2
@@ -313,11 +310,12 @@ class TestEmbeddingWithClassification:
 
 
 class TestRuleBasedWithIdentity:
-
     def test_run_and_save(self, query_doc, source_doc, combo_dir):
         pipeline = Pipeline(
             generator=RuleBasedCandidateGenerator(
-                min_shared_words=1, min_complura=2, max_distance=5,
+                min_shared_words=1,
+                min_complura=2,
+                max_distance=5,
             ),
             judge=IdentityJudge(),
         )
@@ -332,11 +330,12 @@ class TestRuleBasedWithIdentity:
 
 
 class TestRuleBasedWithThreshold:
-
     def test_run_and_save(self, query_doc, source_doc, combo_dir):
         pipeline = Pipeline(
             generator=RuleBasedCandidateGenerator(
-                min_shared_words=1, min_complura=2, max_distance=5,
+                min_shared_words=1,
+                min_complura=2,
+                max_distance=5,
             ),
             judge=ThresholdJudge(top_k=1),
         )
@@ -351,18 +350,18 @@ class TestRuleBasedWithThreshold:
 
 
 class TestRuleBasedWithClassification:
-
     @patch("locisimiles.pipeline.judge.classification.AutoModelForSequenceClassification")
     @patch("locisimiles.pipeline.judge.classification.AutoTokenizer")
-    def test_run_and_save(self, mock_tok_cls, mock_mdl_cls,
-                          query_doc, source_doc, combo_dir):
+    def test_run_and_save(self, mock_tok_cls, mock_mdl_cls, query_doc, source_doc, combo_dir):
         model, tokenizer = _mock_classifier()
         mock_mdl_cls.from_pretrained.return_value = model
         mock_tok_cls.from_pretrained.return_value = tokenizer
 
         pipeline = Pipeline(
             generator=RuleBasedCandidateGenerator(
-                min_shared_words=1, min_complura=2, max_distance=5,
+                min_shared_words=1,
+                min_complura=2,
+                max_distance=5,
             ),
             judge=ClassificationJudge(device="cpu"),
         )
@@ -384,8 +383,11 @@ def _assert_valid_csv_or_empty(path: Path):
         reader = csv.DictReader(f)
         rows = list(reader)
     assert set(reader.fieldnames) == {
-        "query_id", "source_id", "source_text",
-        "candidate_score", "judgment_score",
+        "query_id",
+        "source_id",
+        "source_text",
+        "candidate_score",
+        "judgment_score",
     }
     for r in rows:
         float(r["judgment_score"])

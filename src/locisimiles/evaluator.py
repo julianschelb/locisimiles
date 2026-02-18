@@ -1,15 +1,17 @@
 # evaluator.py
 from __future__ import annotations
+
 from typing import Dict, List, Tuple, Union
+
 import numpy as np
 import pandas as pd
 
 from locisimiles.document import Document
 from locisimiles.pipeline import (
-    Pipeline,
-    TwoStagePipeline,
     CandidateJudge,
     CandidateJudgeOutput,
+    Pipeline,
+    TwoStagePipeline,
 )
 
 # ────────────────────────────────
@@ -17,26 +19,29 @@ from locisimiles.pipeline import (
 # ────────────────────────────────
 
 
-def _precision(tp: int, fp: int) -> float: return tp / \
-    (tp + fp) if tp + fp else 0.0
+def _precision(tp: int, fp: int) -> float:
+    return tp / (tp + fp) if tp + fp else 0.0
 
 
-def _recall(tp: int, fn: int) -> float: return tp / \
-    (tp + fn) if tp + fn else 0.0
+def _recall(tp: int, fn: int) -> float:
+    return tp / (tp + fn) if tp + fn else 0.0
 
 
-def _f1(p: float, r: float) -> float: return 2 * \
-    p * r / (p + r) if p + r else 0.0
-    
+def _f1(p: float, r: float) -> float:
+    return 2 * p * r / (p + r) if p + r else 0.0
+
+
 def _smr(tp: int, fp: int, fn: int, tn: int) -> float:
     """SMR (Source Match Rate) — proportion of all pairs that are true positives."""
     total = tp + fp + fn + tn
     return (fp + fn) / total
 
+
 def _fp_rate(tp: int, fp: int, fn: int, tn: int) -> float:
     """FP / total — proportion of all pairs that are false positives."""
     total = tp + fp + fn + tn
     return fp / total
+
 
 def _fn_rate(tp: int, fp: int, fn: int, tn: int) -> float:
     """FN / total — proportion of all pairs that are false negatives."""
@@ -48,43 +53,44 @@ def _fn_rate(tp: int, fp: int, fn: int, tn: int) -> float:
 # Evaluation Pipeline
 # ────────────────────────────────
 
+
 class IntertextEvaluator:
     """
     Evaluator for measuring intertextuality detection performance.
-    
+
     This class computes sentence-level and document-level evaluation metrics
     by comparing pipeline predictions against ground truth annotations.
-    
+
     Supported metrics:
         - **Precision**: TP / (TP + FP)
         - **Recall**: TP / (TP + FN)
         - **F1**: Harmonic mean of precision and recall
         - **SMR**: Source Match Rate (error rate)
         - **Accuracy**: (TP + TN) / Total
-    
+
     The evaluator runs the pipeline once during initialization and caches
     the results for efficient metric computation across different thresholds.
-    
+
     Attributes:
         query_doc: The query document being analyzed.
         source_doc: The source document containing potential quotation origins.
         predictions: Cached pipeline predictions (CandidateJudgeOutput format).
         threshold: Probability threshold for positive classification.
         gold_labels: Ground truth annotations loaded from CSV.
-    
+
     Example:
         ```python
         from locisimiles.evaluator import IntertextEvaluator
         from locisimiles.pipeline import TwoStagePipeline
         from locisimiles.document import Document
-        
+
         # Load documents
         query_doc = Document("hieronymus.csv")
         source_doc = Document("vergil.csv")
-        
+
         # Initialize pipeline
         pipeline = TwoStagePipeline(device="cpu")
-        
+
         # Create evaluator with auto-threshold
         evaluator = IntertextEvaluator(
             query_doc=query_doc,
@@ -95,14 +101,14 @@ class IntertextEvaluator:
             threshold="auto",  # Automatically find best threshold
             auto_threshold_metric="smr",
         )
-        
+
         # Get evaluation metrics
         print(evaluator.evaluate(average="micro"))
         print(evaluator.evaluate(average="macro"))
-        
+
         # Evaluate single query
         print(evaluator.evaluate_single_query("hier. adv. iovin. 1.41"))
-        
+
         # Find optimal threshold for different metrics
         best, all_thresholds = evaluator.find_best_threshold(metric="f1")
         print(f"Best F1 at threshold {best['best_threshold']}: {best['best_f1']:.3f}")
@@ -127,7 +133,7 @@ class IntertextEvaluator:
         self.pipeline = pipeline
         self.top_k = top_k
         self._auto_threshold_metric = auto_threshold_metric
-        self._threshold_is_auto = (threshold == "auto")
+        self._threshold_is_auto = threshold == "auto"
 
         # 1) LOAD GOLD LABELS ────────────────────────────────────────────
         self.gold_labels = self._load_gold_labels(ground_truth_csv)
@@ -166,17 +172,17 @@ class IntertextEvaluator:
         self._conf_matrix_cache: Dict[str, Tuple[int, int, int, int]] = {}
 
     # ─────────── PUBLIC: EVALUATION ───────────
-    
+
     def evaluate_single_query(self, query_id: str) -> Dict[str, float]:
         """Compute metrics for one query sentence."""
-        source_ids       = self.source_doc.ids()
-        predicted_links  = self._predicted_link_set()
+        source_ids = self.source_doc.ids()
+        predicted_links = self._predicted_link_set()
 
-        gold_vec = np.array(
+        gold_vec: np.ndarray = np.array(
             [self.gold_labels.get((query_id, s_id), 0) for s_id in source_ids],
             dtype=int,
         )
-        pred_vec = np.array(
+        pred_vec: np.ndarray = np.array(
             [1 if (query_id, s_id) in predicted_links else 0 for s_id in source_ids],
             dtype=int,
         )
@@ -188,26 +194,29 @@ class IntertextEvaluator:
         tn = int(((gold_vec == 0) & (pred_vec == 0)).sum())
 
         # Calculate metrics
-        precision  = _precision(tp, fp)
-        recall     = _recall(tp, fn)
-        f1         = _f1(precision, recall)
-        accuracy   = (tp + tn) / len(source_ids) if source_ids else 0.0
+        precision = _precision(tp, fp)
+        recall = _recall(tp, fn)
+        f1 = _f1(precision, recall)
+        accuracy = (tp + tn) / len(source_ids) if source_ids else 0.0
         total_errs = fp + fn
-        smr        = _smr(tp, fp, fn, tn)
-        fp_rate    = _fp_rate(tp, fp, fn, tn)
-        fn_rate    = _fn_rate(tp, fp, fn, tn)
+        smr = _smr(tp, fp, fn, tn)
+        fp_rate = _fp_rate(tp, fp, fn, tn)
+        fn_rate = _fn_rate(tp, fp, fn, tn)
 
         # cache confusion matrix for this query
         self._conf_matrix_cache[query_id] = (tp, fp, fn, tn)
 
         return {
-            "query_id":  query_id,
+            "query_id": query_id,
             "precision": precision,
-            "recall":    recall,
-            "f1":        f1,
-            "accuracy":  accuracy,
-            "errors":    total_errs,
-            "tp": tp, "fp": fp, "fn": fn, "tn": tn,
+            "recall": recall,
+            "f1": f1,
+            "accuracy": accuracy,
+            "errors": total_errs,
+            "tp": tp,
+            "fp": fp,
+            "fn": fn,
+            "tn": tn,
             "fpr": fp_rate,
             "fnr": fn_rate,
             "smr": smr,
@@ -215,14 +224,14 @@ class IntertextEvaluator:
 
     def query_ids_with_match(self) -> List[str]:
         """Return query IDs that have ground truth labels."""
-        return list({q_id for q_id, _ in self.gold_labels.keys()})
+        return list({q_id for q_id, _ in self.gold_labels})
 
     # ALL QUERIES EVALUATION
     def evaluate_all_queries(self, with_match_only: bool = False) -> pd.DataFrame:
         """Compute metrics for every query sentence (cached)."""
         # if self._per_sentence_df is not None:
         #     return self._per_sentence_df.copy()
-        
+
         # Ignore queries without ground truth labels if requested
         query_ids = self.query_ids_with_match() if with_match_only else self.query_doc.ids()
 
@@ -232,19 +241,21 @@ class IntertextEvaluator:
         return self._per_sentence_df.copy()
 
     # EVALUATE AND REPORT METRICS
-    def evaluate(self, *, average: str = "macro", with_match_only: bool = False) -> Dict[str, float]:
+    def evaluate(
+        self, *, average: str = "macro", with_match_only: bool = False
+    ) -> Dict[str, float]:
         """
         Compute aggregated metrics across queries.
-        
-        - Precision, Recall, F1, Accuracy: ALWAYS computed on queries with at least 
+
+        - Precision, Recall, F1, Accuracy: ALWAYS computed on queries with at least
           one ground truth match (otherwise these metrics are meaningless).
-        - FPR, FNR, SMR: Computed on ALL queries by default (measures false alarms 
-          on queries that shouldn't have matches). If with_match_only=True, these 
+        - FPR, FNR, SMR: Computed on ALL queries by default (measures false alarms
+          on queries that shouldn't have matches). If with_match_only=True, these
           are also restricted to queries with matches.
         """
         # Get queries with matches for TP-dependent metrics
         df_with_match = self.evaluate_all_queries(with_match_only=True)
-        
+
         # Get all queries for error-rate metrics (unless with_match_only=True)
         if with_match_only:
             df_all = df_with_match
@@ -272,29 +283,36 @@ class IntertextEvaluator:
         if average == "macro":
             # TP-dependent metrics from queries with matches
             precision = float(df_with_match["precision"].mean()) if len(df_with_match) else 0.0
-            recall    = float(df_with_match["recall"].mean()) if len(df_with_match) else 0.0
-            f1        = float(df_with_match["f1"].mean()) if len(df_with_match) else 0.0
-            accuracy  = float(df_with_match["accuracy"].mean()) if len(df_with_match) else 0.0
-            
+            recall = float(df_with_match["recall"].mean()) if len(df_with_match) else 0.0
+            f1 = float(df_with_match["f1"].mean()) if len(df_with_match) else 0.0
+            accuracy = float(df_with_match["accuracy"].mean()) if len(df_with_match) else 0.0
+
             # Error-rate metrics from all queries (or match-only if requested)
             fpr = float(df_all["fpr"].mean()) if len(df_all) else 0.0
             fnr = float(df_all["fnr"].mean()) if len(df_all) else 0.0
             smr = float(df_all["smr"].mean()) if len(df_all) else 0.0
 
             aggregated_metrics = {
-                "precision": precision, "recall": recall, "f1": f1,
-                "accuracy": accuracy,   "fpr": fpr,       "fnr": fnr,
+                "precision": precision,
+                "recall": recall,
+                "f1": f1,
+                "accuracy": accuracy,
+                "fpr": fpr,
+                "fnr": fnr,
                 "smr": smr,
-                "tp": tp_all, "fp": fp_all, "fn": fn_all, "tn": tn_all,
+                "tp": tp_all,
+                "fp": fp_all,
+                "fn": fn_all,
+                "tn": tn_all,
             }
 
         # ────────── MICRO (pooled) ───────────
         if average == "micro":
             # TP-dependent metrics from queries with matches
             precision = _precision(tp_match, fp_match)
-            recall    = _recall(tp_match, fn_match)
-            f1        = _f1(precision, recall)
-            accuracy  = (tp_match + tn_match) / total_match if total_match else 0.0
+            recall = _recall(tp_match, fn_match)
+            f1 = _f1(precision, recall)
+            accuracy = (tp_match + tn_match) / total_match if total_match else 0.0
 
             # Error-rate metrics from all queries (or match-only if requested)
             fpr = fp_all / total_all if total_all else 0.0
@@ -302,12 +320,19 @@ class IntertextEvaluator:
             smr = (fp_all + fn_all) / total_all if total_all else 0.0
 
             aggregated_metrics = {
-                "precision": precision, "recall": recall, "f1": f1,
-                "accuracy": accuracy,   "fpr": fpr,       "fnr": fnr,
+                "precision": precision,
+                "recall": recall,
+                "f1": f1,
+                "accuracy": accuracy,
+                "fpr": fpr,
+                "fnr": fnr,
                 "smr": smr,
-                "tp": tp_all, "fp": fp_all, "fn": fn_all, "tn": tn_all,
+                "tp": tp_all,
+                "fp": fp_all,
+                "fn": fn_all,
+                "tn": tn_all,
             }
-        
+
         return pd.DataFrame([aggregated_metrics]).reset_index(drop=True)
 
     def confusion_matrix(self, query_id: str) -> np.ndarray:
@@ -327,8 +352,8 @@ class IntertextEvaluator:
         average: str = "micro",
         with_match_only: bool = False,
     ) -> Tuple[Dict[str, float], pd.DataFrame]:
-        """Find the optimal probability threshold based on the given metric. """
-        
+        """Find the optimal probability threshold based on the given metric."""
+
         if thresholds is None:
             thresholds = [round(t * 0.1, 2) for t in range(1, 10)]  # 0.1 to 0.9
 
@@ -393,7 +418,7 @@ class IntertextEvaluator:
         if k_values is None:
             # Default k values, capped at the original top_k
             k_values = [k for k in [1, 2, 3, 5, 10, 15, 20, 25, 50] if k <= self.top_k]
-        
+
         # Validate k values
         k_values = [k for k in k_values if k <= self.top_k]
         if not k_values:
@@ -408,7 +433,7 @@ class IntertextEvaluator:
             filtered_predictions: CandidateJudgeOutput = {}
             for q_id, result_list in original_predictions.items():
                 filtered_predictions[q_id] = result_list[:k]
-            
+
             # Temporarily replace predictions
             self.predictions = filtered_predictions
             self._per_sentence_df = None
@@ -426,9 +451,11 @@ class IntertextEvaluator:
         return results
 
     # ─────────── INTERNAL HELPERS ───────────
-    
-    def _load_gold_labels(self, ground_truth_csv: Union[str, pd.DataFrame]) -> Dict[Tuple[str, str], int]:
-        """ Load ground truth labels from a CSV file or DataFrame. """
+
+    def _load_gold_labels(
+        self, ground_truth_csv: Union[str, pd.DataFrame]
+    ) -> Dict[Tuple[str, str], int]:
+        """Load ground truth labels from a CSV file or DataFrame."""
 
         # If a DataFrame is provided, use it directly; otherwise, read from CSV
         if isinstance(ground_truth_csv, pd.DataFrame):
@@ -440,19 +467,19 @@ class IntertextEvaluator:
         req_cols = {"query_id", "source_id", "label"}
         if req_cols - set(gold_df.columns):
             raise ValueError(f"ground-truth file must contain columns {req_cols}")
-        
+
         # Create a dictionary mapping (query_id, source_id) to label
         return {
-            (row.query_id, row.source_id): int(row.label)
+            (row.query_id, row.source_id): int(row.label)  # type: ignore[misc]
             for row in gold_df.itertuples(index=False)
         }
-    
+
     def _predicted_link_set(self) -> set[Tuple[str, str]]:
         """
         All (query_id, source_id) pairs predicted *positive*.
 
-        - Only pairs returned by the pipeline are considered;  
-          every other pair (i.e. omitted due to `top_k`) is implicitly negative.  
+        - Only pairs returned by the pipeline are considered;
+          every other pair (i.e. omitted due to `top_k`) is implicitly negative.
         - Within returned pairs, we keep those with P(pos) ≥ threshold.
         """
         link_set: set[Tuple[str, str]] = set()
@@ -485,7 +512,7 @@ if __name__ == "__main__":
 
     print("Single sentence:\n", evaluator.evaluate_single_query("verg. ecl. 4.60"))
     print("\nPer-sentence head:\n", evaluator.evaluate_all_queries().head())
- 
+
     print("\nMacro scores\n\n")
     macro_df = evaluator.evaluate(average="macro")
     print("\n", macro_df.to_string(index=False))

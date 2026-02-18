@@ -5,13 +5,12 @@ Tests TwoStagePipeline as a preconfigured Pipeline(EmbeddingCandidateGenerator,
 ClassificationJudge).  Deep component behaviour is already covered in
 test_generators.py, test_judges.py, and test_pipelines.py.
 """
-import pytest
-from unittest.mock import patch, MagicMock
 
-from locisimiles.pipeline.pipeline import Pipeline
+from unittest.mock import MagicMock, patch
+
 from locisimiles.pipeline.generator.embedding import EmbeddingCandidateGenerator
 from locisimiles.pipeline.judge.classification import ClassificationJudge
-
+from locisimiles.pipeline.pipeline import Pipeline
 
 # ============== Initialization ==============
 
@@ -33,7 +32,7 @@ class TestTwoStagePipelineInitialization:
         mock_model.eval.return_value = mock_model
         mock_model_class.from_pretrained.return_value = mock_model
 
-        pipeline = TwoStagePipeline(device="cpu")
+        _pipeline = TwoStagePipeline(device="cpu")
 
         # Both models should be loaded
         mock_st_class.assert_called_once()
@@ -75,7 +74,9 @@ class TestTwoStagePipelineComposition:
 
         mock_st.return_value = MagicMock()
         mock_tok.from_pretrained.return_value = MagicMock()
-        m = MagicMock(); m.to.return_value = m; m.eval.return_value = m
+        m = MagicMock()
+        m.to.return_value = m
+        m.eval.return_value = m
         mock_mdl.from_pretrained.return_value = m
 
         pipeline = TwoStagePipeline(device="cpu")
@@ -90,7 +91,9 @@ class TestTwoStagePipelineComposition:
 
         mock_st.return_value = MagicMock()
         mock_tok.from_pretrained.return_value = MagicMock()
-        m = MagicMock(); m.to.return_value = m; m.eval.return_value = m
+        m = MagicMock()
+        m.to.return_value = m
+        m.eval.return_value = m
         mock_mdl.from_pretrained.return_value = m
 
         pipeline = TwoStagePipeline(device="cpu")
@@ -105,7 +108,9 @@ class TestTwoStagePipelineComposition:
 
         mock_st.return_value = MagicMock()
         mock_tok.from_pretrained.return_value = MagicMock()
-        m = MagicMock(); m.to.return_value = m; m.eval.return_value = m
+        m = MagicMock()
+        m.to.return_value = m
+        m.eval.return_value = m
         mock_mdl.from_pretrained.return_value = m
 
         pipeline = TwoStagePipeline(device="cpu")
@@ -120,7 +125,9 @@ class TestTwoStagePipelineComposition:
 
         mock_st.return_value = MagicMock()
         mock_tok.from_pretrained.return_value = MagicMock()
-        m = MagicMock(); m.to.return_value = m; m.eval.return_value = m
+        m = MagicMock()
+        m.to.return_value = m
+        m.eval.return_value = m
         mock_mdl.from_pretrained.return_value = m
 
         pipeline = TwoStagePipeline(device="cpu", pos_class_idx=0)
@@ -135,7 +142,9 @@ class TestTwoStagePipelineComposition:
 
         mock_st.return_value = MagicMock()
         mock_tok.from_pretrained.return_value = MagicMock()
-        m = MagicMock(); m.to.return_value = m; m.eval.return_value = m
+        m = MagicMock()
+        m.to.return_value = m
+        m.eval.return_value = m
         mock_mdl.from_pretrained.return_value = m
 
         pipeline = TwoStagePipeline(device="cpu")
@@ -152,9 +161,10 @@ class TestTwoStagePipelineBackwardCompat:
     def test_alias_defined(self):
         """ClassificationPipelineWithCandidategeneration should be an alias."""
         from locisimiles.pipeline.two_stage import (
-            TwoStagePipeline,
             ClassificationPipelineWithCandidategeneration,
+            TwoStagePipeline,
         )
+
         assert ClassificationPipelineWithCandidategeneration is TwoStagePipeline
 
     def test_importable_from_pipeline_package(self):

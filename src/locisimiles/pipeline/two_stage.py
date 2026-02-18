@@ -6,11 +6,12 @@ Provides ``ClassificationPipelineWithCandidategeneration`` which first
 narrows down candidates using embedding similarity and then classifies the
 remaining pairs with a fine-tuned sequence-classification model.
 """
+
 from __future__ import annotations
 
-from locisimiles.pipeline.pipeline import Pipeline
 from locisimiles.pipeline.generator.embedding import EmbeddingCandidateGenerator
 from locisimiles.pipeline.judge.classification import ClassificationJudge
+from locisimiles.pipeline.pipeline import Pipeline
 
 
 class TwoStagePipeline(Pipeline):

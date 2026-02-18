@@ -14,6 +14,7 @@ Every pipeline follows a two-phase pattern:
 2. **Judgment** — scores or classifies candidate pairs, producing a
    ``CandidateJudgeOutput`` (mapping of query IDs → ``CandidateJudge`` lists).
 """
+
 from __future__ import annotations
 
 import csv
@@ -24,8 +25,8 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 from locisimiles.document import TextSegment
 
-
 # ============== DATACLASSES ==============
+
 
 @dataclass
 class Candidate:
@@ -48,6 +49,7 @@ class Candidate:
         print(candidate.score)       # 0.85
         ```
     """
+
     segment: TextSegment
     score: float
 
@@ -76,6 +78,7 @@ class CandidateJudge:
         print(result.judgment_score)  # 0.95
         ```
     """
+
     segment: TextSegment
     candidate_score: Optional[float]
     judgment_score: float
@@ -129,6 +132,7 @@ FullDict = Dict[str, List[FullPair]]
 
 
 # ============== UTILITY HELPERS ==============
+
 
 def pretty_print(results: CandidateJudgeOutput) -> None:
     """
@@ -217,13 +221,15 @@ def results_to_csv(
         for qid, lst in results.items():
             for item in lst:
                 seg, cand, judg = _unpack_item(item)
-                writer.writerow({
-                    "query_id": qid,
-                    "source_id": seg.id,
-                    "source_text": seg.text,
-                    "candidate_score": cand if cand is not None else "",
-                    "judgment_score": judg,
-                })
+                writer.writerow(
+                    {
+                        "query_id": qid,
+                        "source_id": seg.id,
+                        "source_text": seg.text,
+                        "candidate_score": cand if cand is not None else "",
+                        "judgment_score": judg,
+                    }
+                )
 
 
 def results_to_json(
@@ -257,12 +263,14 @@ def results_to_json(
         matches = []
         for item in lst:
             seg, cand, judg = _unpack_item(item)
-            matches.append({
-                "source_id": str(seg.id),
-                "source_text": seg.text,
-                "candidate_score": cand,
-                "judgment_score": judg,
-            })
+            matches.append(
+                {
+                    "source_id": str(seg.id),
+                    "source_text": seg.text,
+                    "candidate_score": cand,
+                    "judgment_score": judg,
+                }
+            )
         data[qid] = matches
     with path.open("w", encoding="utf-8") as f:
         json.dump(data, f, indent=indent, ensure_ascii=False)

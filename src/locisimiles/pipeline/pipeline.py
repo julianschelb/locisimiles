@@ -1,5 +1,6 @@
 # pipeline/pipeline.py
 """Generic pipeline composer: generator + judge."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -81,9 +82,7 @@ class Pipeline:
         Returns:
             ``CandidateGeneratorOutput`` mapping query IDs → ``Candidate`` lists.
         """
-        self._last_candidates = self.generator.generate(
-            query=query, source=source, **kwargs
-        )
+        self._last_candidates = self.generator.generate(query=query, source=source, **kwargs)
         return self._last_candidates
 
     def judge_candidates(
@@ -103,9 +102,7 @@ class Pipeline:
         Returns:
             ``CandidateJudgeOutput`` mapping query IDs → ``CandidateJudge`` lists.
         """
-        self._last_judgments = self.judge.judge(
-            query=query, candidates=candidates, **kwargs
-        )
+        self._last_judgments = self.judge.judge(query=query, candidates=candidates, **kwargs)
         return self._last_judgments
 
     def run(
@@ -162,9 +159,7 @@ class Pipeline:
         """
         data = results if results is not None else self._last_judgments
         if data is None:
-            raise ValueError(
-                "No results to save. Call run() first or pass results explicitly."
-            )
+            raise ValueError("No results to save. Call run() first or pass results explicitly.")
         results_to_csv(data, path)
 
     def to_json(
@@ -200,7 +195,5 @@ class Pipeline:
         """
         data = results if results is not None else self._last_judgments
         if data is None:
-            raise ValueError(
-                "No results to save. Call run() first or pass results explicitly."
-            )
+            raise ValueError("No results to save. Call run() first or pass results explicitly.")
         results_to_json(data, path, indent=indent)

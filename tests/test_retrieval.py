@@ -6,13 +6,12 @@ Pipeline(EmbeddingCandidateGenerator, ThresholdJudge).
 Deep component behaviour is already covered in test_generators.py,
 test_judges.py, and test_pipelines.py.
 """
-import pytest
-from unittest.mock import patch, MagicMock
 
-from locisimiles.pipeline.pipeline import Pipeline
+from unittest.mock import MagicMock, patch
+
 from locisimiles.pipeline.generator.embedding import EmbeddingCandidateGenerator
 from locisimiles.pipeline.judge.threshold import ThresholdJudge
-
+from locisimiles.pipeline.pipeline import Pipeline
 
 # ============== Initialization ==============
 
@@ -26,7 +25,7 @@ class TestRetrievalPipelineInitialization:
         from locisimiles.pipeline.retrieval import RetrievalPipeline
 
         mock_st_class.return_value = MagicMock()
-        pipeline = RetrievalPipeline(device="cpu")
+        _pipeline = RetrievalPipeline(device="cpu")
 
         mock_st_class.assert_called_once()
 

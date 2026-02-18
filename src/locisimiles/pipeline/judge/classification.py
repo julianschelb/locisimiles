@@ -1,18 +1,19 @@
 # pipeline/judge/classification.py
 """Classification judge using a transformer sequence-classification model."""
+
 from __future__ import annotations
 
 from typing import Any, Dict, List, Sequence, Tuple
 
 import torch
 import torch.nn.functional as F
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from tqdm import tqdm
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 from locisimiles.document import Document
 from locisimiles.pipeline._types import (
-    CandidateJudge,
     CandidateGeneratorOutput,
+    CandidateJudge,
     CandidateJudgeOutput,
 )
 from locisimiles.pipeline.judge._base import JudgeBase
@@ -63,9 +64,7 @@ class ClassificationJudge(JudgeBase):
         self.pos_class_idx = pos_class_idx
 
         self.clf_tokenizer = AutoTokenizer.from_pretrained(classification_name)
-        self.clf_model = AutoModelForSequenceClassification.from_pretrained(
-            classification_name
-        )
+        self.clf_model = AutoModelForSequenceClassification.from_pretrained(classification_name)
         self.clf_model.to(self.device).eval()
 
     # ---------- Tokenizer helpers ----------
@@ -101,9 +100,7 @@ class ClassificationJudge(JudgeBase):
         max_len: int = 512,
     ) -> List[float]:
         """Predict P(positive) for a batch of (query, candidate) pairs."""
-        truncated_pairs = [
-            self._truncate_pair(query_text, ct, max_len) for ct in cand_texts
-        ]
+        truncated_pairs = [self._truncate_pair(query_text, ct, max_len) for ct in cand_texts]
         query_texts_trunc = [p[0] for p in truncated_pairs]
         cand_texts_trunc = [p[1] for p in truncated_pairs]
 
@@ -171,9 +168,7 @@ class ClassificationJudge(JudgeBase):
             print(info["input_text"])
             ```
         """
-        query_trunc, candidate_trunc = self._truncate_pair(
-            query_text, candidate_text, max_len
-        )
+        query_trunc, candidate_trunc = self._truncate_pair(query_text, candidate_text, max_len)
         encoding = self.clf_tokenizer(
             query_trunc,
             candidate_trunc,
@@ -219,9 +214,7 @@ class ClassificationJudge(JudgeBase):
         """
         judge_results: CandidateJudgeOutput = {}
 
-        for query_id, candidate_list in tqdm(
-            candidates.items(), desc="Judging candidates"
-        ):
+        for query_id, candidate_list in tqdm(candidates.items(), desc="Judging candidates"):
             cand_texts = [c.segment.text for c in candidate_list]
             probabilities = self._predict(
                 query[query_id].text,
@@ -231,11 +224,13 @@ class ClassificationJudge(JudgeBase):
 
             judgments = []
             for candidate, probability in zip(candidate_list, probabilities):
-                judgments.append(CandidateJudge(
-                    segment=candidate.segment,
-                    candidate_score=candidate.score,
-                    judgment_score=probability,
-                ))
+                judgments.append(
+                    CandidateJudge(
+                        segment=candidate.segment,
+                        candidate_score=candidate.score,
+                        judgment_score=probability,
+                    )
+                )
             judge_results[query_id] = judgments
 
         return judge_results

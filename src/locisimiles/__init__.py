@@ -1,29 +1,29 @@
 """LociSimiles - Intertextuality detection in Latin literature."""
 
 from locisimiles.document import Document, TextSegment
+from locisimiles.evaluator import IntertextEvaluator
 from locisimiles.pipeline import (
-    # Preconfigured pipelines
-    TwoStagePipeline,
-    ExhaustiveClassificationPipeline,
-    RetrievalPipeline,
-    RuleBasedPipeline,
+    ClassificationJudge,
     # Backward-compatible aliases
     ClassificationPipeline,
     ClassificationPipelineWithCandidategeneration,
-    # Modular components
-    Pipeline,
     EmbeddingCandidateGenerator,
     ExhaustiveCandidateGenerator,
-    RuleBasedCandidateGenerator,
-    ClassificationJudge,
-    ThresholdJudge,
+    ExhaustiveClassificationPipeline,
     IdentityJudge,
+    # Modular components
+    Pipeline,
+    RetrievalPipeline,
+    RuleBasedCandidateGenerator,
+    RuleBasedPipeline,
+    ThresholdJudge,
+    # Preconfigured pipelines
+    TwoStagePipeline,
     # Utilities
     pretty_print,
     results_to_csv,
     results_to_json,
 )
-from locisimiles.evaluator import IntertextEvaluator
 
 __all__ = [
     "Document",

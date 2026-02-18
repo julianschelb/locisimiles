@@ -2,25 +2,22 @@
 Unit tests for locisimiles.document module.
 Tests TextSegment and Document classes.
 """
-import pytest
+
 from pathlib import Path
 
-from locisimiles.document import TextSegment, Document
+import pytest
 
+from locisimiles.document import Document, TextSegment
 
 # =================== TEXTSEGMENT TESTS ===================
+
 
 class TestTextSegment:
     """Tests for the TextSegment class."""
 
     def test_text_segment_creation(self):
         """Test creating a TextSegment with all parameters."""
-        segment = TextSegment(
-            text="Hello world",
-            seg_id="seg1",
-            row_id=5,
-            meta={"author": "Test"}
-        )
+        segment = TextSegment(text="Hello world", seg_id="seg1", row_id=5, meta={"author": "Test"})
         assert segment.text == "Hello world"
         assert segment.id == "seg1"
         assert segment.row_id == 5
@@ -63,6 +60,7 @@ class TestTextSegment:
 
 
 # =================== DOCUMENT TESTS ===================
+
 
 class TestDocumentCreation:
     """Tests for Document creation and loading."""
@@ -187,10 +185,7 @@ class TestDocumentAddRemoveSegments:
     def test_document_add_segment(self, sample_document):
         """Test adding a new segment."""
         sample_document.add_segment(
-            text="New segment text",
-            seg_id="seg4",
-            row_id=3,
-            meta={"new": True}
+            text="New segment text", seg_id="seg4", row_id=3, meta={"new": True}
         )
         assert len(sample_document) == 4
         assert "seg4" in sample_document.segments
@@ -241,11 +236,8 @@ class TestDocumentEdgeCases:
         """Test document with unicode content."""
         csv_path = temp_dir / "unicode.csv"
         csv_path.write_text(
-            "seg_id,text\n"
-            "u1,Κόσμος Greek text\n"
-            "u2,日本語 Japanese\n"
-            "u3,Émoji 🎉 text\n",
-            encoding="utf-8"
+            "seg_id,text\nu1,Κόσμος Greek text\nu2,日本語 Japanese\nu3,Émoji 🎉 text\n",
+            encoding="utf-8",
         )
         doc = Document(csv_path)
         assert len(doc) == 3

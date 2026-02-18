@@ -5,6 +5,7 @@ Each test creates temporary CSV input files, loads them as Documents,
 runs the pipeline (with mocked ML models where needed), and saves the
 results to both CSV and JSON — verifying the full read → run → save flow.
 """
+
 import csv
 import json
 import tempfile
@@ -16,8 +17,7 @@ import pytest
 import torch
 
 from locisimiles.document import Document
-from locisimiles.pipeline._types import CandidateJudge, CandidateJudgeOutput
-
+from locisimiles.pipeline._types import CandidateJudge
 
 # ============== Shared helpers ==============
 
@@ -131,8 +131,11 @@ def _assert_valid_csv(path: Path, expected_query_ids: set[str]):
         rows = list(reader)
     assert len(rows) > 0, "CSV is empty"
     assert set(reader.fieldnames) == {
-        "query_id", "source_id", "source_text",
-        "candidate_score", "judgment_score",
+        "query_id",
+        "source_id",
+        "source_text",
+        "candidate_score",
+        "judgment_score",
     }
     found_qids = {r["query_id"] for r in rows}
     assert found_qids == expected_query_ids, (
@@ -167,8 +170,9 @@ class TestTwoStagePipelineE2E:
     @patch("locisimiles.pipeline.generator.embedding.SentenceTransformer")
     @patch("locisimiles.pipeline.judge.classification.AutoModelForSequenceClassification")
     @patch("locisimiles.pipeline.judge.classification.AutoTokenizer")
-    def test_run_and_save(self, mock_tok_cls, mock_mdl_cls, mock_st_cls,
-                          query_csv, source_csv, e2e_dir):
+    def test_run_and_save(
+        self, mock_tok_cls, mock_mdl_cls, mock_st_cls, query_csv, source_csv, e2e_dir
+    ):
         from locisimiles.pipeline.two_stage import TwoStagePipeline
 
         # Wire mocks
@@ -212,8 +216,7 @@ class TestExhaustiveClassificationPipelineE2E:
 
     @patch("locisimiles.pipeline.judge.classification.AutoModelForSequenceClassification")
     @patch("locisimiles.pipeline.judge.classification.AutoTokenizer")
-    def test_run_and_save(self, mock_tok_cls, mock_mdl_cls,
-                          query_csv, source_csv, e2e_dir):
+    def test_run_and_save(self, mock_tok_cls, mock_mdl_cls, query_csv, source_csv, e2e_dir):
         from locisimiles.pipeline.classification import ExhaustiveClassificationPipeline
 
         model, tokenizer = _mock_classifier()
@@ -249,8 +252,7 @@ class TestRetrievalPipelineE2E:
     """End-to-end: read CSVs → run → save CSV & JSON."""
 
     @patch("locisimiles.pipeline.generator.embedding.SentenceTransformer")
-    def test_run_and_save(self, mock_st_cls,
-                          query_csv, source_csv, e2e_dir):
+    def test_run_and_save(self, mock_st_cls, query_csv, source_csv, e2e_dir):
         from locisimiles.pipeline.retrieval import RetrievalPipeline
 
         mock_st_cls.return_value = _mock_sentence_transformer()
@@ -311,8 +313,11 @@ class TestRuleBasedPipelineE2E:
         with csv_out.open(encoding="utf-8") as f:
             reader = csv.DictReader(f)
             assert set(reader.fieldnames) == {
-                "query_id", "source_id", "source_text",
-                "candidate_score", "judgment_score",
+                "query_id",
+                "source_id",
+                "source_text",
+                "candidate_score",
+                "judgment_score",
             }
 
         json_out = e2e_dir / "results.json"
@@ -329,8 +334,7 @@ class TestExplicitResultsSave:
     """Verify to_csv / to_json accept an explicit results dict."""
 
     @patch("locisimiles.pipeline.generator.embedding.SentenceTransformer")
-    def test_save_explicit_results(self, mock_st_cls,
-                                   query_csv, source_csv, e2e_dir):
+    def test_save_explicit_results(self, mock_st_cls, query_csv, source_csv, e2e_dir):
         from locisimiles.pipeline.retrieval import RetrievalPipeline
 
         mock_st_cls.return_value = _mock_sentence_transformer()

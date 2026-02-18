@@ -1,13 +1,14 @@
 # pipeline/judge/threshold.py
 """Threshold judge — binary decisions based on candidate scores."""
+
 from __future__ import annotations
 
 from typing import Any, Optional
 
 from locisimiles.document import Document
 from locisimiles.pipeline._types import (
-    CandidateJudge,
     CandidateGeneratorOutput,
+    CandidateJudge,
     CandidateJudgeOutput,
 )
 from locisimiles.pipeline.judge._base import JudgeBase
@@ -75,9 +76,7 @@ class ThresholdJudge(JudgeBase):
         """
         _top_k = top_k if top_k is not None else self.top_k
         _threshold = (
-            similarity_threshold
-            if similarity_threshold is not None
-            else self.similarity_threshold
+            similarity_threshold if similarity_threshold is not None else self.similarity_threshold
         )
 
         judge_results: CandidateJudgeOutput = {}

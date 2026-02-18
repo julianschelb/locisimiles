@@ -1,6 +1,6 @@
-from pathlib import Path
-from typing import Dict, Iterator, Any, Union, List
 import csv
+from pathlib import Path
+from typing import Any, Dict, Iterator, List, Union
 
 ID = Union[str, int]
 
@@ -10,16 +10,16 @@ ID = Union[str, int]
 class TextSegment:
     """
     Atomic unit of text inside a document.
-    
+
     A TextSegment represents a single passage, sentence, or verse from a larger
     document. Each segment has a unique identifier and optional metadata.
-    
+
     Attributes:
         text: The raw text content of the segment.
         id: Unique identifier for the segment (e.g., "verg. aen. 1.1").
         row_id: Position of the segment in the original document (0-indexed).
         meta: Optional dictionary of additional metadata.
-    
+
     Example:
         ```python
         segment = TextSegment(
@@ -52,35 +52,36 @@ class TextSegment:
 
 # =================== DOCUMENT ===================
 
+
 class Document:
     """
     Collection of text segments representing a document.
-    
+
     A Document is a container for TextSegments loaded from a file. It supports
     CSV/TSV files with 'seg_id' and 'text' columns, or plain text files where
     segments are separated by a delimiter.
-    
+
     Attributes:
         path: Path to the source file.
         author: Optional author name for the document.
         meta: Optional dictionary of document-level metadata.
-    
+
     Example:
         ```python
         from locisimiles.document import Document
-        
+
         # Load from CSV (must have 'seg_id' and 'text' columns)
         vergil = Document("vergil_samples.csv", author="Vergil")
-        
+
         # Access segments
         print(len(vergil))           # Number of segments
         print(vergil.ids())          # List of segment IDs
         print(vergil.get_text("verg. aen. 1.1"))  # Get text by ID
-        
+
         # Iterate over segments
         for segment in vergil:
             print(f"{segment.id}: {segment.text[:50]}...")
-        
+
         # Add custom segments
         vergil.add_segment(
             text="Custom text",
@@ -110,22 +111,24 @@ class Document:
                 self._load_plain(segment_delimiter)
 
     # ---------- DUNDER HELPERS ----------
-    
+
     def __len__(self) -> int:
         return len(self._segments)
 
     def __iter__(self) -> Iterator[TextSegment]:
-        return iter(sorted(self._segments.values(), key=lambda s: s.row_id))
+        return iter(sorted(self._segments.values(), key=lambda s: s.row_id or 0))
 
     def __getitem__(self, seg_id: ID) -> TextSegment:
         return self._segments[seg_id]
 
     def __repr__(self) -> str:
-        return f"Document({self.path.name!r}, segments={len(self)}, " \
-               f"author={self.author!r}, meta={self.meta})"
+        return (
+            f"Document({self.path.name!r}, segments={len(self)}, "
+            f"author={self.author!r}, meta={self.meta})"
+        )
 
     # ---------- CONVENIENCE ----------
-    
+
     def ids(self) -> List[ID]:
         """Return segment IDs in original order."""
         return [s.id for s in self]
@@ -152,20 +155,17 @@ class Document:
             raise ValueError(f"Segment id {seg_id!r} already exists in document")
         if row_id is None:
             row_id = len(self._segments)
-        self._segments[seg_id] = TextSegment(
-            text, seg_id, row_id=row_id, meta=meta)
+        self._segments[seg_id] = TextSegment(text, seg_id, row_id=row_id, meta=meta)
 
     def remove_segment(self, seg_id: ID) -> None:
         """Delete a segment if present."""
         self._segments.pop(seg_id, None)
 
     # ---------- INTERNAL LOADERS ----------
-    
+
     def _load_plain(self, delimiter: str) -> None:
         """Load from plain-text file split by delimiter."""
-        for row_id, seg_text in enumerate(
-            self.path.read_text(encoding="utf-8").split(delimiter)
-        ):
+        for row_id, seg_text in enumerate(self.path.read_text(encoding="utf-8").split(delimiter)):
             if seg_text.strip():
                 self.add_segment(seg_text, seg_id=row_id, row_id=row_id)
 

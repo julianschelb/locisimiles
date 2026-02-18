@@ -1,5 +1,6 @@
 # pipeline/generator/_base.py
 """Abstract base class for candidate generators."""
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod

@@ -7,14 +7,15 @@ Tests the modular candidate-generator components:
 - RuleBasedCandidateGenerator   (adapter, no ML dependencies)
 - CandidateGeneratorBase        (ABC contract)
 """
-import pytest
-import numpy as np
+
 from unittest.mock import MagicMock, patch
 
-from locisimiles.document import Document, TextSegment
-from locisimiles.pipeline._types import Candidate, CandidateGeneratorOutput
-from locisimiles.pipeline.generator._base import CandidateGeneratorBase
+import numpy as np
+import pytest
 
+from locisimiles.document import Document, TextSegment
+from locisimiles.pipeline._types import Candidate
+from locisimiles.pipeline.generator._base import CandidateGeneratorBase
 
 # ============== ABC Contract ==============
 
@@ -154,7 +155,7 @@ class TestEmbeddingCandidateGenerator:
         ]
         embeddings = np.random.randn(2, 384).astype("float32")
 
-        result = generator.build_source_index(segments, embeddings)
+        _result = generator.build_source_index(segments, embeddings)
 
         mock_client.create_collection.assert_called_once()
         mock_collection.add.assert_called()
@@ -279,26 +280,9 @@ class TestGeneratorImports:
 
     def test_import_from_generator_package(self):
         """All generators should be importable from the generator package."""
-        from locisimiles.pipeline.generator import (
-            CandidateGeneratorBase,
-            EmbeddingCandidateGenerator,
-            ExhaustiveCandidateGenerator,
-            RuleBasedCandidateGenerator,
-        )
 
     def test_import_from_pipeline_package(self):
         """All generators should be importable from the pipeline package."""
-        from locisimiles.pipeline import (
-            CandidateGeneratorBase,
-            EmbeddingCandidateGenerator,
-            ExhaustiveCandidateGenerator,
-            RuleBasedCandidateGenerator,
-        )
 
     def test_import_from_top_level(self):
         """Key generators should be importable from the top-level package."""
-        from locisimiles import (
-            EmbeddingCandidateGenerator,
-            ExhaustiveCandidateGenerator,
-            RuleBasedCandidateGenerator,
-        )

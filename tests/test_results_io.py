@@ -1,4 +1,5 @@
 """Tests for pipeline result I/O: to_csv, to_json, results_to_csv, results_to_json."""
+
 import csv
 import json
 
@@ -11,10 +12,9 @@ from locisimiles.pipeline._types import (
     results_to_csv,
     results_to_json,
 )
-from locisimiles.pipeline.pipeline import Pipeline
 from locisimiles.pipeline.generator._base import CandidateGeneratorBase
 from locisimiles.pipeline.judge._base import JudgeBase
-
+from locisimiles.pipeline.pipeline import Pipeline
 
 # ============== FIXTURES ==============
 
@@ -159,12 +159,8 @@ class TestPipelineSaveMethods:
 
     def _make_pipeline(self):
         """Create a Pipeline with mock generator and judge."""
-        gen = type("MockGen", (CandidateGeneratorBase,), {
-            "generate": lambda self, **kw: {}
-        })()
-        judge = type("MockJudge", (JudgeBase,), {
-            "judge": lambda self, **kw: {}
-        })()
+        gen = type("MockGen", (CandidateGeneratorBase,), {"generate": lambda self, **kw: {}})()
+        judge = type("MockJudge", (JudgeBase,), {"judge": lambda self, **kw: {}})()
         return Pipeline(generator=gen, judge=judge)
 
     def test_to_csv_with_explicit_results(self, tmp_path, sample_results):

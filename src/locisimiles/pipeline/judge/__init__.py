@@ -11,10 +11,11 @@ Available judges:
 - ``ThresholdJudge`` — binary decisions from candidate scores
 - ``IdentityJudge`` — pass-through (``judgment_score = 1.0``)
 """
+
 from locisimiles.pipeline.judge._base import JudgeBase
 from locisimiles.pipeline.judge.classification import ClassificationJudge
-from locisimiles.pipeline.judge.threshold import ThresholdJudge
 from locisimiles.pipeline.judge.identity import IdentityJudge
+from locisimiles.pipeline.judge.threshold import ThresholdJudge
 
 __all__ = [
     "JudgeBase",

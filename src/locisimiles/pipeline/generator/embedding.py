@@ -1,5 +1,6 @@
 # pipeline/generator/embedding.py
 """Embedding-based candidate generator using sentence transformers and ChromaDB."""
+
 from __future__ import annotations
 
 import time
@@ -86,10 +87,10 @@ class EmbeddingCandidateGenerator(CandidateGeneratorBase):
         client = chromadb.EphemeralClient()
         unique_name = f"{collection_name}_{int(time.time() * 1000000)}"
 
-        try:
+        import contextlib
+
+        with contextlib.suppress(Exception):
             client.delete_collection(name=unique_name)
-        except Exception:
-            pass
 
         col = client.create_collection(
             name=unique_name,
@@ -127,10 +128,12 @@ class EmbeddingCandidateGenerator(CandidateGeneratorBase):
 
             candidates = []
             for idx, distance in zip(results["ids"][0], results["distances"][0]):
-                candidates.append(Candidate(
-                    segment=source_document[idx],
-                    score=1.0 - float(distance),
-                ))
+                candidates.append(
+                    Candidate(
+                        segment=source_document[idx],
+                        score=1.0 - float(distance),
+                    )
+                )
             similarity_results[query_segment.id] = candidates
 
         return similarity_results
