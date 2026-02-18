@@ -14,10 +14,20 @@ class CandidateGeneratorBase(ABC):
 
     A candidate generator narrows the search space by producing a ranked
     list of source segments for each query segment.  The output is a
-    ``CandidateGeneratorOutput`` mapping query-segment IDs to lists of
-    ``Candidate`` objects.
+    ``CandidateGeneratorOutput`` — a dictionary mapping query-segment IDs
+    to lists of ``Candidate`` objects, each containing a source segment
+    and a relevance score.
 
     Subclasses must implement ``generate()``.
+
+    Available implementations:
+
+    - ``EmbeddingCandidateGenerator`` — semantic similarity via sentence
+      transformers + ChromaDB.
+    - ``ExhaustiveCandidateGenerator`` — returns all query–source pairs
+      without filtering.
+    - ``RuleBasedCandidateGenerator`` — lexical matching with linguistic
+      filters for Latin texts.
     """
 
     @abstractmethod

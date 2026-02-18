@@ -88,31 +88,50 @@ class RuleBasedCandidateGenerator(CandidateGeneratorBase):
     normalization, shared-word matching, distance criteria, punctuation
     agreement (scissa), and optional POS / embedding-based filters.
 
+    No neural models are required by default.  The optional HTRG
+    (Part-of-Speech) filter needs ``torch`` and ``transformers``, and the
+    similarity filter needs ``spacy`` with a Latin model.
+
     Args:
-        min_shared_words: Minimum number of shared non-stopwords required.
+        min_shared_words: Minimum number of shared non-stopwords required
+            for a segment pair to be considered a match.
         min_complura: Minimum adjacent tokens for complura detection.
-        max_distance: Maximum distance between shared words.
-        similarity_threshold: Threshold for semantic similarity filter.
-        stopwords: Set of stopwords to exclude.  Uses defaults if ``None``.
-        use_htrg: Whether to apply HTRG (POS-based) filter.  Requires torch.
-        use_similarity: Whether to apply similarity filter.  Requires spacy.
+        max_distance: Maximum allowed distance between shared words
+            within a segment.
+        similarity_threshold: Cosine similarity threshold for the optional
+            embedding-based filter.
+        stopwords: Set of stopwords to exclude from matching.  Uses a
+            built-in Latin stopword list if ``None``.
+        use_htrg: Enable the HTRG (POS-based) filter.  Requires ``torch``.
+        use_similarity: Enable the word-embedding similarity filter.
+            Requires ``spacy``.
         pos_model: HuggingFace model name for POS tagging.
-        spacy_model: spaCy model name for embeddings.
+        spacy_model: spaCy model name for word embeddings.
         device: Device for neural models (``"cuda"``, ``"cpu"``, or ``None``
-            for auto).
+            for auto-detection).
 
     Example:
         ```python
         from locisimiles.pipeline.generator import RuleBasedCandidateGenerator
         from locisimiles.document import Document
 
+        # Load documents
+        query = Document("query.csv")
+        source = Document("source.csv")
+
+        # Create generator
         generator = RuleBasedCandidateGenerator(min_shared_words=3)
+
+        # Generate candidates (genre hints improve preprocessing)
         candidates = generator.generate(
-            query=Document("query.csv"),
-            source=Document("source.csv"),
+            query=query,
+            source=source,
             query_genre="prose",
             source_genre="poetry",
         )
+
+        # Optionally load custom stopwords
+        generator.load_stopwords("my_stopwords.txt")
         ```
     """
 

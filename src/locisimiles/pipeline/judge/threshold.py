@@ -28,12 +28,18 @@ class ThresholdJudge(JudgeBase):
     Args:
         top_k: Number of top candidates to mark as positive.
         similarity_threshold: Score threshold for positive decisions.
+            If set, overrides ``top_k``.
 
     Example:
         ```python
         from locisimiles.pipeline.judge import ThresholdJudge
 
+        # Keep the 5 best candidates per query
         judge = ThresholdJudge(top_k=5)
+        results = judge.judge(query=query_doc, candidates=candidates)
+
+        # Or use a similarity threshold instead
+        judge = ThresholdJudge(similarity_threshold=0.7)
         results = judge.judge(query=query_doc, candidates=candidates)
         ```
     """

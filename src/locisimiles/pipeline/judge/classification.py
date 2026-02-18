@@ -22,21 +22,33 @@ class ClassificationJudge(JudgeBase):
     """Judge candidates using a transformer classification model.
 
     Loads a pre-trained sequence-classification model and tokenizer.
-    For each query-candidate pair the model outputs P(positive), which
+    For each query–candidate pair the model outputs P(positive), which
     is stored as ``judgment_score``.
+
+    The default model is
+    ``julian-schelb/PhilBerta-class-latin-intertext-v1``, a fine-tuned
+    classifier for Latin intertextuality detection.
 
     Args:
         classification_name: HuggingFace model identifier.
-        device: Torch device string.
+        device: Torch device string (``"cpu"``, ``"cuda"``, ``"mps"``).
         pos_class_idx: Index of the positive class in the classifier output.
 
     Example:
         ```python
         from locisimiles.pipeline.judge import ClassificationJudge
-        from locisimiles.document import Document
 
+        # Create judge with default model
         judge = ClassificationJudge(device="cpu")
+
+        # Score pre-generated candidates
         results = judge.judge(query=query_doc, candidates=candidates)
+
+        # Each result has a judgment_score (probability of being a match)
+        for qid, judgments in results.items():
+            for j in judgments:
+                if j.judgment_score > 0.5:
+                    print(f"{qid} → {j.segment.id}: {j.judgment_score:.3f}")
         ```
     """
 
@@ -130,10 +142,34 @@ class ClassificationJudge(JudgeBase):
         candidate_text: str,
         max_len: int = 512,
     ) -> Dict[str, Any]:
-        """Inspect how a query-candidate pair is tokenised and encoded.
+        """Inspect how a query–candidate pair is tokenised and encoded.
 
-        Returns a dictionary with original / truncated texts, token IDs,
-        attention mask, and decoded input text with special tokens visible.
+        Useful for debugging classification results or understanding
+        how text truncation affects model input.
+
+        Args:
+            query_text: Raw query text.
+            candidate_text: Raw candidate text.
+            max_len: Maximum token length.
+
+        Returns:
+            Dictionary with keys:
+
+            - ``query`` / ``candidate`` — original texts.
+            - ``query_truncated`` / ``candidate_truncated`` — after truncation.
+            - ``input_ids`` — token ID list.
+            - ``attention_mask`` — attention mask list.
+            - ``input_text`` — decoded input with special tokens visible.
+
+        Example:
+            ```python
+            judge = ClassificationJudge(device="cpu")
+            info = judge.debug_input_sequence(
+                "Arma virumque cano",
+                "Troiae qui primus ab oris",
+            )
+            print(info["input_text"])
+            ```
         """
         query_trunc, candidate_trunc = self._truncate_pair(
             query_text, candidate_text, max_len

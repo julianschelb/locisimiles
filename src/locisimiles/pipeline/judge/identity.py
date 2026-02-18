@@ -17,7 +17,8 @@ class IdentityJudge(JudgeBase):
     """Pass every candidate through with ``judgment_score = 1.0``.
 
     Useful when the candidate generator already performs all the
-    filtering / scoring that is needed (e.g. the rule-based generator).
+    filtering and scoring that is needed (e.g. the rule-based generator).
+    No additional models are loaded.
 
     Example:
         ```python
@@ -25,6 +26,11 @@ class IdentityJudge(JudgeBase):
 
         judge = IdentityJudge()
         results = judge.judge(query=query_doc, candidates=candidates)
+
+        # Every candidate gets judgment_score = 1.0
+        for qid, judgments in results.items():
+            for j in judgments:
+                print(j.judgment_score)  # 1.0
         ```
     """
 

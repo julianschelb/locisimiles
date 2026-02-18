@@ -31,28 +31,24 @@ class Pipeline:
         from locisimiles.pipeline import Pipeline
         from locisimiles.pipeline.generator import EmbeddingCandidateGenerator
         from locisimiles.pipeline.judge import ClassificationJudge
+        from locisimiles.document import Document
 
+        # Load documents
+        query = Document("query.csv")
+        source = Document("source.csv")
+
+        # Build a custom pipeline
         pipeline = Pipeline(
             generator=EmbeddingCandidateGenerator(device="cpu"),
             judge=ClassificationJudge(device="cpu"),
         )
-        results = pipeline.run(query=query_doc, source=source_doc, top_k=10)
-        ```
 
-    Equivalent preconfigured pipelines:
+        # Run pipeline
+        results = pipeline.run(query=query, source=source, top_k=10)
 
-        ```python
-        # TwoStagePipeline
-        Pipeline(EmbeddingCandidateGenerator(), ClassificationJudge())
-
-        # ExhaustiveClassificationPipeline
-        Pipeline(ExhaustiveCandidateGenerator(), ClassificationJudge())
-
-        # RetrievalPipeline
-        Pipeline(EmbeddingCandidateGenerator(), ThresholdJudge())
-
-        # RuleBasedPipeline (as a Pipeline)
-        Pipeline(RuleBasedCandidateGenerator(), IdentityJudge())
+        # Save results
+        pipeline.to_csv("results.csv")
+        pipeline.to_json("results.json")
         ```
     """
 

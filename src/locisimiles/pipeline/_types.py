@@ -13,10 +13,6 @@ Every pipeline follows a two-phase pattern:
    ``CandidateGeneratorOutput`` (mapping of query IDs → ``Candidate`` lists).
 2. **Judgment** — scores or classifies candidate pairs, producing a
    ``CandidateJudgeOutput`` (mapping of query IDs → ``CandidateJudge`` lists).
-
-The dataclasses ``Candidate`` and ``CandidateJudge`` replace the previous
-unnamed tuple types (``SimPair`` / ``FullPair``), giving each field a clear
-name.
 """
 from __future__ import annotations
 
@@ -38,6 +34,19 @@ class Candidate:
     Attributes:
         segment: The matching source segment.
         score: Relevance score (e.g. cosine similarity, shared-word ratio).
+
+    Example:
+        ```python
+        from locisimiles.pipeline import Candidate
+        from locisimiles.document import TextSegment
+
+        candidate = Candidate(
+            segment=TextSegment("Arma virumque cano", seg_id="verg. aen. 1.1"),
+            score=0.85,
+        )
+        print(candidate.segment.id)  # "verg. aen. 1.1"
+        print(candidate.score)       # 0.85
+        ```
     """
     segment: TextSegment
     score: float
@@ -53,6 +62,19 @@ class CandidateJudge:
             generator is exhaustive, i.e. all pairs are candidates).
         judgment_score: Final judgment value — e.g. a classification
             probability, a binary 1.0/0.0 decision, or a rule-based score.
+
+    Example:
+        ```python
+        from locisimiles.pipeline import CandidateJudge
+        from locisimiles.document import TextSegment
+
+        result = CandidateJudge(
+            segment=TextSegment("Arma virumque cano", seg_id="verg. aen. 1.1"),
+            candidate_score=0.85,
+            judgment_score=0.95,
+        )
+        print(result.judgment_score)  # 0.95
+        ```
     """
     segment: TextSegment
     candidate_score: Optional[float]

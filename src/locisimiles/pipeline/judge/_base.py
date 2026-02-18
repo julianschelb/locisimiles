@@ -13,10 +13,19 @@ class JudgeBase(ABC):
     """Abstract base class for candidate judges.
 
     A judge receives the output of a candidate generator and produces a
-    ``CandidateJudgeOutput`` mapping query-segment IDs to lists of
-    ``CandidateJudge`` objects.
+    ``CandidateJudgeOutput`` — a dictionary mapping query-segment IDs to
+    lists of ``CandidateJudge`` objects, each containing a source segment,
+    the original candidate score, and a final judgment score.
 
     Subclasses must implement ``judge()``.
+
+    Available implementations:
+
+    - ``ClassificationJudge`` — scores pairs with a fine-tuned
+      transformer classification model.
+    - ``ThresholdJudge`` — applies a top-k or score-threshold rule.
+    - ``IdentityJudge`` — passes candidates through unchanged
+      (``judgment_score = 1.0``).
     """
 
     @abstractmethod

@@ -54,11 +54,155 @@ The CSV should have columns for `id` and `text` (column names are configurable).
 
 ## Pipelines
 
-LociSimiles provides a **modular pipeline architecture** where you compose
-a **generator** (candidate selection) with a **judge** (scoring/classification)
-using the generic `Pipeline` class.
+LociSimiles provides ready-to-use pipelines for detecting intertextual links.
+Each pipeline takes a **query document** and a **source document** and returns
+scored matches.
 
-### Modular Approach (Recommended)
+### Two-Stage Pipeline
+
+The recommended pipeline for most use cases. It first retrieves the most
+promising candidates using embedding similarity, then classifies each
+candidate pair with a fine-tuned transformer model.
+
+```python
+from locisimiles import ClassificationPipelineWithCandidategeneration
+from locisimiles import Document
+
+# Load documents
+query = Document("query.csv")
+source = Document("source.csv")
+
+# Define pipeline
+pipeline = ClassificationPipelineWithCandidategeneration(
+    classification_name="julian-schelb/PhilBerta-class-latin-intertext-v1",
+    embedding_model_name="julian-schelb/SPhilBerta-emb-lat-intertext-v1",
+    device="cpu",  # or "cuda", "mps"
+)
+
+# Run pipeline
+results = pipeline.run(query=query, source=source, top_k=10)
+```
+
+### Classification Pipeline
+
+Classifies **every possible** query–source pair using a fine-tuned
+sequence-classification model. More thorough but slower — best suited for
+smaller datasets.
+
+```python
+from locisimiles import ClassificationPipeline
+from locisimiles import Document
+
+# Load documents
+query = Document("query.csv")
+source = Document("source.csv")
+
+# Define pipeline
+pipeline = ClassificationPipeline(
+    classification_name="julian-schelb/PhilBerta-class-latin-intertext-v1",
+    device="cpu",
+)
+
+# Run pipeline
+results = pipeline.run(query=query, source=source, batch_size=32)
+```
+
+### Retrieval Pipeline
+
+A fast, lightweight pipeline that ranks source segments by embedding
+similarity and applies a top-k or threshold criterion. No classification
+model needed.
+
+```python
+from locisimiles import RetrievalPipeline
+from locisimiles import Document
+
+# Load documents
+query = Document("query.csv")
+source = Document("source.csv")
+
+# Define pipeline
+pipeline = RetrievalPipeline(
+    embedding_model_name="julian-schelb/SPhilBerta-emb-lat-intertext-v1",
+    device="cpu",
+)
+
+# Run pipeline
+results = pipeline.run(query=query, source=source, top_k=5)
+```
+
+### Rule-Based Pipeline
+
+A purely lexical pipeline that does not require any neural models.
+It finds shared words between segments and applies distance, punctuation,
+and optional POS / similarity filters.
+
+```python
+from locisimiles import RuleBasedPipeline
+from locisimiles import Document
+
+# Load documents
+query = Document("query.csv")
+source = Document("source.csv")
+
+# Define pipeline
+pipeline = RuleBasedPipeline(min_shared_words=2, max_distance=3)
+
+# Run pipeline
+results = pipeline.run(query=query, source=source)
+```
+
+### Pipeline Summary
+
+| Pipeline | Speed | Models required | Best for |
+|----------|-------|-----------------|----------|
+| `ClassificationPipelineWithCandidategeneration` | Medium | Embedding + classifier | Most use cases |
+| `ClassificationPipeline` | Slow | Classifier | Small datasets, exhaustive comparison |
+| `RetrievalPipeline` | Fast | Embedding | Quick similarity search |
+| `RuleBasedPipeline` | Fast | None | No GPU, lexical matching |
+
+### Saving Results
+
+Save pipeline output to CSV or JSON:
+
+```python
+results = pipeline.run(query=query, source=source, top_k=10)
+
+# Save directly from the pipeline
+pipeline.to_csv("results.csv")
+pipeline.to_json("results.json")
+
+# Or use standalone utility functions
+from locisimiles.pipeline import results_to_csv, results_to_json
+results_to_csv(results, "results.csv")
+results_to_json(results, "results.json")
+```
+
+## Building Custom Pipelines
+
+For advanced use cases you can compose your own pipeline from individual
+**generators** and **judges** using the generic `Pipeline` class.
+
+A **generator** selects candidate source segments for each query segment.
+A **judge** then scores or classifies each candidate pair.
+
+### Available Generators
+
+| Generator | Description |
+|-----------|-------------|
+| `EmbeddingCandidateGenerator` | Semantic similarity via sentence transformers + ChromaDB |
+| `ExhaustiveCandidateGenerator` | All pairs — no filtering |
+| `RuleBasedCandidateGenerator` | Lexical matching + linguistic filters |
+
+### Available Judges
+
+| Judge | Description |
+|-------|-------------|
+| `ClassificationJudge` | Transformer sequence classification (P(positive)) |
+| `ThresholdJudge` | Binary decisions from candidate scores (top-k or threshold) |
+| `IdentityJudge` | Pass-through — `judgment_score = 1.0` |
+
+### Example
 
 ```python
 from locisimiles import Pipeline
@@ -71,52 +215,10 @@ pipeline = Pipeline(
 )
 
 results = pipeline.run(query=query_doc, source=source_doc, top_k=10)
-```
 
-Available **generators**:
-
-| Generator | Description |
-|-----------|-------------|
-| `EmbeddingCandidateGenerator` | Semantic similarity via sentence transformers + ChromaDB |
-| `ExhaustiveCandidateGenerator` | All pairs — no filtering |
-| `RuleBasedCandidateGenerator` | Lexical matching + linguistic filters |
-
-Available **judges**:
-
-| Judge | Description |
-|-------|-------------|
-| `ClassificationJudge` | Transformer sequence classification (P(positive)) |
-| `ThresholdJudge` | Binary decisions from candidate scores (top-k or threshold) |
-| `IdentityJudge` | Pass-through — `judgment_score = 1.0` |
-
-### Saving Results
-
-Save pipeline output to CSV or JSON:
-
-```python
-results = pipeline.run(query=query_doc, source=source_doc, top_k=10)
-
-# Save directly from the pipeline
-pipeline.to_csv("results.csv")
-pipeline.to_json("results.json")
-
-# Or use standalone utility functions
-from locisimiles.pipeline import results_to_csv, results_to_json
-results_to_csv(results, "results.csv")
-results_to_json(results, "results.json")
-```
-
-### Legacy Pipeline Classes
-
-The pre-composed pipeline classes are still available for convenience:
-
-```python
-from locisimiles import (
-    ClassificationPipelineWithCandidategeneration,  # embedding + classification
-    ClassificationPipeline,                         # exhaustive + classification
-    RetrievalPipeline,                              # embedding + threshold
-    RuleBasedPipeline,                              # rule-based + identity
-)
+# You can also run each stage separately
+candidates = pipeline.generate_candidates(query=query_doc, source=source_doc, top_k=10)
+results = pipeline.judge_candidates(query=query_doc, candidates=candidates)
 ```
 
 ## Evaluation

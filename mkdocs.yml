@@ -103,6 +103,7 @@ nav:
     - Overview: api/index.md
     - Document: api/document.md
     - Pipelines: api/pipelines.md
+    - Custom Pipelines: api/custom-pipelines.md
     - Generators: api/generators.md
     - Judges: api/judges.md
     - Evaluator: api/evaluator.md

@@ -20,25 +20,33 @@ class EmbeddingCandidateGenerator(CandidateGeneratorBase):
 
     Encodes query and source segments with a sentence-transformer model,
     builds an ephemeral ChromaDB index on the source embeddings, and
-    retrieves the *top_k* most similar source segments for each query
-    segment.
+    retrieves the most similar source segments for each query segment.
+
+    The number of candidates per query is controlled by the ``top_k``
+    parameter passed to ``generate()``.
 
     Args:
         embedding_model_name: HuggingFace model identifier for the
-            sentence-transformer.
-        device: Torch device string (``"cpu"``, ``"cuda"``, …).
+            sentence-transformer.  Defaults to the pre-trained Latin
+            intertextuality model.
+        device: Torch device string (``"cpu"``, ``"cuda"``, ``"mps"``).
 
     Example:
         ```python
         from locisimiles.pipeline.generator import EmbeddingCandidateGenerator
         from locisimiles.document import Document
 
+        # Load documents
+        query = Document("query.csv")
+        source = Document("source.csv")
+
+        # Generate candidates
         generator = EmbeddingCandidateGenerator(device="cpu")
-        candidates = generator.generate(
-            query=Document("query.csv"),
-            source=Document("source.csv"),
-            top_k=10,
-        )
+        candidates = generator.generate(query=query, source=source, top_k=10)
+
+        # candidates is a dict: {query_id: [Candidate, ...]}
+        for query_id, cands in candidates.items():
+            print(f"{query_id}: {len(cands)} candidates")
         ```
     """
 
@@ -139,19 +147,24 @@ class EmbeddingCandidateGenerator(CandidateGeneratorBase):
         source_prompt_name: str = "match",
         **kwargs: Any,
     ) -> CandidateGeneratorOutput:
-        """Generate candidates using embedding similarity.
+        """Generate candidates by embedding similarity.
+
+        Encodes all segments, indexes the source embeddings, and returns
+        the ``top_k`` most similar source segments for each query segment.
 
         Args:
             query: Query document.
             source: Source document.
-            top_k: Number of most-similar source segments to return per query.
+            top_k: Number of most-similar source segments to return per
+                query segment.
             query_prompt_name: Prompt name passed to the sentence-transformer
                 for query encoding.
             source_prompt_name: Prompt name passed to the sentence-transformer
                 for source encoding.
 
         Returns:
-            Mapping of query segment IDs → ranked lists of ``Candidate``.
+            Mapping of query segment IDs → ranked lists of ``Candidate``
+            sorted by descending cosine similarity.
         """
         query_segments = list(query.segments.values())
         source_segments = list(source.segments.values())

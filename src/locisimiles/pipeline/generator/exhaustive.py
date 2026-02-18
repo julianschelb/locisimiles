@@ -17,17 +17,25 @@ class ExhaustiveCandidateGenerator(CandidateGeneratorBase):
 
     This generator is typically paired with a judge
     (e.g. ``ClassificationJudge``) that performs the actual scoring.
+    Best suited for smaller datasets where comparing all pairs is
+    feasible.
 
     Example:
         ```python
         from locisimiles.pipeline.generator import ExhaustiveCandidateGenerator
         from locisimiles.document import Document
 
+        # Load documents
+        query = Document("query.csv")
+        source = Document("source.csv")
+
+        # Generate all possible pairs
         generator = ExhaustiveCandidateGenerator()
-        candidates = generator.generate(
-            query=Document("query.csv"),
-            source=Document("source.csv"),
-        )
+        candidates = generator.generate(query=query, source=source)
+
+        # Total pairs = len(query) × len(source)
+        total = sum(len(c) for c in candidates.values())
+        print(f"{total} candidate pairs")
         ```
     """
 
