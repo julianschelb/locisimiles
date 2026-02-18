@@ -1,5 +1,7 @@
 """LociSimiles - Intertextuality detection in Latin literature."""
 
+__version__ = "0.3.6"
+
 from locisimiles.document import Document, TextSegment
 from locisimiles.evaluator import IntertextEvaluator
 from locisimiles.pipeline import (
