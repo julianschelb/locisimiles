@@ -192,3 +192,4 @@ semantic-release version --print
 | Serve docs | `poe docs` |
 | Build docs | `poe docs-build` |
 | Preview next version | `semantic-release version --print` |
+# Test semantic versioning
