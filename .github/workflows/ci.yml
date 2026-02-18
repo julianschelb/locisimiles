@@ -19,12 +19,14 @@ jobs:
 
       - uses: astral-sh/ruff-action@v3
         with:
-          args: check src/ tests/
+          args: check
+          src: src/ tests/
           version: "0.15.1"
 
       - uses: astral-sh/ruff-action@v3
         with:
-          args: format --check src/ tests/
+          args: format --check
+          src: src/ tests/
           version: "0.15.1"
 
   typecheck:
