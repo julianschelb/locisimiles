@@ -522,6 +522,28 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#generators-module" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generators Module
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#judges-module" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Judges Module
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#evaluator-module" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -554,6 +576,17 @@
     <span class="md-ellipsis">
       
         Loading Documents
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#saving-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Saving Results
       
     </span>
   </a>
@@ -628,6 +661,90 @@
     
   
     Pipelines
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="custom-pipelines/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom Pipelines
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="generators/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generators
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="judges/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Judges
   
 
     
@@ -764,6 +881,28 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#generators-module" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generators Module
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#judges-module" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Judges Module
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#evaluator-module" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -796,6 +935,17 @@
     <span class="md-ellipsis">
       
         Loading Documents
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#saving-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Saving Results
       
     </span>
   </a>
@@ -850,9 +1000,25 @@
 <h3 id="pipeline-module">Pipeline Module<a class="headerlink" href="#pipeline-module" title="Permanent link">&para;</a></h3>
 <p>The <a href="pipelines/">Pipelines</a> module provides the main processing pipelines:</p>
 <ul>
+<li><code>Pipeline</code> - Generic composer: combine any generator + judge</li>
 <li><code>RetrievalPipeline</code> - Semantic similarity retrieval</li>
 <li><code>ClassificationPipeline</code> - Text pair classification</li>
 <li><code>ClassificationPipelineWithCandidategeneration</code> - Two-stage retrieval + classification</li>
+<li><code>RuleBasedPipeline</code> - Lexical matching + linguistic filters</li>
+</ul>
+<h3 id="generators-module">Generators Module<a class="headerlink" href="#generators-module" title="Permanent link">&para;</a></h3>
+<p>The <a href="generators/">Generators</a> module provides candidate-generation components:</p>
+<ul>
+<li><code>EmbeddingCandidateGenerator</code> - Semantic embedding similarity</li>
+<li><code>ExhaustiveCandidateGenerator</code> - All-pairs (no filtering)</li>
+<li><code>RuleBasedCandidateGenerator</code> - Lexical matching + linguistic filters</li>
+</ul>
+<h3 id="judges-module">Judges Module<a class="headerlink" href="#judges-module" title="Permanent link">&para;</a></h3>
+<p>The <a href="judges/">Judges</a> module provides scoring/classification components:</p>
+<ul>
+<li><code>ClassificationJudge</code> - Transformer-based sequence classification</li>
+<li><code>ThresholdJudge</code> - Binary decisions from candidate scores</li>
+<li><code>IdentityJudge</code> - Pass-through (judgment_score = 1.0)</li>
 </ul>
 <h3 id="evaluator-module">Evaluator Module<a class="headerlink" href="#evaluator-module" title="Permanent link">&para;</a></h3>
 <p>The <a href="evaluator/">Evaluator</a> module provides tools for assessing detection quality:</p>
@@ -863,17 +1029,24 @@
 <h3 id="loading-documents">Loading Documents<a class="headerlink" href="#loading-documents" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Document</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># From CSV file</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">doc</span> <span class="o">=</span> <span class="n">Document</span><span class="o">.</span><span class="n">from_csv</span><span class="p">(</span><span class="s2">&quot;texts.csv&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1"># From list of d# From list of d# From list of dre#ords([</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>  <span class="n">om</span>     <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="n">mpor</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="n">pel</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;id&quot;</span>    <span class="p">{</span><span class="s2">&quot;ipip    {&quot;</span><span class="nb">id</span><span class="s2">&quot;    {&quot;</span><span class="nb">id</span><span class="s2">&quot;    {&quot;</span><span class="nb">id</span><span class="s2">&quot;    {&quot;</span><span class="nb">id</span><span class="s2">&quot;    {&quot;</span><span class="nb">id</span><span class="s2">&quot; 0.5)</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">doc</span> <span class="o">=</span> <span class="n">Document</span><span class="p">(</span><span class="s2">&quot;texts.csv&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="saving-results">Saving Results<a class="headerlink" href="#saving-results" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Save from a pipeline instance</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">results</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="n">query_doc</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">source_doc</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">pipeline</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s2">&quot;results.csv&quot;</span><span class="p">)</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">pipeline</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="s2">&quot;results.json&quot;</span><span class="p">)</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="c1"># Or use standalone functions</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">results_to_csv</span><span class="p">,</span> <span class="n">results_to_json</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="n">results_to_csv</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="s2">&quot;results.csv&quot;</span><span class="p">)</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="n">results_to_json</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="s2">&quot;results.json&quot;</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="evaluating-results">Evaluating Results<a class="headerlink" href="#evaluating-results" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">IntertextEvaluator</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">evaluator</span> <span class="o">=</span> <span class="n">IntertextEvaluator</span><span class="p">(</span><span class="n">predictions</span><span class="p">,</span> <span class="n">ground_truth</span><span class="p">)</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">metrics</span> <span class="o">=</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">IntertextEvaluator</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">evaluator</span> <span class="o">=</span> <span class="n">IntertextEvaluator</span><span class="p">(</span><span class="n">predictions</span><span class="p">,</span> <span class="n">ground_truth</span><span class="p">)</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">metrics</span> <span class="o">=</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
 </code></pre></div>
 
 
