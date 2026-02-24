@@ -355,6 +355,29 @@ class Document:
             for row_id, row in enumerate(reader):
                 self.add_segment(row["text"], row["seg_id"], row_id=row_id)
 
+    # ---------- EXPORT ----------
+
+    def save_plain(self, path: str | Path, *, delimiter: str = "\n") -> Path:
+        """Write all segment texts to a plain-text file."""
+        path = Path(path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(
+            delimiter.join(seg.text for seg in self),
+            encoding="utf-8",
+        )
+        return path
+
+    def save_csv(self, path: str | Path) -> Path:
+        """Write all segments to a CSV file with ``seg_id`` and ``text`` columns."""
+        path = Path(path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=["seg_id", "text"])
+            writer.writeheader()
+            for seg in self:
+                writer.writerow({"seg_id": seg.id, "text": seg.text})
+        return path
+
 
 # =================== MAIN DEMO ===================
 

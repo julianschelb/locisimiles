@@ -435,3 +435,132 @@ class TestSentencize:
         result = doc.sentencize()
         assert len(result) == 0
         assert result is doc
+
+
+# =================== EXPORT TESTS ===================
+
+
+class TestSaveCSV:
+    """Tests for Document.save_csv."""
+
+    @pytest.fixture()
+    def temp_dir(self, tmp_path):
+        return tmp_path
+
+    def test_save_csv_roundtrip(self, temp_dir):
+        """Saving and reloading a CSV preserves segments."""
+        src = temp_dir / "src.csv"
+        src.write_text("seg_id,text\ns1,Hello.\ns2,World.\n", encoding="utf-8")
+        doc = Document(src)
+
+        out = temp_dir / "out.csv"
+        returned = doc.save_csv(out)
+        assert returned == out
+        assert out.exists()
+
+        reloaded = Document(out)
+        assert len(reloaded) == 2
+        assert reloaded["s1"].text == "Hello."
+        assert reloaded["s2"].text == "World."
+
+    def test_save_csv_after_sentencize(self, temp_dir):
+        """Exported CSV reflects sentencized segments."""
+        src = temp_dir / "src.csv"
+        src.write_text("seg_id,text\ns1,One. Two.\n", encoding="utf-8")
+        doc = Document(src)
+        doc.sentencize()
+
+        out = temp_dir / "sent.csv"
+        doc.save_csv(out)
+        reloaded = Document(out)
+        assert len(reloaded) == 2
+        assert reloaded["s1.1"].text == "One."
+        assert reloaded["s1.2"].text == "Two."
+
+    def test_save_csv_sentencize_roundtrip(self, temp_dir):
+        """Full roundtrip: load → sentencize → save → reload preserves content."""
+        src = temp_dir / "mixed.csv"
+        src.write_text(
+            "seg_id,text\n"
+            "a,First sentence. Second sentence.\n"
+            "b,Third sentence spanning\n"
+            "c,multiple rows.\n"
+            "d,Solo.\n",
+            encoding="utf-8",
+        )
+
+        # Load and sentencize.
+        doc = Document(src)
+        doc.sentencize()
+        sentencized_texts = [seg.text for seg in doc]
+        sentencized_ids = [seg.id for seg in doc]
+
+        # Save and reload.
+        out = temp_dir / "roundtrip.csv"
+        doc.save_csv(out)
+        reloaded = Document(out)
+
+        # Reloaded document must match the sentencized version exactly.
+        assert len(reloaded) == len(doc)
+        assert [seg.id for seg in reloaded] == sentencized_ids
+        assert [seg.text for seg in reloaded] == sentencized_texts
+
+    def test_save_csv_creates_parent_dirs(self, temp_dir):
+        """Missing parent directories are created automatically."""
+        src = temp_dir / "src.csv"
+        src.write_text("seg_id,text\na,Hi.\n", encoding="utf-8")
+        doc = Document(src)
+
+        out = temp_dir / "sub" / "dir" / "out.csv"
+        doc.save_csv(out)
+        assert out.exists()
+
+    def test_save_csv_empty_document(self, temp_dir):
+        """An empty document produces a CSV with only a header."""
+        src = temp_dir / "empty.csv"
+        src.write_text("seg_id,text\n", encoding="utf-8")
+        doc = Document(src)
+
+        out = temp_dir / "empty_out.csv"
+        doc.save_csv(out)
+        content = out.read_text(encoding="utf-8")
+        assert content.strip() == "seg_id,text"
+
+
+class TestSavePlain:
+    """Tests for Document.save_plain."""
+
+    @pytest.fixture()
+    def temp_dir(self, tmp_path):
+        return tmp_path
+
+    def test_save_plain_roundtrip(self, temp_dir):
+        """Saving and reloading a plain-text file preserves segments."""
+        src = temp_dir / "src.txt"
+        src.write_text("Line one\nLine two\nLine three", encoding="utf-8")
+        doc = Document(src)
+
+        out = temp_dir / "out.txt"
+        returned = doc.save_plain(out)
+        assert returned == out
+        assert out.read_text(encoding="utf-8") == "Line one\nLine two\nLine three"
+
+    def test_save_plain_custom_delimiter(self, temp_dir):
+        """A custom delimiter is used between segments."""
+        src = temp_dir / "src.csv"
+        src.write_text("seg_id,text\na,Alpha\nb,Beta\n", encoding="utf-8")
+        doc = Document(src)
+
+        out = temp_dir / "out.txt"
+        doc.save_plain(out, delimiter=" | ")
+        assert out.read_text(encoding="utf-8") == "Alpha | Beta"
+
+    def test_save_plain_empty_document(self, temp_dir):
+        """An empty document produces an empty file."""
+        src = temp_dir / "empty.csv"
+        src.write_text("seg_id,text\n", encoding="utf-8")
+        doc = Document(src)
+
+        out = temp_dir / "empty_out.txt"
+        doc.save_plain(out)
+        assert out.read_text(encoding="utf-8") == ""
