@@ -162,6 +162,22 @@ class Document:
         """Delete a segment if present."""
         self._segments.pop(seg_id, None)
 
+    def statistics(self) -> Dict[str, Any]:
+        """Return descriptive statistics (segment count, char/word totals, averages, min/max)."""
+        lengths = [len(seg.text) for seg in self]
+        word_counts = [len(seg.text.split()) for seg in self]
+        n = len(lengths)
+
+        return {
+            "num_segments": n,
+            "total_chars": sum(lengths),
+            "total_words": sum(word_counts),
+            "avg_chars_per_segment": round(sum(lengths) / n, 2) if n else 0.0,
+            "avg_words_per_segment": round(sum(word_counts) / n, 2) if n else 0.0,
+            "min_segment_chars": min(lengths, default=0),
+            "max_segment_chars": max(lengths, default=0),
+        }
+
     # ---------- SENTENCIZATION ----------
 
     # Type alias for the offset map entries used during sentencization.

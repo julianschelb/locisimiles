@@ -252,6 +252,61 @@ class TestDocumentEdgeCases:
         assert doc.path.exists()
 
 
+# =================== STATISTICS TESTS ===================
+
+
+class TestStatistics:
+    """Tests for Document.statistics() method."""
+
+    @pytest.fixture()
+    def temp_dir(self, tmp_path):
+        return tmp_path
+
+    def test_statistics_basic(self, temp_dir):
+        """statistics() returns correct values for a simple document."""
+        csv_path = temp_dir / "stats.csv"
+        csv_path.write_text(
+            "seg_id,text\ns1,Hello world\ns2,Foo\n",
+            encoding="utf-8",
+        )
+        doc = Document(csv_path)
+        stats = doc.statistics()
+
+        assert stats["num_segments"] == 2
+        assert stats["total_chars"] == len("Hello world") + len("Foo")
+        assert stats["total_words"] == 3  # Hello, world, Foo
+        assert stats["min_segment_chars"] == 3  # "Foo"
+        assert stats["max_segment_chars"] == 11  # "Hello world"
+        assert stats["avg_chars_per_segment"] == round((11 + 3) / 2, 2)
+        assert stats["avg_words_per_segment"] == round(3 / 2, 2)
+
+    def test_statistics_empty_document(self, temp_dir):
+        """statistics() on an empty document returns all zeros."""
+        csv_path = temp_dir / "empty.csv"
+        csv_path.write_text("seg_id,text\n", encoding="utf-8")
+        doc = Document(csv_path)
+        stats = doc.statistics()
+
+        assert stats["num_segments"] == 0
+        assert stats["total_chars"] == 0
+        assert stats["total_words"] == 0
+        assert stats["avg_chars_per_segment"] == 0.0
+        assert stats["avg_words_per_segment"] == 0.0
+        assert stats["min_segment_chars"] == 0
+        assert stats["max_segment_chars"] == 0
+
+    def test_statistics_single_segment(self, temp_dir):
+        """statistics() with one segment has min == max == total."""
+        csv_path = temp_dir / "one.csv"
+        csv_path.write_text("seg_id,text\ns1,One two three\n", encoding="utf-8")
+        doc = Document(csv_path)
+        stats = doc.statistics()
+
+        assert stats["num_segments"] == 1
+        assert stats["min_segment_chars"] == stats["max_segment_chars"]
+        assert stats["total_words"] == 3
+
+
 # =================== SENTENCIZE TESTS ===================
 
 
