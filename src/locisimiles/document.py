@@ -1,6 +1,7 @@
 import csv
+import re
 from pathlib import Path
-from typing import Any, Dict, Iterator, List, Union
+from typing import Any, Callable, Dict, Iterator, List, Optional, Union
 
 ID = Union[str, int]
 
@@ -160,6 +161,181 @@ class Document:
     def remove_segment(self, seg_id: ID) -> None:
         """Delete a segment if present."""
         self._segments.pop(seg_id, None)
+
+    # ---------- SENTENCIZATION ----------
+
+    # Type alias for the offset map entries used during sentencization.
+    # Each tuple is (start_char, end_char, original_segment).
+    _OffsetEntry = tuple[int, int, "TextSegment"]
+
+    @staticmethod
+    def _default_sentence_splitter(text: str) -> List[str]:
+        """Split *text* into sentences using punctuation heuristics.
+
+        Handles common Latin (and general) sentence-ending punctuation.
+        For higher accuracy pass a custom *splitter* (e.g. spaCy) to
+        :meth:`sentencize`.
+        """
+        parts = re.split(r"(?<=[.!?;])\s+", text)
+        return [p.strip() for p in parts if p.strip()]
+
+    # -- private helpers used by sentencize() --
+
+    def _join_segments(
+        self,
+        separator: str = " ",
+    ) -> tuple[str, List["Document._OffsetEntry"]]:
+        """Join all segment texts into one string and build a char-offset map.
+
+        Args:
+            separator: String inserted between consecutive segments.
+
+        Returns:
+            A tuple of (*full_text*, *offset_map*) where each entry in
+            *offset_map* is ``(start_char, end_char, original_segment)``.
+        """
+        texts: List[str] = []
+        offset_map: List[Document._OffsetEntry] = []
+        cursor = 0
+
+        # Iterate segments in original order, appending text and recording offsets.
+        for seg in self:
+            if texts:
+                cursor += len(separator)
+            start = cursor
+            cursor += len(seg.text)
+            texts.append(seg.text)
+            offset_map.append((start, cursor, seg))
+
+        full_text = separator.join(texts)
+        return full_text, offset_map
+
+    @staticmethod
+    def _find_origin_segment(
+        sent_start: int,
+        offset_map: List["Document._OffsetEntry"],
+    ) -> "TextSegment":
+        """Return the original segment whose span contains *sent_start*."""
+        for seg_start, seg_end, seg in offset_map:
+            if seg_start <= sent_start < seg_end:
+                return seg
+        return offset_map[-1][2]  # fallback to last segment
+
+    @staticmethod
+    def _map_sentences_to_segments(
+        sentences: List[str],
+        full_text: str,
+        offset_map: List["Document._OffsetEntry"],
+        id_separator: str,
+    ) -> tuple[Dict[ID, "TextSegment"], Dict[ID, int]]:
+        """Create new ``TextSegment`` objects from sentences, mapping each
+        back to its originating segment for ID derivation.
+
+        Returns:
+            A tuple of (*new_segments*, *origin_counts*) where
+            *origin_counts* records how many sentences each original
+            segment produced.
+        """
+        new_segments: Dict[ID, TextSegment] = {}
+        origin_counts: Dict[ID, int] = {}
+        search_start = 0
+
+        for sentence in sentences:
+            sent_start = full_text.find(sentence, search_start)
+            if sent_start == -1:
+                sent_start = search_start
+            search_start = sent_start + len(sentence)
+
+            origin_seg = Document._find_origin_segment(sent_start, offset_map)
+            origin_counts[origin_seg.id] = origin_counts.get(origin_seg.id, 0) + 1
+            count = origin_counts[origin_seg.id]
+
+            meta = dict(origin_seg.meta)
+            meta["original_seg_id"] = origin_seg.id
+            meta["sentence_index"] = count
+
+            new_id = f"{origin_seg.id}{id_separator}{count}"
+            new_segments[new_id] = TextSegment(
+                sentence,
+                new_id,
+                row_id=len(new_segments),
+                meta=meta,
+            )
+
+        return new_segments, origin_counts
+
+    def _clone_empty(self) -> "Document":
+        """Return an empty ``Document`` with the same metadata."""
+        new_doc = Document.__new__(Document)
+        new_doc.path = self.path
+        new_doc.author = self.author
+        new_doc.meta = dict(self.meta)
+        new_doc._segments = {}
+        return new_doc
+
+    # -- public API --
+
+    def sentencize(
+        self,
+        *,
+        splitter: Optional[Callable[[str], List[str]]] = None,
+        id_separator: str = ".",
+    ) -> "Document":
+        """Re-segment this document so that each segment contains exactly one sentence.
+
+        All segment texts are first joined (in row-id order) and then
+        sentence-split as a single block.  This correctly handles:
+
+        * Segments containing **multiple sentences** → split into separate
+          segments.
+        * A single sentence **spanning multiple rows** → merged into one
+          segment.
+
+        New segment IDs are derived from the original segment whose text
+        *starts* the sentence, with a numeric suffix appended (e.g.
+        ``"seg1.1"``, ``"seg1.2"``).
+
+        Args:
+            splitter: A callable that takes a ``str`` and returns a list
+                of sentence strings.  When ``None`` a simple
+                punctuation-based splitter is used.  To use spaCy::
+
+                    import spacy
+                    nlp = spacy.load("la_core_web_lg")
+                    doc.sentencize(splitter=lambda t: [s.text for s in nlp(t).sents])
+
+            id_separator: Separator inserted between the original
+                segment ID and the sentence index when a segment is
+                split (e.g. ``"seg1"`` → ``"seg1.1"``, ``"seg1.2"``).
+
+        Returns:
+            The modified ``Document`` with one sentence per segment.
+
+        Example:
+            ```python
+            doc = Document("mixed.csv")
+            doc.sentencize()
+            ```
+        """
+        if not list(self):
+            return self
+
+        # 1. Join all segment texts and build a character-offset map.
+        full_text, offset_map = self._join_segments()
+
+        # 2. Split the joined text into sentences.
+        split_fn = splitter or self._default_sentence_splitter
+        sentences = split_fn(full_text)
+        if not sentences:
+            return self
+
+        # 3. Map each sentence back to its originating segment.
+        new_segments, _ = self._map_sentences_to_segments(
+            sentences, full_text, offset_map, id_separator
+        )
+
+        self._segments = new_segments
+        return self
 
     # ---------- INTERNAL LOADERS ----------
 
