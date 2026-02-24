@@ -51,7 +51,7 @@ _THEME = gr.themes.Soft(
 
 def build_interface() -> gr.Blocks:
     """Create the main Gradio Blocks interface."""
-    with gr.Blocks(title="Loci Similes Demo", theme=_THEME) as demo:
+    with gr.Blocks(title="Loci Similes Demo") as demo:
         # State to store pipeline results and files
         results_state = gr.State(value=None)
         query_doc_state = gr.State(value=None)
@@ -100,13 +100,23 @@ def build_interface() -> gr.Blocks:
             outputs=walkthrough,
         )
 
-        # Download results
+        # Download results — pick the correct threshold for the active pipeline
+        from .config_stage import PIPELINE_RULE_BASED
+
+        def _download(qs, md, pt, t, rbt):
+            if not qs or not md:
+                return None
+            effective = rbt if pt == PIPELINE_RULE_BASED else t
+            return _export_results_to_csv(qs, md, effective)
+
         results_components["download_btn"].click(
-            fn=lambda qs, md, t: _export_results_to_csv(qs, md, t) if qs and md else None,
+            fn=_download,
             inputs=[
                 results_components["query_segments_state"],
                 results_components["matches_dict_state"],
+                config_components["pipeline_type"],
                 config_components["threshold"],
+                config_components["rb_threshold"],
             ],
             outputs=results_components["download_btn"],
         )
@@ -132,7 +142,7 @@ def launch(**kwargs: Any) -> None:
     kwargs.setdefault("quiet", False)  # Changed to False to show URL
 
     try:
-        demo.launch(share=False, **kwargs)
+        demo.launch(share=False, theme=_THEME, **kwargs)
     except ValueError as exc:
         msg = str(exc)
         if "shareable link must be created" in msg:

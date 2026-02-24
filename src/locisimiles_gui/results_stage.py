@@ -302,7 +302,8 @@ def build_results_stage() -> tuple[gr.Step, dict[str, Any]]:
                     label="Query Document Segments",
                     wrap=True,
                     max_height=600,
-                    col_count=(3, "fixed"),
+                    column_count=3,
+                    column_limits=(3, 3),
                 )
 
             # Right column: Matching source segments
