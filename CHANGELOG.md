@@ -2,6 +2,31 @@
 
 <!-- version list -->
 
+## v1.2.0 (2026-02-25)
+
+### Features
+
+- Add example notebook and data files for Document class features demonstration
+  ([#9](https://github.com/julianschelb/locisimiles/pull/9),
+  [`939921b`](https://github.com/julianschelb/locisimiles/commit/939921b37cbdffa76b0d9138db546434df567aed))
+
+- Add export methods for Document class to save segments as plain text and CSV
+  ([#9](https://github.com/julianschelb/locisimiles/pull/9),
+  [`939921b`](https://github.com/julianschelb/locisimiles/commit/939921b37cbdffa76b0d9138db546434df567aed))
+
+- Add statistics method to Document class with corresponding tests
+  ([#9](https://github.com/julianschelb/locisimiles/pull/9),
+  [`939921b`](https://github.com/julianschelb/locisimiles/commit/939921b37cbdffa76b0d9138db546434df567aed))
+
+- Enhance GUI with support for multiple pipeline configurations and visibility toggling
+  ([#8](https://github.com/julianschelb/locisimiles/pull/8),
+  [`72d2363`](https://github.com/julianschelb/locisimiles/commit/72d2363512f5757f7ec86edc0fb9afb7f4628127))
+
+- Implement sentencization feature in Document class with comprehensive tests
+  ([#9](https://github.com/julianschelb/locisimiles/pull/9),
+  [`939921b`](https://github.com/julianschelb/locisimiles/commit/939921b37cbdffa76b0d9138db546434df567aed))
+
+
 ## v1.1.0 (2026-02-18)
 
 ### Features
