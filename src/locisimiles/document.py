@@ -259,7 +259,11 @@ class Document:
         for sentence in sentences:
             sent_start = full_text.find(sentence, search_start)
             if sent_start == -1:
-                sent_start = search_start
+                raise ValueError(
+                    "Sentence splitter produced a sentence that is not an exact "
+                    "substring of the original document text. "
+                    f"Search started at offset {search_start}, sentence={sentence!r}."
+                )
             search_start = sent_start + len(sentence)
 
             origin_seg = Document._find_origin_segment(sent_start, offset_map)
