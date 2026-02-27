@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.3.0 (2026-02-27)
+
+### Features
+
+- Update .gitignore and pyproject.toml for Python 3.14 support
+  ([#10](https://github.com/julianschelb/locisimiles/pull/10),
+  [`bdb7b9e`](https://github.com/julianschelb/locisimiles/commit/bdb7b9ee0ad9110d5b1f02ff8c32b968f8bd9047))
+
+
 ## v1.2.0 (2026-02-25)
 
 ### Features
