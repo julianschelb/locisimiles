@@ -10,7 +10,7 @@ from locisimiles.document import Document
 from locisimiles.pipeline._types import CandidateGeneratorOutput, CandidateJudgeOutput
 
 
-class JudgeBase(ABC):
+class CandidateJudgeBase(ABC):
     """Abstract base class for candidate judges.
 
     A judge receives the output of a candidate generator and produces a
@@ -48,3 +48,8 @@ class JudgeBase(ABC):
             Mapping of query segment IDs → lists of ``CandidateJudge`` objects.
         """
         ...
+
+
+# Backward-compatible alias
+JudgeBase = CandidateJudgeBase
+"""*Deprecated* — use ``CandidateJudgeBase`` instead."""

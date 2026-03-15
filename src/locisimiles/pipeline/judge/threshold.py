@@ -11,10 +11,10 @@ from locisimiles.pipeline._types import (
     CandidateJudge,
     CandidateJudgeOutput,
 )
-from locisimiles.pipeline.judge._base import JudgeBase
+from locisimiles.pipeline.judge._base import CandidateJudgeBase
 
 
-class ThresholdJudge(JudgeBase):
+class ThresholdJudge(CandidateJudgeBase):
     """Judge candidates using a simple score threshold or top-k cut-off.
 
     Two strategies are available (mutually exclusive):

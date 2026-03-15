@@ -65,7 +65,7 @@ promising candidates using embedding similarity, then classifies each
 candidate pair with a fine-tuned transformer model.
 
 ```python
-from locisimiles import ClassificationPipelineWithCandidategeneration
+from locisimiles import ClassificationPipelineWithCandidateGeneration
 from locisimiles import Document
 
 # Load documents
@@ -73,7 +73,7 @@ query = Document("query.csv")
 source = Document("source.csv")
 
 # Define pipeline
-pipeline = ClassificationPipelineWithCandidategeneration(
+pipeline = ClassificationPipelineWithCandidateGeneration(
     classification_name="julian-schelb/PhilBerta-class-latin-intertext-v1",
     embedding_model_name="julian-schelb/SPhilBerta-emb-lat-intertext-v1",
     device="cpu",  # or "cuda", "mps"
@@ -156,7 +156,7 @@ results = pipeline.run(query=query, source=source)
 
 | Pipeline | Speed | Models required | Best for |
 |----------|-------|-----------------|----------|
-| `ClassificationPipelineWithCandidategeneration` | Medium | Embedding + classifier | Most use cases |
+| `ClassificationPipelineWithCandidateGeneration` | Medium | Embedding + classifier | Most use cases |
 | `ClassificationPipeline` | Slow | Classifier | Small datasets, exhaustive comparison |
 | `RetrievalPipeline` | Fast | Embedding | Quick similarity search |
 | `RuleBasedPipeline` | Fast | None | No GPU, lexical matching |

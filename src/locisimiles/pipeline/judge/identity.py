@@ -11,10 +11,10 @@ from locisimiles.pipeline._types import (
     CandidateJudge,
     CandidateJudgeOutput,
 )
-from locisimiles.pipeline.judge._base import JudgeBase
+from locisimiles.pipeline.judge._base import CandidateJudgeBase
 
 
-class IdentityJudge(JudgeBase):
+class IdentityJudge(CandidateJudgeBase):
     """Pass every candidate through with ``judgment_score = 1.0``.
 
     Useful when the candidate generator already performs all the

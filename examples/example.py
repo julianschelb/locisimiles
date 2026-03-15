@@ -1,7 +1,7 @@
 from locisimiles.document import Document
 from locisimiles.evaluator import IntertextEvaluator
 from locisimiles.pipeline import (
-    ClassificationPipelineWithCandidategeneration,
+    ClassificationPipelineWithCandidateGeneration,
     pretty_print,
 )
 
@@ -16,7 +16,7 @@ print("=" * 70)
 
 
 # Load the pipeline with pre-trained models
-pipeline_two_stage = ClassificationPipelineWithCandidategeneration(
+pipeline_two_stage = ClassificationPipelineWithCandidateGeneration(
     classification_name="julian-schelb/PhilBerta-class-latin-intertext-v1",
     embedding_model_name="julian-schelb/SPhilBerta-emb-lat-intertext-v1",
     device="mps",

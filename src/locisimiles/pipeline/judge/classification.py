@@ -16,10 +16,10 @@ from locisimiles.pipeline._types import (
     CandidateJudge,
     CandidateJudgeOutput,
 )
-from locisimiles.pipeline.judge._base import JudgeBase
+from locisimiles.pipeline.judge._base import CandidateJudgeBase
 
 
-class ClassificationJudge(JudgeBase):
+class ClassificationJudge(CandidateJudgeBase):
     """Judge candidates using a transformer classification model.
 
     Loads a pre-trained sequence-classification model and tokenizer.

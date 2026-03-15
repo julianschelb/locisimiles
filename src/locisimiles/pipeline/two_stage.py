@@ -82,4 +82,8 @@ class TwoStagePipeline(Pipeline):
 
 
 # Backward-compatible alias
+ClassificationPipelineWithCandidateGeneration = TwoStagePipeline
+"""Correctly-cased alias for ``TwoStagePipeline``."""
+
+# Backward-compatible alias (old lowercase typo kept for compatibility)
 ClassificationPipelineWithCandidategeneration = TwoStagePipeline

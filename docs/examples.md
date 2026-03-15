@@ -33,7 +33,7 @@ The notebook covers:
 The recommended approach combines fast retrieval with accurate classification:
 
 ```python
-from locisimiles.pipeline import ClassificationPipelineWithCandidategeneration
+from locisimiles.pipeline import ClassificationPipelineWithCandidateGeneration
 from locisimiles.document import Document
 
 # Load documents
@@ -41,7 +41,7 @@ query_doc = Document("./hieronymus_samples.csv", author="Hieronymus")
 source_doc = Document("./vergil_samples.csv", author="Vergil")
 
 # Initialize pipeline with pre-trained models
-pipeline = ClassificationPipelineWithCandidategeneration(
+pipeline = ClassificationPipelineWithCandidateGeneration(
     classification_name="julian-schelb/PhilBerta-class-latin-intertext-v1",
     embedding_model_name="julian-schelb/SPhilBerta-emb-lat-intertext-v1",
     device="cpu",  # or "cuda", "mps"
