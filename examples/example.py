@@ -17,8 +17,8 @@ print("=" * 70)
 
 # Load the pipeline with pre-trained models
 pipeline_two_stage = ClassificationPipelineWithCandidateGeneration(
-    classification_name="julian-schelb/PhilBerta-class-latin-intertext-v1",
-    embedding_model_name="julian-schelb/SPhilBerta-emb-lat-intertext-v1",
+    classification_name="julian-schelb/xlm-roberta-large-class-lat-intertext-v1",
+    embedding_model_name="julian-schelb/multilingual-e5-large-emb-lat-intertext-v1",
     device="mps",
 )
 

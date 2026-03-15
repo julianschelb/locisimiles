@@ -54,7 +54,7 @@ class EmbeddingCandidateGenerator(CandidateGeneratorBase):
     def __init__(
         self,
         *,
-        embedding_model_name: str = "julian-schelb/SPhilBerta-emb-lat-intertext-v1",
+        embedding_model_name: str = "julian-schelb/multilingual-e5-large-emb-lat-intertext-v1",
         device: str | int | None = None,
     ):
         self.device = device if device is not None else "cpu"

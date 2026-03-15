@@ -74,8 +74,8 @@ source = Document("source.csv")
 
 # Define pipeline
 pipeline = ClassificationPipelineWithCandidateGeneration(
-    classification_name="julian-schelb/PhilBerta-class-latin-intertext-v1",
-    embedding_model_name="julian-schelb/SPhilBerta-emb-lat-intertext-v1",
+    classification_name="julian-schelb/xlm-roberta-large-class-lat-intertext-v1",
+    embedding_model_name="julian-schelb/multilingual-e5-large-emb-lat-intertext-v1",
     device="cpu",  # or "cuda", "mps"
 )
 
@@ -99,7 +99,7 @@ source = Document("source.csv")
 
 # Define pipeline
 pipeline = ClassificationPipeline(
-    classification_name="julian-schelb/PhilBerta-class-latin-intertext-v1",
+    classification_name="julian-schelb/xlm-roberta-large-class-lat-intertext-v1",
     device="cpu",
 )
 
@@ -123,7 +123,7 @@ source = Document("source.csv")
 
 # Define pipeline
 pipeline = RetrievalPipeline(
-    embedding_model_name="julian-schelb/SPhilBerta-emb-lat-intertext-v1",
+    embedding_model_name="julian-schelb/multilingual-e5-large-emb-lat-intertext-v1",
     device="cpu",
 )
 

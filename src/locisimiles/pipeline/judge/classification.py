@@ -27,7 +27,7 @@ class ClassificationJudge(CandidateJudgeBase):
     is stored as ``judgment_score``.
 
     The default model is
-    ``julian-schelb/PhilBerta-class-latin-intertext-v1``, a fine-tuned
+    ``julian-schelb/xlm-roberta-large-class-lat-intertext-v1``, a fine-tuned
     classifier for Latin intertextuality detection.
 
     Args:
@@ -56,7 +56,7 @@ class ClassificationJudge(CandidateJudgeBase):
     def __init__(
         self,
         *,
-        classification_name: str = "julian-schelb/PhilBerta-class-latin-intertext-v1",
+        classification_name: str = "julian-schelb/xlm-roberta-large-class-lat-intertext-v1",
         device: str | int | None = None,
         pos_class_idx: int = 1,
     ):

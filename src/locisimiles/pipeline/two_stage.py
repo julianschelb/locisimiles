@@ -58,8 +58,8 @@ class TwoStagePipeline(Pipeline):
     def __init__(
         self,
         *,
-        classification_name: str = "julian-schelb/PhilBerta-class-latin-intertext-v1",
-        embedding_model_name: str = "julian-schelb/SPhilBerta-emb-lat-intertext-v1",
+        classification_name: str = "julian-schelb/xlm-roberta-large-class-lat-intertext-v1",
+        embedding_model_name: str = "julian-schelb/multilingual-e5-large-emb-lat-intertext-v1",
         device: str | int | None = None,
         pos_class_idx: int = 1,
     ):

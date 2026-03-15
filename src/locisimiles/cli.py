@@ -24,8 +24,8 @@ Examples:
 
   # Use custom models and parameters
   locisimiles query.csv source.csv -o results.csv \\
-    --classification-model julian-schelb/PhilBerta-class-latin-intertext-v1 \\
-    --embedding-model julian-schelb/SPhilBerta-emb-lat-intertext-v1 \\
+    --classification-model julian-schelb/xlm-roberta-large-class-lat-intertext-v1 \\
+    --embedding-model julian-schelb/multilingual-e5-large-emb-lat-intertext-v1 \\
     --top-k 20 --threshold 0.7
 
   # Use GPU if available
@@ -63,13 +63,13 @@ CSV Format:
     parser.add_argument(
         "--classification-model",
         type=str,
-        default="julian-schelb/PhilBerta-class-latin-intertext-v1",
+        default="julian-schelb/xlm-roberta-large-class-lat-intertext-v1",
         help="HuggingFace model name for classification (default: %(default)s)",
     )
     parser.add_argument(
         "--embedding-model",
         type=str,
-        default="julian-schelb/SPhilBerta-emb-lat-intertext-v1",
+        default="julian-schelb/multilingual-e5-large-emb-lat-intertext-v1",
         help="HuggingFace model name for embeddings (default: %(default)s)",
     )
 
