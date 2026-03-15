@@ -1,6 +1,6 @@
 """LociSimiles - Intertextuality detection in Latin literature."""
 
-__version__ = "1.3.0"
+__version__ = "1.4.0"
 
 from locisimiles.datasets import (
     load_example_ground_truth,

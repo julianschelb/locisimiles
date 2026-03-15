@@ -2,6 +2,29 @@
 
 <!-- version list -->
 
+## v1.4.0 (2026-03-15)
+
+### Bug Fixes
+
+- Correct casing of ClassificationPipelineWithCandidateGeneration and update related references
+  ([#11](https://github.com/julianschelb/locisimiles/pull/11),
+  [`381afcc`](https://github.com/julianschelb/locisimiles/commit/381afccbb8b0fce032de9e42c8d41e897cb10586))
+
+### Features
+
+- Add multi-pipeline model options and update default models/threshold to paper best
+  baselinesFeature/additional models ([#11](https://github.com/julianschelb/locisimiles/pull/11),
+  [`381afcc`](https://github.com/julianschelb/locisimiles/commit/381afccbb8b0fce032de9e42c8d41e897cb10586))
+
+- Update classification threshold to 0.85 in CLI and GUI components
+  ([#11](https://github.com/julianschelb/locisimiles/pull/11),
+  [`381afcc`](https://github.com/julianschelb/locisimiles/commit/381afccbb8b0fce032de9e42c8d41e897cb10586))
+
+- Update default models in documentation and examples to xlm-roberta and multilingual-e5
+  ([#11](https://github.com/julianschelb/locisimiles/pull/11),
+  [`381afcc`](https://github.com/julianschelb/locisimiles/commit/381afccbb8b0fce032de9e42c8d41e897cb10586))
+
+
 ## v1.3.0 (2026-02-27)
 
 ### Features
