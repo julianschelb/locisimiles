@@ -19,10 +19,12 @@ except ImportError as exc:
 
 from locisimiles.document import Document
 from locisimiles.pipeline import (
+    DEFAULT_WORD2VEC_MODEL_PATH,
     ExhaustiveClassificationPipeline,
     RetrievalPipeline,
     RuleBasedPipeline,
     TwoStagePipeline,
+    Word2VecRetrievalPipeline,
 )
 
 from .utils import validate_csv
@@ -32,12 +34,14 @@ PIPELINE_TWO_STAGE = "Two-Stage (Embedding + Classification)"
 PIPELINE_EXHAUSTIVE = "Exhaustive Classification"
 PIPELINE_RETRIEVAL = "Retrieval Only (Embedding Similarity)"
 PIPELINE_RULE_BASED = "Rule-Based (Lexical Matching)"
+PIPELINE_WORD2VEC = "Word2Vec Retrieval (Burns-Style)"
 
 PIPELINE_CHOICES = [
     PIPELINE_TWO_STAGE,
     PIPELINE_EXHAUSTIVE,
     PIPELINE_RETRIEVAL,
     PIPELINE_RULE_BASED,
+    PIPELINE_WORD2VEC,
 ]
 
 PIPELINE_DESCRIPTIONS = {
@@ -59,6 +63,11 @@ PIPELINE_DESCRIPTIONS = {
         "**Rule-Based Pipeline** — Identifies textual reuse through lexical matching "
         "and linguistic filters (shared words, distance criteria, punctuation patterns). "
         "No neural models required for the base configuration."
+    ),
+    PIPELINE_WORD2VEC: (
+        "**Word2Vec Retrieval Pipeline** — Uses a local pre-trained Word2Vec model "
+        "with bigram-level pair-aware similarity scoring inspired by Burns et al. (2021). "
+        "Fast retrieval-only option for lemmatized input."
     ),
 }
 
@@ -88,19 +97,21 @@ def _update_pipeline_visibility(pipeline_type: str) -> tuple:
 
     Returns:
         Tuple of (description, embedding_group, classification_group,
-                  retrieval_group, rule_based_group)
+                  retrieval_group, rule_based_group, word2vec_group)
     """
     desc = PIPELINE_DESCRIPTIONS.get(pipeline_type, "")
     show_embedding = pipeline_type in (PIPELINE_TWO_STAGE, PIPELINE_RETRIEVAL)
     show_classification = pipeline_type in (PIPELINE_TWO_STAGE, PIPELINE_EXHAUSTIVE)
-    show_retrieval = pipeline_type in (PIPELINE_TWO_STAGE, PIPELINE_RETRIEVAL)
+    show_retrieval = pipeline_type in (PIPELINE_TWO_STAGE, PIPELINE_RETRIEVAL, PIPELINE_WORD2VEC)
     show_rule_based = pipeline_type == PIPELINE_RULE_BASED
+    show_word2vec = pipeline_type == PIPELINE_WORD2VEC
     return (
         gr.update(value=desc),
         gr.update(visible=show_embedding),
         gr.update(visible=show_classification),
         gr.update(visible=show_retrieval),
         gr.update(visible=show_rule_based),
+        gr.update(visible=show_word2vec),
     )
 
 
@@ -132,6 +143,9 @@ def _process_documents(
     rb_similarity_threshold: float,
     use_htrg: bool,
     use_similarity: bool,
+    word2vec_model_path: str,
+    word2vec_interval: int,
+    word2vec_order_free: bool,
 ) -> tuple:
     """Process the documents using the selected pipeline and navigate to results step.
 
@@ -149,6 +163,9 @@ def _process_documents(
         rb_similarity_threshold: (Rule-based) Semantic similarity threshold.
         use_htrg: (Rule-based) Whether to apply HTRG POS filter.
         use_similarity: (Rule-based) Whether to apply spaCy similarity filter.
+        word2vec_model_path: (Word2Vec) Local path to gensim model file.
+        word2vec_interval: (Word2Vec) Bigram token gap interval.
+        word2vec_order_free: (Word2Vec) Whether bigrams are order-insensitive.
 
     Returns:
         Tuple of (processing_status_update, walkthrough_update, results_state, query_doc_state)
@@ -196,6 +213,15 @@ def _process_documents(
                 use_similarity=bool(use_similarity),
                 device=device,
             )
+        elif pipeline_type == PIPELINE_WORD2VEC:
+            model_path = word2vec_model_path.strip() if word2vec_model_path else ""
+            pipeline = Word2VecRetrievalPipeline(
+                model_path=model_path or DEFAULT_WORD2VEC_MODEL_PATH,
+                top_k=int(top_k),
+                similarity_threshold=float(threshold),
+                interval=int(word2vec_interval),
+                order_free=bool(word2vec_order_free),
+            )
         else:
             gr.Error(f"Unknown pipeline type: {pipeline_type}")
             return gr.update(visible=False), gr.Walkthrough(selected=1), None, None
@@ -206,7 +232,7 @@ def _process_documents(
 
         # Build run kwargs — only pass top_k when the pipeline uses it
         run_kwargs: dict = {}
-        if pipeline_type in (PIPELINE_TWO_STAGE, PIPELINE_RETRIEVAL):
+        if pipeline_type in (PIPELINE_TWO_STAGE, PIPELINE_RETRIEVAL, PIPELINE_WORD2VEC):
             run_kwargs["top_k"] = top_k
 
         # Run pipeline
@@ -389,6 +415,29 @@ def build_config_stage() -> tuple[gr.Step, dict]:
                 )
         components["rule_based_group"] = rule_based_group
 
+        with gr.Row(visible=False) as word2vec_group:
+            with gr.Column():
+                gr.Markdown("**🧠 Word2Vec Parameters**")
+                components["word2vec_model_path"] = gr.Textbox(
+                    label="Word2Vec Model Path",
+                    value=str(DEFAULT_WORD2VEC_MODEL_PATH),
+                    info="Path to a local gensim .model file.",
+                )
+                components["word2vec_interval"] = gr.Slider(
+                    minimum=0,
+                    maximum=10,
+                    value=0,
+                    step=1,
+                    label="Bigram Interval",
+                    info="Maximum token gap between bigram words.",
+                )
+                components["word2vec_order_free"] = gr.Checkbox(
+                    label="Order-Free Bigrams",
+                    value=False,
+                    info="Treat bigrams as order-insensitive.",
+                )
+        components["word2vec_group"] = word2vec_group
+
         components["processing_status"] = gr.HTML(visible=False)
 
         with gr.Row():
@@ -428,6 +477,7 @@ def setup_config_handlers(
             components["classification_group"],
             components["retrieval_group"],
             components["rule_based_group"],
+            components["word2vec_group"],
         ],
     )
 
@@ -466,6 +516,9 @@ def setup_config_handlers(
             components["rb_similarity_threshold"],
             components["use_htrg"],
             components["use_similarity"],
+            components["word2vec_model_path"],
+            components["word2vec_interval"],
+            components["word2vec_order_free"],
         ],
         outputs=[
             components["processing_status"],

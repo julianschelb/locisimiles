@@ -16,6 +16,7 @@ This module provides:
 - ``TwoStagePipeline``: Embedding retrieval + classification
 - ``ExhaustiveClassificationPipeline``: Exhaustive pairs + classification
 - ``RetrievalPipeline``: Embedding retrieval + threshold judge
+- ``Word2VecRetrievalPipeline``: Burns-style Word2Vec retrieval + threshold judge
 - ``RuleBasedPipeline``: Rule-based lexical matching + linguistic filters
 
 All exports are available at the package level::
@@ -54,10 +55,12 @@ from locisimiles.pipeline.classification import (
 
 # --- Modular components: generators ---
 from locisimiles.pipeline.generator import (
+    DEFAULT_WORD2VEC_MODEL_PATH,
     CandidateGeneratorBase,
     EmbeddingCandidateGenerator,
     ExhaustiveCandidateGenerator,
     RuleBasedCandidateGenerator,
+    Word2VecCandidateGenerator,
 )
 
 # --- Modular components: judges ---
@@ -72,6 +75,7 @@ from locisimiles.pipeline.judge import (
 # --- Pipeline composer ---
 from locisimiles.pipeline.pipeline import Pipeline
 from locisimiles.pipeline.retrieval import RetrievalPipeline
+from locisimiles.pipeline.word2vec import Word2VecRetrievalPipeline
 
 # --- Rule-based pipeline ---
 from locisimiles.pipeline.rule_based import RuleBasedPipeline
@@ -109,6 +113,8 @@ __all__ = [
     "EmbeddingCandidateGenerator",
     "ExhaustiveCandidateGenerator",
     "RuleBasedCandidateGenerator",
+    "Word2VecCandidateGenerator",
+    "DEFAULT_WORD2VEC_MODEL_PATH",
     # Judges
     "CandidateJudgeBase",
     "JudgeBase",  # backward-compat alias
@@ -121,6 +127,7 @@ __all__ = [
     "TwoStagePipeline",
     "ExhaustiveClassificationPipeline",
     "RetrievalPipeline",
+    "Word2VecRetrievalPipeline",
     "RuleBasedPipeline",
     # Backward-compatible aliases
     "ClassificationPipelineWithCandidateGeneration",

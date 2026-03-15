@@ -125,6 +125,46 @@ pipeline = Pipeline(
 )
 ```
 
+## Word2Vec Retrieval (Burns-Style)
+
+Use this when you want lightweight retrieval with a local Word2Vec model.
+
+```python
+from locisimiles import Document, Word2VecRetrievalPipeline
+
+query_doc = Document("./hieronymus_samples.csv", author="Hieronymus")
+source_doc = Document("./vergil_samples.csv", author="Vergil")
+
+pipeline = Word2VecRetrievalPipeline(
+        model_path="./models/latin_w2v_bamman_lemma300_100_1.model",
+        top_k=10,
+        similarity_threshold=0.85,
+        interval=2,
+        order_free=True,
+)
+
+results = pipeline.run(query=query_doc, source=source_doc, top_k=10)
+```
+
+Model path expectations:
+
+- The path must point to a local gensim `.model` file.
+- If omitted, the package default path is used: `models/latin_w2v_bamman_lemma300_100_1.model`.
+- No automatic download is performed.
+- Input text should already be lemmatized for best results.
+
+### CLI Example for Word2Vec
+
+```bash
+locisimiles hieronymus_samples.csv vergil_samples.csv -o results.csv \
+    --pipeline word2vec-retrieval \
+    --word2vec-model-path ./models/latin_w2v_bamman_lemma300_100_1.model \
+    --word2vec-interval 2 \
+    --word2vec-order-free \
+    --top-k 10 \
+    --threshold 0.85
+```
+
 ## Saving Results
 
 Pipeline results can be saved to CSV or JSON directly from the pipeline

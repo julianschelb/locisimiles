@@ -8,7 +8,11 @@ import sys
 from pathlib import Path
 
 from locisimiles.document import Document
-from locisimiles.pipeline import TwoStagePipeline
+from locisimiles.pipeline import (
+    DEFAULT_WORD2VEC_MODEL_PATH,
+    TwoStagePipeline,
+    Word2VecRetrievalPipeline,
+)
 
 
 def main() -> int:
@@ -61,6 +65,13 @@ CSV Format:
 
     # Model selection
     parser.add_argument(
+        "--pipeline",
+        type=str,
+        choices=["two-stage", "word2vec-retrieval"],
+        default="two-stage",
+        help="Pipeline type to run (default: %(default)s)",
+    )
+    parser.add_argument(
         "--classification-model",
         type=str,
         default="julian-schelb/xlm-roberta-large-class-lat-intertext-v1",
@@ -71,6 +82,26 @@ CSV Format:
         type=str,
         default="julian-schelb/multilingual-e5-large-emb-lat-intertext-v1",
         help="HuggingFace model name for embeddings (default: %(default)s)",
+    )
+    parser.add_argument(
+        "--word2vec-model-path",
+        type=Path,
+        default=None,
+        help=(
+            "Path to local gensim Word2Vec .model file "
+            "(used only with --pipeline word2vec-retrieval)"
+        ),
+    )
+    parser.add_argument(
+        "--word2vec-interval",
+        type=int,
+        default=0,
+        help="Max token gap for Word2Vec bigrams (default: %(default)s)",
+    )
+    parser.add_argument(
+        "--word2vec-order-free",
+        action="store_true",
+        help="Treat Word2Vec bigrams as order-insensitive",
     )
 
     # Pipeline parameters
@@ -150,14 +181,34 @@ CSV Format:
         # Initialize pipeline
         if args.verbose:
             print("Initializing pipeline...")
-            print(f"  Classification model: {args.classification_model}")
-            print(f"  Embedding model: {args.embedding_model}")
+            print(f"  Pipeline type: {args.pipeline}")
 
-        pipeline = TwoStagePipeline(
-            classification_name=args.classification_model,
-            embedding_model_name=args.embedding_model,
-            device=device,
-        )
+        if args.pipeline == "two-stage":
+            if args.verbose:
+                print(f"  Classification model: {args.classification_model}")
+                print(f"  Embedding model: {args.embedding_model}")
+
+            pipeline = TwoStagePipeline(
+                classification_name=args.classification_model,
+                embedding_model_name=args.embedding_model,
+                device=device,
+            )
+        else:
+            if args.verbose:
+                if args.word2vec_model_path is None:
+                    print("  Word2Vec model path: default package path")
+                else:
+                    print(f"  Word2Vec model path: {args.word2vec_model_path}")
+
+            pipeline = Word2VecRetrievalPipeline(
+                model_path=args.word2vec_model_path
+                if args.word2vec_model_path is not None
+                else DEFAULT_WORD2VEC_MODEL_PATH,
+                top_k=args.top_k,
+                similarity_threshold=args.threshold,
+                interval=args.word2vec_interval,
+                order_free=args.word2vec_order_free,
+            )
 
         # Run pipeline
         if args.verbose:

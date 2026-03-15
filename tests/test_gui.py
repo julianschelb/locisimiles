@@ -17,6 +17,7 @@ from locisimiles_gui.config_stage import (  # noqa: E402
     PIPELINE_RETRIEVAL,
     PIPELINE_RULE_BASED,
     PIPELINE_TWO_STAGE,
+    PIPELINE_WORD2VEC,
     _update_pipeline_visibility,
 )
 from locisimiles_gui.results_stage import (  # noqa: E402
@@ -237,35 +238,47 @@ class TestPipelineVisibility:
     """Tests for pipeline-type dependent parameter visibility."""
 
     def test_all_pipeline_choices_are_handled(self):
-        """Every pipeline choice should produce a 5-tuple without errors."""
+        """Every pipeline choice should produce a 6-tuple without errors."""
         for choice in PIPELINE_CHOICES:
             result = _update_pipeline_visibility(choice)
-            assert len(result) == 5
+            assert len(result) == 6
 
     def test_two_stage_shows_both_models(self):
-        desc, emb, cls, retr, rb = _update_pipeline_visibility(PIPELINE_TWO_STAGE)
+        desc, emb, cls, retr, rb, w2v = _update_pipeline_visibility(PIPELINE_TWO_STAGE)
         assert emb["visible"] is True
         assert cls["visible"] is True
         assert retr["visible"] is True
         assert rb["visible"] is False
+        assert w2v["visible"] is False
 
     def test_exhaustive_shows_classification_only(self):
-        desc, emb, cls, retr, rb = _update_pipeline_visibility(PIPELINE_EXHAUSTIVE)
+        desc, emb, cls, retr, rb, w2v = _update_pipeline_visibility(PIPELINE_EXHAUSTIVE)
         assert emb["visible"] is False
         assert cls["visible"] is True
         assert retr["visible"] is False
         assert rb["visible"] is False
+        assert w2v["visible"] is False
 
     def test_retrieval_shows_embedding_only(self):
-        desc, emb, cls, retr, rb = _update_pipeline_visibility(PIPELINE_RETRIEVAL)
+        desc, emb, cls, retr, rb, w2v = _update_pipeline_visibility(PIPELINE_RETRIEVAL)
         assert emb["visible"] is True
         assert cls["visible"] is False
         assert retr["visible"] is True
         assert rb["visible"] is False
+        assert w2v["visible"] is False
 
     def test_rule_based_shows_rule_params(self):
-        desc, emb, cls, retr, rb = _update_pipeline_visibility(PIPELINE_RULE_BASED)
+        desc, emb, cls, retr, rb, w2v = _update_pipeline_visibility(PIPELINE_RULE_BASED)
         assert emb["visible"] is False
         assert cls["visible"] is False
         assert retr["visible"] is False
         assert rb["visible"] is True
+        assert w2v["visible"] is False
+
+    def test_word2vec_shows_word2vec_and_retrieval_params(self):
+        desc, emb, cls, retr, rb, w2v = _update_pipeline_visibility(PIPELINE_WORD2VEC)
+        assert emb["visible"] is False
+        assert cls["visible"] is False
+        assert retr["visible"] is True
+        assert rb["visible"] is False
+        assert w2v["visible"] is True

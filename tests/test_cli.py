@@ -486,6 +486,62 @@ class TestCLIPipelineParameters:
         assert call_kwargs["classification_name"] == "custom/classifier"
         assert call_kwargs["embedding_model_name"] == "custom/embedder"
 
+    @patch("locisimiles.cli.Word2VecRetrievalPipeline")
+    @patch("locisimiles.cli.TwoStagePipeline")
+    @patch("locisimiles.cli.Document")
+    def test_cli_word2vec_pipeline_selection(
+        self,
+        mock_doc_class,
+        mock_two_stage_pipeline,
+        mock_word2vec_pipeline,
+        temp_dir,
+    ):
+        """Selecting --pipeline word2vec-retrieval should use the Word2Vec pipeline."""
+        from locisimiles.cli import main
+
+        mock_doc_class.return_value = MagicMock()
+        mock_doc_class.return_value.__iter__ = MagicMock(return_value=iter([]))
+        mock_doc_class.return_value.__len__ = MagicMock(return_value=1)
+
+        mock_pipeline = MagicMock()
+        mock_pipeline.run.return_value = {}
+        mock_word2vec_pipeline.return_value = mock_pipeline
+
+        query_csv = temp_dir / "query.csv"
+        query_csv.write_text("seg_id,text\nq1,Query\n", encoding="utf-8")
+        source_csv = temp_dir / "source.csv"
+        source_csv.write_text("seg_id,text\ns1,Source\n", encoding="utf-8")
+        output_path = temp_dir / "output.csv"
+        model_path = temp_dir / "latin.model"
+        model_path.write_text("stub", encoding="utf-8")
+
+        with patch.object(
+            sys,
+            "argv",
+            [
+                "locisimiles",
+                str(query_csv),
+                str(source_csv),
+                "-o",
+                str(output_path),
+                "--pipeline",
+                "word2vec-retrieval",
+                "--word2vec-model-path",
+                str(model_path),
+                "--word2vec-interval",
+                "2",
+                "--word2vec-order-free",
+            ],
+        ):
+            main()
+
+        mock_two_stage_pipeline.assert_not_called()
+        mock_word2vec_pipeline.assert_called_once()
+        call_kwargs = mock_word2vec_pipeline.call_args[1]
+        assert call_kwargs["model_path"] == model_path
+        assert call_kwargs["interval"] == 2
+        assert call_kwargs["order_free"] is True
+
 
 class TestCLIErrorHandling:
     """Tests for CLI error handling."""
