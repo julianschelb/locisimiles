@@ -12,13 +12,14 @@ Available judges:
 - ``IdentityJudge`` — pass-through (``judgment_score = 1.0``)
 """
 
-from locisimiles.pipeline.judge._base import JudgeBase
+from locisimiles.pipeline.judge._base import CandidateJudgeBase, JudgeBase
 from locisimiles.pipeline.judge.classification import ClassificationJudge
 from locisimiles.pipeline.judge.identity import IdentityJudge
 from locisimiles.pipeline.judge.threshold import ThresholdJudge
 
 __all__ = [
-    "JudgeBase",
+    "CandidateJudgeBase",
+    "JudgeBase",  # backward-compat alias
     "ClassificationJudge",
     "ThresholdJudge",
     "IdentityJudge",

@@ -45,8 +45,8 @@ locisimiles query.csv source.csv -o results.csv
 
 ```bash
 locisimiles query.csv source.csv -o results.csv \
-  --classification-model julian-schelb/PhilBerta-class-latin-intertext-v1 \
-  --embedding-model julian-schelb/SPhilBerta-emb-lat-intertext-v1 \
+  --classification-model julian-schelb/xlm-roberta-large-class-lat-intertext-v1 \
+  --embedding-model julian-schelb/multilingual-e5-large-emb-lat-intertext-v1 \
   --top-k 20 \
   --threshold 0.7 \
   --device cuda \
@@ -61,12 +61,12 @@ locisimiles query.csv source.csv -o results.csv \
   - `-o, --output`: Path to output CSV file for results (required)
 
 - **Models:**
-  - `--classification-model`: HuggingFace model for classification (default: PhilBerta-class-latin-intertext-v1)
-  - `--embedding-model`: HuggingFace model for embeddings (default: SPhilBerta-emb-lat-intertext-v1)
+  - `--classification-model`: HuggingFace model for classification (default: xlm-roberta-large-class-lat-intertext-v1)
+  - `--embedding-model`: HuggingFace model for embeddings (default: multilingual-e5-large-emb-lat-intertext-v1)
 
 - **Pipeline Parameters:**
   - `-k, --top-k`: Number of top candidates to retrieve per query segment (default: 10)
-  - `-t, --threshold`: Classification probability threshold for filtering results (default: 0.5)
+  - `-t, --threshold`: Classification probability threshold for filtering results (default: 0.85)
 
 - **Device:**
   - `--device`: Choose `auto`, `cuda`, `mps`, or `cpu` (default: auto-detect)

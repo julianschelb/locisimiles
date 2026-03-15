@@ -5,7 +5,7 @@ Ready-to-use pipelines for detecting intertextual parallels in Latin literature.
 Each pipeline loads its own models and exposes a single `run()` method that
 accepts two `Document` objects and returns scored results.
 
-## ClassificationPipelineWithCandidategeneration
+## TwoStagePipeline
 
 ::: locisimiles.pipeline.two_stage.TwoStagePipeline
     options:

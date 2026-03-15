@@ -34,7 +34,7 @@ locisimiles run SOURCE TARGET [OPTIONS]
 | `--output`, `-o` | `results.csv` | Output file path |
 | `--model`, `-m` | `sentence-transformers/all-MiniLM-L6-v2` | Model name or path |
 | `--top-k`, `-k` | `10` | Number of candidates to retrieve |
-| `--threshold`, `-t` | `0.5` | Classification threshold |
+| `--threshold`, `-t` | `0.85` | Classification threshold |
 | `--batch-size`, `-b` | `32` | Batch size for processing |
 
 #### Examples

@@ -59,7 +59,7 @@ class RetrievalPipeline(Pipeline):
     def __init__(
         self,
         *,
-        embedding_model_name: str = "julian-schelb/SPhilBerta-emb-lat-intertext-v1",
+        embedding_model_name: str = "julian-schelb/multilingual-e5-large-emb-lat-intertext-v1",
         device: str | int | None = None,
         top_k: int = 10,
         similarity_threshold: Optional[float] = None,

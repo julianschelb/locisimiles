@@ -272,8 +272,16 @@ def build_config_stage() -> tuple[gr.Step, dict]:
                 gr.Markdown("**🤖 Embedding Model**")
                 components["embedding_model"] = gr.Dropdown(
                     label="Embedding Model",
-                    choices=["julian-schelb/SPhilBerta-emb-lat-intertext-v1"],
-                    value="julian-schelb/SPhilBerta-emb-lat-intertext-v1",
+                    choices=[
+                        "julian-schelb/multilingual-e5-small-emb-lat-intertext-v1",
+                        "julian-schelb/multilingual-e5-base-emb-lat-intertext-v1",
+                        "julian-schelb/multilingual-e5-large-emb-lat-intertext-v1",
+                        "julian-schelb/granite-embedding-107m-emb-lat-intertext-v1",
+                        "julian-schelb/granite-embedding-278m-emb-lat-intertext-v1",
+                        "julian-schelb/sphilberta-emb-lat-intertext-v1",
+                        "julian-schelb/bge-m3-emb-lat-intertext-v1",
+                    ],
+                    value="julian-schelb/multilingual-e5-large-emb-lat-intertext-v1",
                     interactive=True,
                     info="Sentence-transformer model for candidate retrieval.",
                 )
@@ -284,8 +292,19 @@ def build_config_stage() -> tuple[gr.Step, dict]:
                 gr.Markdown("**🤖 Classification Model**")
                 components["classification_model"] = gr.Dropdown(
                     label="Classification Model",
-                    choices=["julian-schelb/PhilBerta-class-latin-intertext-v1"],
-                    value="julian-schelb/PhilBerta-class-latin-intertext-v1",
+                    choices=[
+                        "julian-schelb/mmbert-small-class-lat-intertext-v1",
+                        "julian-schelb/mmbert-base-class-lat-intertext-v1",
+                        "julian-schelb/bert-romanian-class-lat-intertext-v1",
+                        "julian-schelb/philberta-class-lat-intertext-v2",
+                        "julian-schelb/laberta-class-lat-intertext-v1",
+                        "julian-schelb/modernbert-large-class-lat-intertext-v1",
+                        "julian-schelb/modernbert-base-class-lat-intertext-v1",
+                        "julian-schelb/xlm-roberta-large-class-lat-intertext-v1",
+                        "julian-schelb/xlm-roberta-base-class-lat-intertext-v1",
+                        "julian-schelb/roberta-base-latin-v2-class-lat-intertext-v1",
+                    ],
+                    value="julian-schelb/xlm-roberta-large-class-lat-intertext-v1",
                     interactive=True,
                     info="Model used to classify candidate pairs.",
                 )
@@ -305,7 +324,7 @@ def build_config_stage() -> tuple[gr.Step, dict]:
             components["threshold"] = gr.Slider(
                 minimum=0.0,
                 maximum=1.0,
-                value=0.5,
+                value=0.85,
                 step=0.05,
                 label="Display Threshold",
                 info="Minimum confidence to highlight as a 'find' in the results view.",
@@ -363,7 +382,7 @@ def build_config_stage() -> tuple[gr.Step, dict]:
                 components["rb_threshold"] = gr.Slider(
                     minimum=0.0,
                     maximum=1.0,
-                    value=0.5,
+                    value=0.85,
                     step=0.05,
                     label="Display Threshold",
                     info="Minimum confidence to highlight as a 'find' in the results view.",

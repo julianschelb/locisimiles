@@ -10,14 +10,17 @@ from locisimiles.datasets import (
 from locisimiles.document import Document, TextSegment
 from locisimiles.evaluator import IntertextEvaluator
 from locisimiles.pipeline import (
+    CandidateJudgeBase,
     ClassificationJudge,
     # Backward-compatible aliases
     ClassificationPipeline,
+    ClassificationPipelineWithCandidateGeneration,
     ClassificationPipelineWithCandidategeneration,
     EmbeddingCandidateGenerator,
     ExhaustiveCandidateGenerator,
     ExhaustiveClassificationPipeline,
     IdentityJudge,
+    JudgeBase,  # backward-compat alias
     # Modular components
     Pipeline,
     RetrievalPipeline,
@@ -42,9 +45,12 @@ __all__ = [
     "RuleBasedPipeline",
     # Backward-compatible aliases
     "ClassificationPipeline",
-    "ClassificationPipelineWithCandidategeneration",
+    "ClassificationPipelineWithCandidateGeneration",
+    "ClassificationPipelineWithCandidategeneration",  # old typo kept for compat
     # Modular components
     "Pipeline",
+    "CandidateJudgeBase",
+    "JudgeBase",  # backward-compat alias
     "EmbeddingCandidateGenerator",
     "ExhaustiveCandidateGenerator",
     "RuleBasedCandidateGenerator",

@@ -18,7 +18,7 @@ The [Pipelines](pipelines.md) module provides the main processing pipelines:
 - `Pipeline` - Generic composer: combine any generator + judge
 - `RetrievalPipeline` - Semantic similarity retrieval
 - `ClassificationPipeline` - Text pair classification
-- `ClassificationPipelineWithCandidategeneration` - Two-stage retrieval + classification
+- `ClassificationPipelineWithCandidateGeneration` - Two-stage retrieval + classification
 - `RuleBasedPipeline` - Lexical matching + linguistic filters
 
 ### Generators Module

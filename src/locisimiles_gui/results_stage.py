@@ -35,7 +35,7 @@ from locisimiles.pipeline._types import CandidateJudgeOutput
 
 
 def update_results_display(
-    results: CandidateJudgeOutput | None, query_doc: Document | None, threshold: float = 0.5
+    results: CandidateJudgeOutput | None, query_doc: Document | None, threshold: float = 0.85
 ) -> tuple[dict, dict, dict]:
     """Update the results display with new data.
 
@@ -88,7 +88,7 @@ def _format_metric_with_bar(value: float, is_above_threshold: bool = False) -> s
 
 
 def _convert_results_to_display(
-    results: CandidateJudgeOutput | None, query_doc: Document | None, threshold: float = 0.5
+    results: CandidateJudgeOutput | None, query_doc: Document | None, threshold: float = 0.85
 ) -> tuple[list[list], dict]:
     """Convert pipeline results to display format.
 
@@ -302,8 +302,7 @@ def build_results_stage() -> tuple[gr.Step, dict[str, Any]]:
                     label="Query Document Segments",
                     wrap=True,
                     max_height=600,
-                    column_count=3,
-                    column_limits=(3, 3),
+                    col_count=(3, "fixed"),
                 )
 
             # Right column: Matching source segments

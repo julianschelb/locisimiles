@@ -2,12 +2,12 @@
 
 Judges score or classify candidates produced by a generator.
 
-All judges inherit from `JudgeBase` and implement a `judge()` method
+All judges inherit from `CandidateJudgeBase` and implement a `judge()` method
 returning `CandidateJudgeOutput`.
 
-## JudgeBase
+## CandidateJudgeBase
 
-::: locisimiles.pipeline.judge._base.JudgeBase
+::: locisimiles.pipeline.judge._base.CandidateJudgeBase
     options:
       heading_level: 3
 

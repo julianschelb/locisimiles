@@ -14,7 +14,7 @@ from locisimiles.pipeline._types import (
     results_to_json,
 )
 from locisimiles.pipeline.generator._base import CandidateGeneratorBase
-from locisimiles.pipeline.judge._base import JudgeBase
+from locisimiles.pipeline.judge._base import CandidateJudgeBase as JudgeBase
 
 
 class Pipeline:

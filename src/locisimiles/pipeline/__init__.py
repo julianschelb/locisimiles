@@ -62,9 +62,10 @@ from locisimiles.pipeline.generator import (
 
 # --- Modular components: judges ---
 from locisimiles.pipeline.judge import (
+    CandidateJudgeBase,
     ClassificationJudge,
     IdentityJudge,
-    JudgeBase,
+    JudgeBase,  # backward-compat alias
     ThresholdJudge,
 )
 
@@ -77,7 +78,8 @@ from locisimiles.pipeline.rule_based import RuleBasedPipeline
 
 # --- Preconfigured pipelines ---
 from locisimiles.pipeline.two_stage import (
-    ClassificationPipelineWithCandidategeneration,  # backward-compat alias
+    ClassificationPipelineWithCandidateGeneration,  # correctly-cased alias
+    ClassificationPipelineWithCandidategeneration,  # backward-compat alias (old typo)
     TwoStagePipeline,
 )
 
@@ -108,7 +110,8 @@ __all__ = [
     "ExhaustiveCandidateGenerator",
     "RuleBasedCandidateGenerator",
     # Judges
-    "JudgeBase",
+    "CandidateJudgeBase",
+    "JudgeBase",  # backward-compat alias
     "ClassificationJudge",
     "ThresholdJudge",
     "IdentityJudge",
@@ -120,6 +123,7 @@ __all__ = [
     "RetrievalPipeline",
     "RuleBasedPipeline",
     # Backward-compatible aliases
-    "ClassificationPipelineWithCandidategeneration",
+    "ClassificationPipelineWithCandidateGeneration",
+    "ClassificationPipelineWithCandidategeneration",  # old typo kept for compat
     "ClassificationPipeline",
 ]
