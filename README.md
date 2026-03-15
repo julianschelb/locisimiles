@@ -66,7 +66,7 @@ locisimiles query.csv source.csv -o results.csv \
 
 - **Pipeline Parameters:**
   - `-k, --top-k`: Number of top candidates to retrieve per query segment (default: 10)
-  - `-t, --threshold`: Classification probability threshold for filtering results (default: 0.5)
+  - `-t, --threshold`: Classification probability threshold for filtering results (default: 0.85)
 
 - **Device:**
   - `--device`: Choose `auto`, `cuda`, `mps`, or `cpu` (default: auto-detect)

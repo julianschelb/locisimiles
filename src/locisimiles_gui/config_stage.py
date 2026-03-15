@@ -204,7 +204,7 @@ def build_config_stage() -> tuple[gr.Step, dict]:
                 components["threshold"] = gr.Slider(
                     minimum=0.0,
                     maximum=1.0,
-                    value=0.5,
+                    value=0.85,
                     step=0.05,
                     label="Classification Threshold",
                     info="Minimum confidence to count as a 'find'. Lower = more results but more false positives; Higher = fewer but more certain results.",

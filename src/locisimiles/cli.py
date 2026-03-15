@@ -85,7 +85,7 @@ CSV Format:
         "-t",
         "--threshold",
         type=float,
-        default=0.5,
+        default=0.85,
         help="Classification probability threshold for filtering results (default: %(default)s)",
     )
 
