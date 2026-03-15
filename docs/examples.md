@@ -20,6 +20,8 @@ The examples use sample Latin texts:
 
 For an interactive walkthrough, see the [example notebook](https://github.com/julianschelb/locisimiles/blob/main/examples/example.ipynb).
 
+For the Burns-style retrieval flow, see the [Word2Vec notebook](https://github.com/julianschelb/locisimiles/blob/main/examples/example_word2vec.ipynb).
+
 The notebook covers:
 
 1. **Loading Documents** - Creating Document objects from CSV files
