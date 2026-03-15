@@ -9,7 +9,10 @@ from pathlib import Path
 
 from locisimiles.document import Document
 from locisimiles.pipeline import (
+    DEFAULT_CONTEXTUAL_BERT_MODEL_NAME,
     DEFAULT_WORD2VEC_MODEL_PATH,
+    LatinBertRetrievalPipeline,
+    LatinBertTwoStagePipeline,
     TwoStagePipeline,
     Word2VecRetrievalPipeline,
 )
@@ -67,7 +70,12 @@ CSV Format:
     parser.add_argument(
         "--pipeline",
         type=str,
-        choices=["two-stage", "word2vec-retrieval"],
+        choices=[
+            "two-stage",
+            "word2vec-retrieval",
+            "latin-bert-retrieval",
+            "latin-bert-two-stage",
+        ],
         default="two-stage",
         help="Pipeline type to run (default: %(default)s)",
     )
@@ -82,6 +90,38 @@ CSV Format:
         type=str,
         default="julian-schelb/multilingual-e5-large-emb-lat-intertext-v1",
         help="HuggingFace model name for embeddings (default: %(default)s)",
+    )
+    parser.add_argument(
+        "--latin-bert-model",
+        type=str,
+        default=DEFAULT_CONTEXTUAL_BERT_MODEL_NAME,
+        help="HuggingFace model name for contextual Latin BERT retrieval (default: %(default)s)",
+    )
+    parser.add_argument(
+        "--latin-bert-model-path",
+        type=Path,
+        default=None,
+        help=(
+            "Optional local model path for contextual Latin BERT retrieval "
+            "(used with --pipeline latin-bert-retrieval or latin-bert-two-stage)"
+        ),
+    )
+    parser.add_argument(
+        "--latin-bert-max-length",
+        type=int,
+        default=256,
+        help="Maximum tokenized sequence length for contextual retrieval (default: %(default)s)",
+    )
+    parser.add_argument(
+        "--latin-bert-min-token-length",
+        type=int,
+        default=2,
+        help="Minimum token length used for contextual scoring (default: %(default)s)",
+    )
+    parser.add_argument(
+        "--latin-bert-disable-stopword-filter",
+        action="store_true",
+        help="Disable built-in Latin stopword filtering for contextual retrieval",
     )
     parser.add_argument(
         "--word2vec-model-path",
@@ -183,6 +223,17 @@ CSV Format:
             print("Initializing pipeline...")
             print(f"  Pipeline type: {args.pipeline}")
 
+        if args.pipeline in {"latin-bert-retrieval", "latin-bert-two-stage"}:
+            if args.latin_bert_model_path is not None and (
+                args.latin_bert_model != DEFAULT_CONTEXTUAL_BERT_MODEL_NAME
+            ):
+                print(
+                    "Error: provide only one contextual model source: "
+                    "--latin-bert-model-path or a custom --latin-bert-model.",
+                    file=sys.stderr,
+                )
+                return 1
+
         if args.pipeline == "two-stage":
             if args.verbose:
                 print(f"  Classification model: {args.classification_model}")
@@ -193,7 +244,7 @@ CSV Format:
                 embedding_model_name=args.embedding_model,
                 device=device,
             )
-        else:
+        elif args.pipeline == "word2vec-retrieval":
             if args.verbose:
                 if args.word2vec_model_path is None:
                     print("  Word2Vec model path: default package path")
@@ -208,6 +259,39 @@ CSV Format:
                 similarity_threshold=args.threshold,
                 interval=args.word2vec_interval,
                 order_free=args.word2vec_order_free,
+            )
+        elif args.pipeline == "latin-bert-retrieval":
+            if args.verbose:
+                if args.latin_bert_model_path is None:
+                    print(f"  Latin BERT model (HF): {args.latin_bert_model}")
+                else:
+                    print(f"  Latin BERT model (local): {args.latin_bert_model_path}")
+
+            pipeline = LatinBertRetrievalPipeline(
+                model_name=args.latin_bert_model,
+                model_path=args.latin_bert_model_path,
+                device=device,
+                top_k=args.top_k,
+                similarity_threshold=args.threshold,
+                max_length=args.latin_bert_max_length,
+                min_token_length=args.latin_bert_min_token_length,
+                use_stopword_filter=not args.latin_bert_disable_stopword_filter,
+            )
+        else:
+            if args.verbose:
+                if args.latin_bert_model_path is None:
+                    print(f"  Latin BERT model (HF): {args.latin_bert_model}")
+                else:
+                    print(f"  Latin BERT model (local): {args.latin_bert_model_path}")
+
+            pipeline = LatinBertTwoStagePipeline(
+                classification_name=args.classification_model,
+                model_name=args.latin_bert_model,
+                model_path=args.latin_bert_model_path,
+                device=device,
+                max_length=args.latin_bert_max_length,
+                min_token_length=args.latin_bert_min_token_length,
+                use_stopword_filter=not args.latin_bert_disable_stopword_filter,
             )
 
         # Run pipeline

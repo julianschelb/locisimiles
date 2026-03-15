@@ -580,3 +580,143 @@ class TestCLIErrorHandling:
         assert result == 1
         captured = capsys.readouterr()
         assert "Error" in captured.err or "error" in captured.err.lower()
+
+
+class TestCLIContextualPipelines:
+    """Tests for contextual Latin BERT CLI pipeline routing."""
+
+    @patch("locisimiles.cli.LatinBertRetrievalPipeline")
+    @patch("locisimiles.cli.TwoStagePipeline")
+    @patch("locisimiles.cli.Document")
+    def test_cli_contextual_retrieval_pipeline_selection(
+        self,
+        mock_doc_class,
+        mock_two_stage_pipeline,
+        mock_contextual_pipeline,
+        temp_dir,
+    ):
+        """Selecting contextual retrieval should initialize LatinBertRetrievalPipeline."""
+        from locisimiles.cli import main
+
+        mock_doc_class.return_value = MagicMock()
+        mock_doc_class.return_value.__iter__ = MagicMock(return_value=iter([]))
+        mock_doc_class.return_value.__len__ = MagicMock(return_value=1)
+
+        mock_pipeline = MagicMock()
+        mock_pipeline.run.return_value = {}
+        mock_contextual_pipeline.return_value = mock_pipeline
+
+        query_csv = temp_dir / "query.csv"
+        query_csv.write_text("seg_id,text\nq1,Query\n", encoding="utf-8")
+        source_csv = temp_dir / "source.csv"
+        source_csv.write_text("seg_id,text\ns1,Source\n", encoding="utf-8")
+        output_path = temp_dir / "output.csv"
+
+        with patch.object(
+            sys,
+            "argv",
+            [
+                "locisimiles",
+                str(query_csv),
+                str(source_csv),
+                "-o",
+                str(output_path),
+                "--pipeline",
+                "latin-bert-retrieval",
+                "--latin-bert-model",
+                "dummy/model",
+                "--latin-bert-max-length",
+                "128",
+            ],
+        ):
+            main()
+
+        mock_two_stage_pipeline.assert_not_called()
+        mock_contextual_pipeline.assert_called_once()
+        call_kwargs = mock_contextual_pipeline.call_args[1]
+        assert call_kwargs["model_name"] == "dummy/model"
+        assert call_kwargs["max_length"] == 128
+
+    @patch("locisimiles.cli.LatinBertTwoStagePipeline")
+    @patch("locisimiles.cli.Document")
+    def test_cli_contextual_two_stage_selection(
+        self,
+        mock_doc_class,
+        mock_contextual_two_stage,
+        temp_dir,
+    ):
+        """Selecting contextual two-stage should initialize LatinBertTwoStagePipeline."""
+        from locisimiles.cli import main
+
+        mock_doc_class.return_value = MagicMock()
+        mock_doc_class.return_value.__iter__ = MagicMock(return_value=iter([]))
+        mock_doc_class.return_value.__len__ = MagicMock(return_value=1)
+
+        mock_pipeline = MagicMock()
+        mock_pipeline.run.return_value = {}
+        mock_contextual_two_stage.return_value = mock_pipeline
+
+        query_csv = temp_dir / "query.csv"
+        query_csv.write_text("seg_id,text\nq1,Query\n", encoding="utf-8")
+        source_csv = temp_dir / "source.csv"
+        source_csv.write_text("seg_id,text\ns1,Source\n", encoding="utf-8")
+        output_path = temp_dir / "output.csv"
+
+        with patch.object(
+            sys,
+            "argv",
+            [
+                "locisimiles",
+                str(query_csv),
+                str(source_csv),
+                "-o",
+                str(output_path),
+                "--pipeline",
+                "latin-bert-two-stage",
+                "--classification-model",
+                "custom/classifier",
+            ],
+        ):
+            main()
+
+        mock_contextual_two_stage.assert_called_once()
+        call_kwargs = mock_contextual_two_stage.call_args[1]
+        assert call_kwargs["classification_name"] == "custom/classifier"
+
+    @patch("locisimiles.cli.Document")
+    def test_cli_contextual_model_conflict_errors(self, mock_doc_class, temp_dir, capsys):
+        """Contextual pipelines should reject conflicting model source flags."""
+        from locisimiles.cli import main
+
+        mock_doc_class.return_value = MagicMock()
+
+        query_csv = temp_dir / "query.csv"
+        query_csv.write_text("seg_id,text\nq1,Query\n", encoding="utf-8")
+        source_csv = temp_dir / "source.csv"
+        source_csv.write_text("seg_id,text\ns1,Source\n", encoding="utf-8")
+        output_path = temp_dir / "output.csv"
+        model_dir = temp_dir / "local-model"
+        model_dir.mkdir()
+
+        with patch.object(
+            sys,
+            "argv",
+            [
+                "locisimiles",
+                str(query_csv),
+                str(source_csv),
+                "-o",
+                str(output_path),
+                "--pipeline",
+                "latin-bert-retrieval",
+                "--latin-bert-model",
+                "custom/model",
+                "--latin-bert-model-path",
+                str(model_dir),
+            ],
+        ):
+            result = main()
+
+        assert result == 1
+        captured = capsys.readouterr()
+        assert "provide only one contextual model source" in captured.err.lower()

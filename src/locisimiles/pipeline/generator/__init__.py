@@ -14,6 +14,10 @@ Available generators:
 """
 
 from locisimiles.pipeline.generator._base import CandidateGeneratorBase
+from locisimiles.pipeline.generator.contextual_bert import (
+    DEFAULT_CONTEXTUAL_BERT_MODEL_NAME,
+    LatinBertContextualCandidateGenerator,
+)
 from locisimiles.pipeline.generator.embedding import EmbeddingCandidateGenerator
 from locisimiles.pipeline.generator.exhaustive import ExhaustiveCandidateGenerator
 from locisimiles.pipeline.generator.rule_based import RuleBasedCandidateGenerator
@@ -24,6 +28,8 @@ from locisimiles.pipeline.generator.word2vec import (
 
 __all__ = [
     "CandidateGeneratorBase",
+    "LatinBertContextualCandidateGenerator",
+    "DEFAULT_CONTEXTUAL_BERT_MODEL_NAME",
     "EmbeddingCandidateGenerator",
     "ExhaustiveCandidateGenerator",
     "RuleBasedCandidateGenerator",

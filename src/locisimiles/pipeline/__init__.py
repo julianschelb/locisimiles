@@ -52,13 +52,17 @@ from locisimiles.pipeline.classification import (
     ClassificationPipeline,  # backward-compat alias
     ExhaustiveClassificationPipeline,
 )
+from locisimiles.pipeline.contextual_retrieval import LatinBertRetrievalPipeline
+from locisimiles.pipeline.contextual_two_stage import LatinBertTwoStagePipeline
 
 # --- Modular components: generators ---
 from locisimiles.pipeline.generator import (
     DEFAULT_WORD2VEC_MODEL_PATH,
+    DEFAULT_CONTEXTUAL_BERT_MODEL_NAME,
     CandidateGeneratorBase,
     EmbeddingCandidateGenerator,
     ExhaustiveCandidateGenerator,
+    LatinBertContextualCandidateGenerator,
     RuleBasedCandidateGenerator,
     Word2VecCandidateGenerator,
 )
@@ -115,6 +119,8 @@ __all__ = [
     "RuleBasedCandidateGenerator",
     "Word2VecCandidateGenerator",
     "DEFAULT_WORD2VEC_MODEL_PATH",
+    "LatinBertContextualCandidateGenerator",
+    "DEFAULT_CONTEXTUAL_BERT_MODEL_NAME",
     # Judges
     "CandidateJudgeBase",
     "JudgeBase",  # backward-compat alias
@@ -128,6 +134,8 @@ __all__ = [
     "ExhaustiveClassificationPipeline",
     "RetrievalPipeline",
     "Word2VecRetrievalPipeline",
+    "LatinBertRetrievalPipeline",
+    "LatinBertTwoStagePipeline",
     "RuleBasedPipeline",
     # Backward-compatible aliases
     "ClassificationPipelineWithCandidateGeneration",
