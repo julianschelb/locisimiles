@@ -8,18 +8,25 @@ def main() -> int:
     base = Path(__file__).resolve().parent
     q_csv = base / "hieronymus_samples.csv"
     s_csv = base / "vergil_samples.csv"
+    local_latinbert_path = base / "models" / "latinbert"
+    latinbert_model_name = "ashleygong03/bamman-burns-latin-bert"
 
     query_doc = Document(q_csv, author="Hieronymus")
     source_doc = Document(s_csv, author="Vergil")
 
-    pipeline = LatinBertRetrievalPipeline(
-        model_name="xlm-roberta-base",
-        top_k=5,
-        similarity_threshold=0.85,
-        max_length=128,
-        min_token_length=2,
-        use_stopword_filter=True,
-    )
+    pipeline_kwargs = {
+        "top_k": 5,
+        "similarity_threshold": 0.85,
+        "max_length": 128,
+        "min_token_length": 2,
+        "use_stopword_filter": True,
+    }
+    if local_latinbert_path.exists():
+        pipeline_kwargs["model_path"] = local_latinbert_path
+    else:
+        pipeline_kwargs["model_name"] = latinbert_model_name
+
+    pipeline = LatinBertRetrievalPipeline(**pipeline_kwargs)
 
     results = pipeline.run(query=query_doc, source=source_doc, top_k=5)
 

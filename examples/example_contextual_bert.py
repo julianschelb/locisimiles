@@ -8,6 +8,8 @@ base = Path(__file__).resolve().parent
 query_csv = base / "hieronymus_samples.csv"
 source_csv = base / "vergil_samples.csv"
 ground_truth_csv = base / "ground_truth.csv"
+local_latinbert_path = base / "models" / "latinbert"
+latinbert_model_name = "ashleygong03/bamman-burns-latin-bert"
 
 query_doc = Document(query_csv, author="Hieronymus")
 source_doc = Document(source_csv, author="Vergil")
@@ -17,15 +19,22 @@ print(f"Query segments: {len(query_doc)}")
 print(f"Source segments: {len(source_doc)}")
 print("=" * 70)
 
-# Use either a HF model id (default) or a local model directory.
-pipeline = LatinBertRetrievalPipeline(
-    model_name="xlm-roberta-base",
-    top_k=10,
-    similarity_threshold=0.85,
-    max_length=256,
-    min_token_length=2,
-    use_stopword_filter=True,
-)
+# Prefer a local LatinBERT directory when available, otherwise download from HF.
+pipeline_kwargs = {
+    "top_k": 10,
+    "similarity_threshold": 0.85,
+    "max_length": 256,
+    "min_token_length": 2,
+    "use_stopword_filter": True,
+}
+if local_latinbert_path.exists():
+    pipeline_kwargs["model_path"] = local_latinbert_path
+    print(f"Using local LatinBERT model path: {local_latinbert_path}")
+else:
+    pipeline_kwargs["model_name"] = latinbert_model_name
+    print(f"Using HuggingFace LatinBERT model: {latinbert_model_name}")
+
+pipeline = LatinBertRetrievalPipeline(**pipeline_kwargs)
 
 results = pipeline.run(query=query_doc, source=source_doc, top_k=10)
 

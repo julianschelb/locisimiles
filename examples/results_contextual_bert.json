@@ -1,0 +1,684 @@
+{
+  "hier. adv. iovin. 1.1": [
+    {
+      "source_id": "verg. ecl. 8.62",
+      "source_text": "Haec Damon; uos, quae responderit Alphesiboeus, dicite, Pierides: non omnia possumus omnes.",
+      "candidate_score": 0.9523522853851318,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. georg. 1.197",
+      "source_text": "uidi lecta diu et multo spectata labore degenerare tamen, ni uis humana quotannis maxima quaeque manu legeret: sic omnia fatis in peius ruere ac retro sublapsa referri, non aliter quam qui aduerso uix flumine lembum remigiis subigit, si bracchia forte remisit, atque illum in praeceps prono rapit alueus amni.",
+      "candidate_score": 0.9448226094245911,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 1.177",
+      "source_text": "tum Cererem corruptam undis Cerealiaque arma expediunt fessi rerum, frugesque receptas et torrere parant flammis et frangere saxo.",
+      "candidate_score": 0.944619745016098,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 10.636",
+      "source_text": "tum dea nube caua tenuem sine uiribus umbram in faciem Aeneae uisu mirabile monstrum Dardaniis ornat telis clipeumque iubasque diuini assimulat capitis, dat inania uerba, dat sine mente sonum gressusque effingit euntis, morte obita qualis fama est uolitare figuras aut quae sopitos deludunt somnia sensus.",
+      "candidate_score": 0.940729409456253,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. georg. 2.475",
+      "source_text": "Me uero primum dulces ante omnia Musae, quarum sacra fero ingenti percussus amore, accipiant caelique uias et sidera monstrent, defectus solis uarios lunaeque labores, unde tremor terris, qua ui maria alta tumescant obicibus ruptis rursusque in se ipsa residant, quid tantum Oceano properent se tingere soles hiberni, uel quae tardis mora noctibus obstet.",
+      "candidate_score": 0.9391340911388397,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. ecl. 3.49",
+      "source_text": "MENALCAS Numquam hodie effugies; ueniam quocumque uocaris.",
+      "candidate_score": 0.9295673072338104,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. ecl. 3.26",
+      "source_text": "non tu in triuiis, indocte, solebas stridenti miserum stipula disperdere carmen?",
+      "candidate_score": 0.9291231334209442,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 11.508",
+      "source_text": "o decus Italiae uirgo, quas dicere grates quasue referre parem?",
+      "candidate_score": 0.9251103699207306,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 10.875",
+      "source_text": "sic pater ille deum faciat, sic altus Apollo!",
+      "candidate_score": 0.8976220190525055,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 4.172",
+      "source_text": "coniugium uocat, hoc praetexit nomine culpam.",
+      "candidate_score": 0.8749447762966156,
+      "judgment_score": 1.0
+    }
+  ],
+  "hier. adv. iovin. 1.41": [
+    {
+      "source_id": "verg. aen. 11.508",
+      "source_text": "o decus Italiae uirgo, quas dicere grates quasue referre parem?",
+      "candidate_score": 0.9328747689723969,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. ecl. 8.62",
+      "source_text": "Haec Damon; uos, quae responderit Alphesiboeus, dicite, Pierides: non omnia possumus omnes.",
+      "candidate_score": 0.9138210415840149,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. ecl. 3.26",
+      "source_text": "non tu in triuiis, indocte, solebas stridenti miserum stipula disperdere carmen?",
+      "candidate_score": 0.912529319524765,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 1.177",
+      "source_text": "tum Cererem corruptam undis Cerealiaque arma expediunt fessi rerum, frugesque receptas et torrere parant flammis et frangere saxo.",
+      "candidate_score": 0.8974482119083405,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 10.875",
+      "source_text": "sic pater ille deum faciat, sic altus Apollo!",
+      "candidate_score": 0.8957021534442902,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. georg. 2.475",
+      "source_text": "Me uero primum dulces ante omnia Musae, quarum sacra fero ingenti percussus amore, accipiant caelique uias et sidera monstrent, defectus solis uarios lunaeque labores, unde tremor terris, qua ui maria alta tumescant obicibus ruptis rursusque in se ipsa residant, quid tantum Oceano properent se tingere soles hiberni, uel quae tardis mora noctibus obstet.",
+      "candidate_score": 0.8855374753475189,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. georg. 1.197",
+      "source_text": "uidi lecta diu et multo spectata labore degenerare tamen, ni uis humana quotannis maxima quaeque manu legeret: sic omnia fatis in peius ruere ac retro sublapsa referri, non aliter quam qui aduerso uix flumine lembum remigiis subigit, si bracchia forte remisit, atque illum in praeceps prono rapit alueus amni.",
+      "candidate_score": 0.8761798441410065,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 10.636",
+      "source_text": "tum dea nube caua tenuem sine uiribus umbram in faciem Aeneae uisu mirabile monstrum Dardaniis ornat telis clipeumque iubasque diuini assimulat capitis, dat inania uerba, dat sine mente sonum gressusque effingit euntis, morte obita qualis fama est uolitare figuras aut quae sopitos deludunt somnia sensus.",
+      "candidate_score": 0.8756253719329834,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. ecl. 3.49",
+      "source_text": "MENALCAS Numquam hodie effugies; ueniam quocumque uocaris.",
+      "candidate_score": 0.860759973526001,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 4.172",
+      "source_text": "coniugium uocat, hoc praetexit nomine culpam.",
+      "candidate_score": 0.8289830088615417,
+      "judgment_score": 0.0
+    }
+  ],
+  "hier. adv. iovin. 2.36": [
+    {
+      "source_id": "verg. aen. 4.172",
+      "source_text": "coniugium uocat, hoc praetexit nomine culpam.",
+      "candidate_score": 0.9825259745121002,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 10.636",
+      "source_text": "tum dea nube caua tenuem sine uiribus umbram in faciem Aeneae uisu mirabile monstrum Dardaniis ornat telis clipeumque iubasque diuini assimulat capitis, dat inania uerba, dat sine mente sonum gressusque effingit euntis, morte obita qualis fama est uolitare figuras aut quae sopitos deludunt somnia sensus.",
+      "candidate_score": 0.8990079462528229,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. georg. 2.475",
+      "source_text": "Me uero primum dulces ante omnia Musae, quarum sacra fero ingenti percussus amore, accipiant caelique uias et sidera monstrent, defectus solis uarios lunaeque labores, unde tremor terris, qua ui maria alta tumescant obicibus ruptis rursusque in se ipsa residant, quid tantum Oceano properent se tingere soles hiberni, uel quae tardis mora noctibus obstet.",
+      "candidate_score": 0.8772214353084564,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 11.508",
+      "source_text": "o decus Italiae uirgo, quas dicere grates quasue referre parem?",
+      "candidate_score": 0.8735355734825134,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. georg. 1.197",
+      "source_text": "uidi lecta diu et multo spectata labore degenerare tamen, ni uis humana quotannis maxima quaeque manu legeret: sic omnia fatis in peius ruere ac retro sublapsa referri, non aliter quam qui aduerso uix flumine lembum remigiis subigit, si bracchia forte remisit, atque illum in praeceps prono rapit alueus amni.",
+      "candidate_score": 0.869737058877945,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. ecl. 8.62",
+      "source_text": "Haec Damon; uos, quae responderit Alphesiboeus, dicite, Pierides: non omnia possumus omnes.",
+      "candidate_score": 0.8621504604816437,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. ecl. 3.26",
+      "source_text": "non tu in triuiis, indocte, solebas stridenti miserum stipula disperdere carmen?",
+      "candidate_score": 0.8575935363769531,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 1.177",
+      "source_text": "tum Cererem corruptam undis Cerealiaque arma expediunt fessi rerum, frugesque receptas et torrere parant flammis et frangere saxo.",
+      "candidate_score": 0.8527869582176208,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 10.875",
+      "source_text": "sic pater ille deum faciat, sic altus Apollo!",
+      "candidate_score": 0.8515584766864777,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. ecl. 3.49",
+      "source_text": "MENALCAS Numquam hodie effugies; ueniam quocumque uocaris.",
+      "candidate_score": 0.8311716914176941,
+      "judgment_score": 0.0
+    }
+  ],
+  "hier. adv. pelag. 1.23": [
+    {
+      "source_id": "verg. ecl. 8.62",
+      "source_text": "Haec Damon; uos, quae responderit Alphesiboeus, dicite, Pierides: non omnia possumus omnes.",
+      "candidate_score": 0.9503330588340759,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. ecl. 3.26",
+      "source_text": "non tu in triuiis, indocte, solebas stridenti miserum stipula disperdere carmen?",
+      "candidate_score": 0.9281962513923645,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. georg. 1.197",
+      "source_text": "uidi lecta diu et multo spectata labore degenerare tamen, ni uis humana quotannis maxima quaeque manu legeret: sic omnia fatis in peius ruere ac retro sublapsa referri, non aliter quam qui aduerso uix flumine lembum remigiis subigit, si bracchia forte remisit, atque illum in praeceps prono rapit alueus amni.",
+      "candidate_score": 0.9218770563602448,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. georg. 2.475",
+      "source_text": "Me uero primum dulces ante omnia Musae, quarum sacra fero ingenti percussus amore, accipiant caelique uias et sidera monstrent, defectus solis uarios lunaeque labores, unde tremor terris, qua ui maria alta tumescant obicibus ruptis rursusque in se ipsa residant, quid tantum Oceano properent se tingere soles hiberni, uel quae tardis mora noctibus obstet.",
+      "candidate_score": 0.9088602662086487,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 1.177",
+      "source_text": "tum Cererem corruptam undis Cerealiaque arma expediunt fessi rerum, frugesque receptas et torrere parant flammis et frangere saxo.",
+      "candidate_score": 0.905540943145752,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 10.636",
+      "source_text": "tum dea nube caua tenuem sine uiribus umbram in faciem Aeneae uisu mirabile monstrum Dardaniis ornat telis clipeumque iubasque diuini assimulat capitis, dat inania uerba, dat sine mente sonum gressusque effingit euntis, morte obita qualis fama est uolitare figuras aut quae sopitos deludunt somnia sensus.",
+      "candidate_score": 0.9045010805130005,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 11.508",
+      "source_text": "o decus Italiae uirgo, quas dicere grates quasue referre parem?",
+      "candidate_score": 0.9004870355129242,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 10.875",
+      "source_text": "sic pater ille deum faciat, sic altus Apollo!",
+      "candidate_score": 0.8862387835979462,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. ecl. 3.49",
+      "source_text": "MENALCAS Numquam hodie effugies; ueniam quocumque uocaris.",
+      "candidate_score": 0.8789524137973785,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 4.172",
+      "source_text": "coniugium uocat, hoc praetexit nomine culpam.",
+      "candidate_score": 0.8731462955474854,
+      "judgment_score": 1.0
+    }
+  ],
+  "hier. adv. pelag. 3.11": [
+    {
+      "source_id": "verg. ecl. 3.26",
+      "source_text": "non tu in triuiis, indocte, solebas stridenti miserum stipula disperdere carmen?",
+      "candidate_score": 0.9707956314086914,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 1.177",
+      "source_text": "tum Cererem corruptam undis Cerealiaque arma expediunt fessi rerum, frugesque receptas et torrere parant flammis et frangere saxo.",
+      "candidate_score": 0.9653554856777191,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. ecl. 8.62",
+      "source_text": "Haec Damon; uos, quae responderit Alphesiboeus, dicite, Pierides: non omnia possumus omnes.",
+      "candidate_score": 0.9612773060798645,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. georg. 2.475",
+      "source_text": "Me uero primum dulces ante omnia Musae, quarum sacra fero ingenti percussus amore, accipiant caelique uias et sidera monstrent, defectus solis uarios lunaeque labores, unde tremor terris, qua ui maria alta tumescant obicibus ruptis rursusque in se ipsa residant, quid tantum Oceano properent se tingere soles hiberni, uel quae tardis mora noctibus obstet.",
+      "candidate_score": 0.9483828544616699,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. ecl. 3.49",
+      "source_text": "MENALCAS Numquam hodie effugies; ueniam quocumque uocaris.",
+      "candidate_score": 0.9460619688034058,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 10.636",
+      "source_text": "tum dea nube caua tenuem sine uiribus umbram in faciem Aeneae uisu mirabile monstrum Dardaniis ornat telis clipeumque iubasque diuini assimulat capitis, dat inania uerba, dat sine mente sonum gressusque effingit euntis, morte obita qualis fama est uolitare figuras aut quae sopitos deludunt somnia sensus.",
+      "candidate_score": 0.9399688541889191,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. georg. 1.197",
+      "source_text": "uidi lecta diu et multo spectata labore degenerare tamen, ni uis humana quotannis maxima quaeque manu legeret: sic omnia fatis in peius ruere ac retro sublapsa referri, non aliter quam qui aduerso uix flumine lembum remigiis subigit, si bracchia forte remisit, atque illum in praeceps prono rapit alueus amni.",
+      "candidate_score": 0.9345737397670746,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 10.875",
+      "source_text": "sic pater ille deum faciat, sic altus Apollo!",
+      "candidate_score": 0.8979136347770691,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 11.508",
+      "source_text": "o decus Italiae uirgo, quas dicere grates quasue referre parem?",
+      "candidate_score": 0.8784269988536835,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 4.172",
+      "source_text": "coniugium uocat, hoc praetexit nomine culpam.",
+      "candidate_score": 0.848892480134964,
+      "judgment_score": 0.0
+    }
+  ],
+  "hier. adv. pelag. 3.4": [
+    {
+      "source_id": "verg. georg. 2.475",
+      "source_text": "Me uero primum dulces ante omnia Musae, quarum sacra fero ingenti percussus amore, accipiant caelique uias et sidera monstrent, defectus solis uarios lunaeque labores, unde tremor terris, qua ui maria alta tumescant obicibus ruptis rursusque in se ipsa residant, quid tantum Oceano properent se tingere soles hiberni, uel quae tardis mora noctibus obstet.",
+      "candidate_score": 0.9628048241138458,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 1.177",
+      "source_text": "tum Cererem corruptam undis Cerealiaque arma expediunt fessi rerum, frugesque receptas et torrere parant flammis et frangere saxo.",
+      "candidate_score": 0.945403516292572,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. ecl. 8.62",
+      "source_text": "Haec Damon; uos, quae responderit Alphesiboeus, dicite, Pierides: non omnia possumus omnes.",
+      "candidate_score": 0.9432068765163422,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. ecl. 3.26",
+      "source_text": "non tu in triuiis, indocte, solebas stridenti miserum stipula disperdere carmen?",
+      "candidate_score": 0.9408543705940247,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. georg. 1.197",
+      "source_text": "uidi lecta diu et multo spectata labore degenerare tamen, ni uis humana quotannis maxima quaeque manu legeret: sic omnia fatis in peius ruere ac retro sublapsa referri, non aliter quam qui aduerso uix flumine lembum remigiis subigit, si bracchia forte remisit, atque illum in praeceps prono rapit alueus amni.",
+      "candidate_score": 0.936241090297699,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 10.636",
+      "source_text": "tum dea nube caua tenuem sine uiribus umbram in faciem Aeneae uisu mirabile monstrum Dardaniis ornat telis clipeumque iubasque diuini assimulat capitis, dat inania uerba, dat sine mente sonum gressusque effingit euntis, morte obita qualis fama est uolitare figuras aut quae sopitos deludunt somnia sensus.",
+      "candidate_score": 0.9333436489105225,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 10.875",
+      "source_text": "sic pater ille deum faciat, sic altus Apollo!",
+      "candidate_score": 0.8919652104377747,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 11.508",
+      "source_text": "o decus Italiae uirgo, quas dicere grates quasue referre parem?",
+      "candidate_score": 0.8883277475833893,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. ecl. 3.49",
+      "source_text": "MENALCAS Numquam hodie effugies; ueniam quocumque uocaris.",
+      "candidate_score": 0.8771172165870667,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 4.172",
+      "source_text": "coniugium uocat, hoc praetexit nomine culpam.",
+      "candidate_score": 0.8454227149486542,
+      "judgment_score": 0.0
+    }
+  ],
+  "hier. adv. rufin. 1.17": [
+    {
+      "source_id": "verg. ecl. 3.26",
+      "source_text": "non tu in triuiis, indocte, solebas stridenti miserum stipula disperdere carmen?",
+      "candidate_score": 0.9847332835197449,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. ecl. 8.62",
+      "source_text": "Haec Damon; uos, quae responderit Alphesiboeus, dicite, Pierides: non omnia possumus omnes.",
+      "candidate_score": 0.9802031219005585,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 1.177",
+      "source_text": "tum Cererem corruptam undis Cerealiaque arma expediunt fessi rerum, frugesque receptas et torrere parant flammis et frangere saxo.",
+      "candidate_score": 0.9646742641925812,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. georg. 2.475",
+      "source_text": "Me uero primum dulces ante omnia Musae, quarum sacra fero ingenti percussus amore, accipiant caelique uias et sidera monstrent, defectus solis uarios lunaeque labores, unde tremor terris, qua ui maria alta tumescant obicibus ruptis rursusque in se ipsa residant, quid tantum Oceano properent se tingere soles hiberni, uel quae tardis mora noctibus obstet.",
+      "candidate_score": 0.9517850279808044,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 10.636",
+      "source_text": "tum dea nube caua tenuem sine uiribus umbram in faciem Aeneae uisu mirabile monstrum Dardaniis ornat telis clipeumque iubasque diuini assimulat capitis, dat inania uerba, dat sine mente sonum gressusque effingit euntis, morte obita qualis fama est uolitare figuras aut quae sopitos deludunt somnia sensus.",
+      "candidate_score": 0.9201083481311798,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. georg. 1.197",
+      "source_text": "uidi lecta diu et multo spectata labore degenerare tamen, ni uis humana quotannis maxima quaeque manu legeret: sic omnia fatis in peius ruere ac retro sublapsa referri, non aliter quam qui aduerso uix flumine lembum remigiis subigit, si bracchia forte remisit, atque illum in praeceps prono rapit alueus amni.",
+      "candidate_score": 0.8994841575622559,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. ecl. 3.49",
+      "source_text": "MENALCAS Numquam hodie effugies; ueniam quocumque uocaris.",
+      "candidate_score": 0.8978736996650696,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 10.875",
+      "source_text": "sic pater ille deum faciat, sic altus Apollo!",
+      "candidate_score": 0.8769321441650391,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 11.508",
+      "source_text": "o decus Italiae uirgo, quas dicere grates quasue referre parem?",
+      "candidate_score": 0.8513660132884979,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 4.172",
+      "source_text": "coniugium uocat, hoc praetexit nomine culpam.",
+      "candidate_score": 0.844148576259613,
+      "judgment_score": 0.0
+    }
+  ],
+  "hier. adv. rufin. 1.5": [
+    {
+      "source_id": "verg. aen. 10.875",
+      "source_text": "sic pater ille deum faciat, sic altus Apollo!",
+      "candidate_score": 0.9813332557678223,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. georg. 1.197",
+      "source_text": "uidi lecta diu et multo spectata labore degenerare tamen, ni uis humana quotannis maxima quaeque manu legeret: sic omnia fatis in peius ruere ac retro sublapsa referri, non aliter quam qui aduerso uix flumine lembum remigiis subigit, si bracchia forte remisit, atque illum in praeceps prono rapit alueus amni.",
+      "candidate_score": 0.9079760313034058,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. ecl. 8.62",
+      "source_text": "Haec Damon; uos, quae responderit Alphesiboeus, dicite, Pierides: non omnia possumus omnes.",
+      "candidate_score": 0.902501255273819,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 10.636",
+      "source_text": "tum dea nube caua tenuem sine uiribus umbram in faciem Aeneae uisu mirabile monstrum Dardaniis ornat telis clipeumque iubasque diuini assimulat capitis, dat inania uerba, dat sine mente sonum gressusque effingit euntis, morte obita qualis fama est uolitare figuras aut quae sopitos deludunt somnia sensus.",
+      "candidate_score": 0.90107262134552,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. ecl. 3.26",
+      "source_text": "non tu in triuiis, indocte, solebas stridenti miserum stipula disperdere carmen?",
+      "candidate_score": 0.8992378413677216,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. georg. 2.475",
+      "source_text": "Me uero primum dulces ante omnia Musae, quarum sacra fero ingenti percussus amore, accipiant caelique uias et sidera monstrent, defectus solis uarios lunaeque labores, unde tremor terris, qua ui maria alta tumescant obicibus ruptis rursusque in se ipsa residant, quid tantum Oceano properent se tingere soles hiberni, uel quae tardis mora noctibus obstet.",
+      "candidate_score": 0.895922988653183,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 1.177",
+      "source_text": "tum Cererem corruptam undis Cerealiaque arma expediunt fessi rerum, frugesque receptas et torrere parant flammis et frangere saxo.",
+      "candidate_score": 0.8675897419452667,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 11.508",
+      "source_text": "o decus Italiae uirgo, quas dicere grates quasue referre parem?",
+      "candidate_score": 0.8629143238067627,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. ecl. 3.49",
+      "source_text": "MENALCAS Numquam hodie effugies; ueniam quocumque uocaris.",
+      "candidate_score": 0.8578661680221558,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 4.172",
+      "source_text": "coniugium uocat, hoc praetexit nomine culpam.",
+      "candidate_score": 0.8543355464935303,
+      "judgment_score": 1.0
+    }
+  ],
+  "hier. adv. rufin. 1.6": [
+    {
+      "source_id": "verg. aen. 1.177",
+      "source_text": "tum Cererem corruptam undis Cerealiaque arma expediunt fessi rerum, frugesque receptas et torrere parant flammis et frangere saxo.",
+      "candidate_score": 0.9842888414859772,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. georg. 2.475",
+      "source_text": "Me uero primum dulces ante omnia Musae, quarum sacra fero ingenti percussus amore, accipiant caelique uias et sidera monstrent, defectus solis uarios lunaeque labores, unde tremor terris, qua ui maria alta tumescant obicibus ruptis rursusque in se ipsa residant, quid tantum Oceano properent se tingere soles hiberni, uel quae tardis mora noctibus obstet.",
+      "candidate_score": 0.9792393445968628,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. ecl. 3.26",
+      "source_text": "non tu in triuiis, indocte, solebas stridenti miserum stipula disperdere carmen?",
+      "candidate_score": 0.9710760116577148,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 10.636",
+      "source_text": "tum dea nube caua tenuem sine uiribus umbram in faciem Aeneae uisu mirabile monstrum Dardaniis ornat telis clipeumque iubasque diuini assimulat capitis, dat inania uerba, dat sine mente sonum gressusque effingit euntis, morte obita qualis fama est uolitare figuras aut quae sopitos deludunt somnia sensus.",
+      "candidate_score": 0.9641777575016022,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. georg. 1.197",
+      "source_text": "uidi lecta diu et multo spectata labore degenerare tamen, ni uis humana quotannis maxima quaeque manu legeret: sic omnia fatis in peius ruere ac retro sublapsa referri, non aliter quam qui aduerso uix flumine lembum remigiis subigit, si bracchia forte remisit, atque illum in praeceps prono rapit alueus amni.",
+      "candidate_score": 0.960239440202713,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. ecl. 8.62",
+      "source_text": "Haec Damon; uos, quae responderit Alphesiboeus, dicite, Pierides: non omnia possumus omnes.",
+      "candidate_score": 0.9540291428565979,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. ecl. 3.49",
+      "source_text": "MENALCAS Numquam hodie effugies; ueniam quocumque uocaris.",
+      "candidate_score": 0.9257743954658508,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 11.508",
+      "source_text": "o decus Italiae uirgo, quas dicere grates quasue referre parem?",
+      "candidate_score": 0.8993667364120483,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 10.875",
+      "source_text": "sic pater ille deum faciat, sic altus Apollo!",
+      "candidate_score": 0.871512234210968,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 4.172",
+      "source_text": "coniugium uocat, hoc praetexit nomine culpam.",
+      "candidate_score": 0.851352334022522,
+      "judgment_score": 1.0
+    }
+  ],
+  "hier. adv. rufin. 3.28": [
+    {
+      "source_id": "verg. georg. 2.475",
+      "source_text": "Me uero primum dulces ante omnia Musae, quarum sacra fero ingenti percussus amore, accipiant caelique uias et sidera monstrent, defectus solis uarios lunaeque labores, unde tremor terris, qua ui maria alta tumescant obicibus ruptis rursusque in se ipsa residant, quid tantum Oceano properent se tingere soles hiberni, uel quae tardis mora noctibus obstet.",
+      "candidate_score": 0.9804907441139221,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 1.177",
+      "source_text": "tum Cererem corruptam undis Cerealiaque arma expediunt fessi rerum, frugesque receptas et torrere parant flammis et frangere saxo.",
+      "candidate_score": 0.9690534770488739,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. ecl. 3.26",
+      "source_text": "non tu in triuiis, indocte, solebas stridenti miserum stipula disperdere carmen?",
+      "candidate_score": 0.9588114023208618,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. georg. 1.197",
+      "source_text": "uidi lecta diu et multo spectata labore degenerare tamen, ni uis humana quotannis maxima quaeque manu legeret: sic omnia fatis in peius ruere ac retro sublapsa referri, non aliter quam qui aduerso uix flumine lembum remigiis subigit, si bracchia forte remisit, atque illum in praeceps prono rapit alueus amni.",
+      "candidate_score": 0.9582458734512329,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. ecl. 8.62",
+      "source_text": "Haec Damon; uos, quae responderit Alphesiboeus, dicite, Pierides: non omnia possumus omnes.",
+      "candidate_score": 0.9575469195842743,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 10.636",
+      "source_text": "tum dea nube caua tenuem sine uiribus umbram in faciem Aeneae uisu mirabile monstrum Dardaniis ornat telis clipeumque iubasque diuini assimulat capitis, dat inania uerba, dat sine mente sonum gressusque effingit euntis, morte obita qualis fama est uolitare figuras aut quae sopitos deludunt somnia sensus.",
+      "candidate_score": 0.9532241821289062,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. ecl. 3.49",
+      "source_text": "MENALCAS Numquam hodie effugies; ueniam quocumque uocaris.",
+      "candidate_score": 0.9148877859115601,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 11.508",
+      "source_text": "o decus Italiae uirgo, quas dicere grates quasue referre parem?",
+      "candidate_score": 0.8695884943008423,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 10.875",
+      "source_text": "sic pater ille deum faciat, sic altus Apollo!",
+      "candidate_score": 0.8611858189105988,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 4.172",
+      "source_text": "coniugium uocat, hoc praetexit nomine culpam.",
+      "candidate_score": 0.8474545478820801,
+      "judgment_score": 0.0
+    }
+  ],
+  "hier. adv. rufin. 3.29": [
+    {
+      "source_id": "verg. ecl. 8.62",
+      "source_text": "Haec Damon; uos, quae responderit Alphesiboeus, dicite, Pierides: non omnia possumus omnes.",
+      "candidate_score": 0.8921743631362915,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 10.636",
+      "source_text": "tum dea nube caua tenuem sine uiribus umbram in faciem Aeneae uisu mirabile monstrum Dardaniis ornat telis clipeumque iubasque diuini assimulat capitis, dat inania uerba, dat sine mente sonum gressusque effingit euntis, morte obita qualis fama est uolitare figuras aut quae sopitos deludunt somnia sensus.",
+      "candidate_score": 0.8679635226726532,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 11.508",
+      "source_text": "o decus Italiae uirgo, quas dicere grates quasue referre parem?",
+      "candidate_score": 0.8671361804008484,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. ecl. 3.26",
+      "source_text": "non tu in triuiis, indocte, solebas stridenti miserum stipula disperdere carmen?",
+      "candidate_score": 0.866873174905777,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. georg. 1.197",
+      "source_text": "uidi lecta diu et multo spectata labore degenerare tamen, ni uis humana quotannis maxima quaeque manu legeret: sic omnia fatis in peius ruere ac retro sublapsa referri, non aliter quam qui aduerso uix flumine lembum remigiis subigit, si bracchia forte remisit, atque illum in praeceps prono rapit alueus amni.",
+      "candidate_score": 0.866531252861023,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 10.875",
+      "source_text": "sic pater ille deum faciat, sic altus Apollo!",
+      "candidate_score": 0.8649918735027313,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. georg. 2.475",
+      "source_text": "Me uero primum dulces ante omnia Musae, quarum sacra fero ingenti percussus amore, accipiant caelique uias et sidera monstrent, defectus solis uarios lunaeque labores, unde tremor terris, qua ui maria alta tumescant obicibus ruptis rursusque in se ipsa residant, quid tantum Oceano properent se tingere soles hiberni, uel quae tardis mora noctibus obstet.",
+      "candidate_score": 0.8628382384777069,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 1.177",
+      "source_text": "tum Cererem corruptam undis Cerealiaque arma expediunt fessi rerum, frugesque receptas et torrere parant flammis et frangere saxo.",
+      "candidate_score": 0.8504574596881866,
+      "judgment_score": 1.0
+    },
+    {
+      "source_id": "verg. aen. 4.172",
+      "source_text": "coniugium uocat, hoc praetexit nomine culpam.",
+      "candidate_score": 0.8339729309082031,
+      "judgment_score": 0.0
+    },
+    {
+      "source_id": "verg. ecl. 3.49",
+      "source_text": "MENALCAS Numquam hodie effugies; ueniam quocumque uocaris.",
+      "candidate_score": 0.8111758530139923,
+      "judgment_score": 0.0
+    }
+  ]
+}
