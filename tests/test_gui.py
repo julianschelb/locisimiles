@@ -11,6 +11,14 @@ import pytest
 gr = pytest.importorskip("gradio", reason="GUI tests require gradio")
 
 from locisimiles_gui.app import build_interface  # noqa: E402
+from locisimiles_gui.config_stage import (  # noqa: E402
+    PIPELINE_CHOICES,
+    PIPELINE_EXHAUSTIVE,
+    PIPELINE_RETRIEVAL,
+    PIPELINE_RULE_BASED,
+    PIPELINE_TWO_STAGE,
+    _update_pipeline_visibility,
+)
 from locisimiles_gui.results_stage import (  # noqa: E402
     _export_results_to_csv,
     _extract_numeric_from_html,
@@ -220,3 +228,44 @@ class TestBuildInterface:
     def test_interface_has_title(self):
         demo = build_interface()
         assert demo.title == "Loci Similes Demo"
+
+
+# ── Pipeline visibility toggling ──────────────────────────────────────
+
+
+class TestPipelineVisibility:
+    """Tests for pipeline-type dependent parameter visibility."""
+
+    def test_all_pipeline_choices_are_handled(self):
+        """Every pipeline choice should produce a 5-tuple without errors."""
+        for choice in PIPELINE_CHOICES:
+            result = _update_pipeline_visibility(choice)
+            assert len(result) == 5
+
+    def test_two_stage_shows_both_models(self):
+        desc, emb, cls, retr, rb = _update_pipeline_visibility(PIPELINE_TWO_STAGE)
+        assert emb["visible"] is True
+        assert cls["visible"] is True
+        assert retr["visible"] is True
+        assert rb["visible"] is False
+
+    def test_exhaustive_shows_classification_only(self):
+        desc, emb, cls, retr, rb = _update_pipeline_visibility(PIPELINE_EXHAUSTIVE)
+        assert emb["visible"] is False
+        assert cls["visible"] is True
+        assert retr["visible"] is False
+        assert rb["visible"] is False
+
+    def test_retrieval_shows_embedding_only(self):
+        desc, emb, cls, retr, rb = _update_pipeline_visibility(PIPELINE_RETRIEVAL)
+        assert emb["visible"] is True
+        assert cls["visible"] is False
+        assert retr["visible"] is True
+        assert rb["visible"] is False
+
+    def test_rule_based_shows_rule_params(self):
+        desc, emb, cls, retr, rb = _update_pipeline_visibility(PIPELINE_RULE_BASED)
+        assert emb["visible"] is False
+        assert cls["visible"] is False
+        assert retr["visible"] is False
+        assert rb["visible"] is True

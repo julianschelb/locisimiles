@@ -15,7 +15,18 @@ except ImportError as exc:
         raise ImportError(f"{base_msg} (missing package: {missing})") from exc
     raise ImportError(base_msg) from exc
 
-from .utils import load_csv_preview, validate_and_notify
+from .utils import load_csv_preview, validate_csv
+
+
+def _notify(file_path: str | None) -> None:
+    """Show a toast notification about the uploaded file without returning a value."""
+    if not file_path:
+        return
+    is_valid, message = validate_csv(file_path)
+    if is_valid:
+        gr.Info("Document is valid!")
+    else:
+        gr.Warning(f"Document is invalid: {message}")
 
 
 def build_upload_stage() -> tuple[gr.Step, dict]:
@@ -80,23 +91,30 @@ def setup_upload_handlers(components: dict, file_states: dict) -> None:
         components: Dictionary of UI components from build_upload_stage
         file_states: Dictionary with query_file_state and source_file_state
     """
+
     # Query file upload handler
+    def _on_query_upload(f):
+        _notify(f)
+        return load_csv_preview(f), f
+
     components["query_upload"].change(
-        fn=lambda f: (validate_and_notify(f), load_csv_preview(f), f),
+        fn=_on_query_upload,
         inputs=components["query_upload"],
         outputs=[
-            components["query_upload"],
             components["query_preview"],
             file_states["query_file_state"],
         ],
     )
 
     # Source file upload handler
+    def _on_source_upload(f):
+        _notify(f)
+        return load_csv_preview(f), f
+
     components["source_upload"].change(
-        fn=lambda f: (validate_and_notify(f), load_csv_preview(f), f),
+        fn=_on_source_upload,
         inputs=components["source_upload"],
         outputs=[
-            components["source_upload"],
             components["source_preview"],
             file_states["source_file_state"],
         ],
