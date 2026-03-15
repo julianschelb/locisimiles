@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.3">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.5">
     
     
       
@@ -1275,7 +1275,7 @@ scored matches.</p>
 <p>The recommended pipeline for most use cases. It first retrieves the most
 promising candidates using embedding similarity, then classifies each
 candidate pair with a fine-tuned transformer model.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">ClassificationPipelineWithCandidategeneration</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">ClassificationPipelineWithCandidateGeneration</span>
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Document</span>
 <a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
 <a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># Load documents</span>
@@ -1283,9 +1283,9 @@ candidate pair with a fine-tuned transformer model.</p>
 <a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="n">source</span> <span class="o">=</span> <span class="n">Document</span><span class="p">(</span><span class="s2">&quot;source.csv&quot;</span><span class="p">)</span>
 <a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>
 <a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="c1"># Define pipeline</span>
-<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="n">pipeline</span> <span class="o">=</span> <span class="n">ClassificationPipelineWithCandidategeneration</span><span class="p">(</span>
-<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>    <span class="n">classification_name</span><span class="o">=</span><span class="s2">&quot;julian-schelb/PhilBerta-class-latin-intertext-v1&quot;</span><span class="p">,</span>
-<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>    <span class="n">embedding_model_name</span><span class="o">=</span><span class="s2">&quot;julian-schelb/SPhilBerta-emb-lat-intertext-v1&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="n">pipeline</span> <span class="o">=</span> <span class="n">ClassificationPipelineWithCandidateGeneration</span><span class="p">(</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>    <span class="n">classification_name</span><span class="o">=</span><span class="s2">&quot;julian-schelb/xlm-roberta-large-class-lat-intertext-v1&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>    <span class="n">embedding_model_name</span><span class="o">=</span><span class="s2">&quot;julian-schelb/multilingual-e5-large-emb-lat-intertext-v1&quot;</span><span class="p">,</span>
 <a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>    <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">,</span>  <span class="c1"># or &quot;cuda&quot;, &quot;mps&quot;</span>
 <a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="p">)</span>
 <a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>
@@ -1305,7 +1305,7 @@ smaller datasets.</p>
 <a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>
 <a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="c1"># Define pipeline</span>
 <a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="n">pipeline</span> <span class="o">=</span> <span class="n">ClassificationPipeline</span><span class="p">(</span>
-<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>    <span class="n">classification_name</span><span class="o">=</span><span class="s2">&quot;julian-schelb/PhilBerta-class-latin-intertext-v1&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>    <span class="n">classification_name</span><span class="o">=</span><span class="s2">&quot;julian-schelb/xlm-roberta-large-class-lat-intertext-v1&quot;</span><span class="p">,</span>
 <a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>    <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">,</span>
 <a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="p">)</span>
 <a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>
@@ -1325,7 +1325,7 @@ model needed.</p>
 <a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>
 <a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="c1"># Define pipeline</span>
 <a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="n">pipeline</span> <span class="o">=</span> <span class="n">RetrievalPipeline</span><span class="p">(</span>
-<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>    <span class="n">embedding_model_name</span><span class="o">=</span><span class="s2">&quot;julian-schelb/SPhilBerta-emb-lat-intertext-v1&quot;</span><span class="p">,</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>    <span class="n">embedding_model_name</span><span class="o">=</span><span class="s2">&quot;julian-schelb/multilingual-e5-large-emb-lat-intertext-v1&quot;</span><span class="p">,</span>
 <a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>    <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">,</span>
 <a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="p">)</span>
 <a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>
@@ -1361,7 +1361,7 @@ and optional POS / similarity filters.</p>
 </thead>
 <tbody>
 <tr>
-<td><code>ClassificationPipelineWithCandidategeneration</code></td>
+<td><code>ClassificationPipelineWithCandidateGeneration</code></td>
 <td>Medium</td>
 <td>Embedding + classifier</td>
 <td>Most use cases</td>

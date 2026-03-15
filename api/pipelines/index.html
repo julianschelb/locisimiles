@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.3">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.5">
     
     
       
@@ -544,15 +544,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#classificationpipelinewithcandidategeneration" class="md-nav__link">
+  <a href="#twostagepipeline" class="md-nav__link">
     <span class="md-ellipsis">
       
-        ClassificationPipelineWithCandidategeneration
+        TwoStagePipeline
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="ClassificationPipelineWithCandidategeneration">
+    <nav class="md-nav" aria-label="TwoStagePipeline">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -981,15 +981,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#classificationpipelinewithcandidategeneration" class="md-nav__link">
+  <a href="#twostagepipeline" class="md-nav__link">
     <span class="md-ellipsis">
       
-        ClassificationPipelineWithCandidategeneration
+        TwoStagePipeline
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="ClassificationPipelineWithCandidategeneration">
+    <nav class="md-nav" aria-label="TwoStagePipeline">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1260,7 +1260,7 @@
 <p>Ready-to-use pipelines for detecting intertextual parallels in Latin literature.</p>
 <p>Each pipeline loads its own models and exposes a single <code>run()</code> method that
 accepts two <code>Document</code> objects and returns scored results.</p>
-<h2 id="classificationpipelinewithcandidategeneration">ClassificationPipelineWithCandidategeneration<a class="headerlink" href="#classificationpipelinewithcandidategeneration" title="Permanent link">&para;</a></h2>
+<h2 id="twostagepipeline">TwoStagePipeline<a class="headerlink" href="#twostagepipeline" title="Permanent link">&para;</a></h2>
 
 
 <div class="doc doc-object doc-class">
@@ -1311,7 +1311,7 @@ sequence-classification model.</p>
                   </span>
                   <span class="doc-param-default">
                     <b>DEFAULT:</b>
-                      <code>&#39;julian-schelb/PhilBerta-class-latin-intertext-v1&#39;</code>
+                      <code>&#39;julian-schelb/xlm-roberta-large-class-lat-intertext-v1&#39;</code>
                   </span>
               </p>
             </td>
@@ -1332,7 +1332,7 @@ sentence-transformer.</p>
                   </span>
                   <span class="doc-param-default">
                     <b>DEFAULT:</b>
-                      <code>&#39;julian-schelb/SPhilBerta-emb-lat-intertext-v1&#39;</code>
+                      <code>&#39;julian-schelb/multilingual-e5-large-emb-lat-intertext-v1&#39;</code>
                   </span>
               </p>
             </td>
@@ -1496,7 +1496,7 @@ sequence-classification model.</p>
                   </span>
                   <span class="doc-param-default">
                     <b>DEFAULT:</b>
-                      <code>&#39;julian-schelb/PhilBerta-class-latin-intertext-v1&#39;</code>
+                      <code>&#39;julian-schelb/xlm-roberta-large-class-lat-intertext-v1&#39;</code>
                   </span>
               </p>
             </td>
@@ -1624,7 +1624,7 @@ sequence-classification model.</p>
 <a href="#locisimiles.pipeline.retrieval.RetrievalPipeline" class="headerlink" title="Permanent link">&para;</a></h3>
 <div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">RetrievalPipeline</span><span class="p">(</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="o">*</span><span class="p">,</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">embedding_model_name</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s2">&quot;julian-schelb/SPhilBerta-emb-lat-intertext-v1&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">embedding_model_name</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s2">&quot;julian-schelb/multilingual-e5-large-emb-lat-intertext-v1&quot;</span><span class="p">,</span>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">device</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">|</span> <span class="n"><span title="int">int</span></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">top_k</span><span class="p">:</span> <span class="n"><span title="int">int</span></span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">similarity_threshold</span><span class="p">:</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="float">float</span></span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -1674,7 +1674,7 @@ sentence-transformer.</p>
                   </span>
                   <span class="doc-param-default">
                     <b>DEFAULT:</b>
-                      <code>&#39;julian-schelb/SPhilBerta-emb-lat-intertext-v1&#39;</code>
+                      <code>&#39;julian-schelb/multilingual-e5-large-emb-lat-intertext-v1&#39;</code>
                   </span>
               </p>
             </td>
