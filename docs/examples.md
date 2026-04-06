@@ -22,6 +22,8 @@ For an interactive walkthrough, see the [example notebook](https://github.com/ju
 
 For the Burns-style retrieval flow, see the [Word2Vec notebook](https://github.com/julianschelb/locisimiles/blob/main/examples/example_word2vec.ipynb).
 
+For contextual token-level retrieval (Gong-style), see the [Latin BERT notebook](https://github.com/julianschelb/locisimiles/blob/main/examples/example_contextual_bert.ipynb).
+
 The notebook covers:
 
 1. **Loading Documents** - Creating Document objects from CSV files

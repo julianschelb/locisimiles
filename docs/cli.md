@@ -30,9 +30,14 @@ pip install "locisimiles[word2vec]"
 | Option | Default | Description |
 |--------|---------|-------------|
 | `-o, --output` | required | Output CSV path |
-| `--pipeline` | `two-stage` | Pipeline type: `two-stage` or `word2vec-retrieval` |
-| `--classification-model` | `julian-schelb/xlm-roberta-large-class-lat-intertext-v1` | Classifier model (two-stage only) |
+| `--pipeline` | `two-stage` | Pipeline type: `two-stage`, `word2vec-retrieval`, `latin-bert-retrieval`, or `latin-bert-two-stage` |
+| `--classification-model` | `julian-schelb/xlm-roberta-large-class-lat-intertext-v1` | Classifier model (two-stage pipelines only) |
 | `--embedding-model` | `julian-schelb/multilingual-e5-large-emb-lat-intertext-v1` | Embedding model (two-stage only) |
+| `--latin-bert-model` | `xlm-roberta-base` | HuggingFace model for contextual Latin BERT retrieval |
+| `--latin-bert-model-path` | none | Optional local model directory for Latin BERT |
+| `--latin-bert-max-length` | `256` | Max tokenized sequence length for contextual retrieval |
+| `--latin-bert-min-token-length` | `2` | Min token length for contextual scoring |
+| `--latin-bert-disable-stopword-filter` | `False` | Disable built-in Latin stopword filtering |
 | `--word2vec-model-path` | package default path | Local gensim `.model` path (Word2Vec pipeline) |
 | `--word2vec-interval` | `0` | Max token gap for Word2Vec bigrams |
 | `--word2vec-order-free` | `False` | Use order-insensitive bigrams |
@@ -71,6 +76,41 @@ If `--word2vec-model-path` is not set, the CLI uses this local default path:
 The file must exist on disk. No automatic download is performed.
 
 Word2Vec mode expects pre-lemmatized text in the CSV `text` column.
+
+## Latin BERT Retrieval Flow
+
+Token-level contextual similarity using a BERT model (Gong-style approach):
+
+```bash
+locisimiles query.csv source.csv -o results.csv \
+    --pipeline latin-bert-retrieval \
+    --latin-bert-model ashleygong03/bamman-burns-latin-bert \
+    --latin-bert-max-length 256 \
+    --top-k 20 \
+    --threshold 0.85
+```
+
+Or use a local model directory:
+
+```bash
+locisimiles query.csv source.csv -o results.csv \
+    --pipeline latin-bert-retrieval \
+    --latin-bert-model-path ./models/latinbert \
+    --top-k 20
+```
+
+## Latin BERT Two-Stage Flow
+
+Combines contextual token retrieval with classification:
+
+```bash
+locisimiles query.csv source.csv -o results.csv \
+    --pipeline latin-bert-two-stage \
+    --latin-bert-model ashleygong03/bamman-burns-latin-bert \
+    --classification-model julian-schelb/xlm-roberta-large-class-lat-intertext-v1 \
+    --top-k 20 \
+    --threshold 0.85
+```
 
 ## Output Format
 

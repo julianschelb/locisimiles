@@ -131,6 +131,30 @@ pipeline = RetrievalPipeline(
 results = pipeline.run(query=query, source=source, top_k=5)
 ```
 
+### Latin BERT Retrieval Pipeline (Gong-Style)
+
+A contextual token-level retrieval pipeline using BERT. Computes word-level
+embeddings and scores segment pairs by their best token-token cosine similarity.
+Excels at detecting lexical echoes and word reuse.
+
+```python
+from locisimiles import Document, LatinBertRetrievalPipeline
+
+query = Document("query.csv")
+source = Document("source.csv")
+
+pipeline = LatinBertRetrievalPipeline(
+    model_name="ashleygong03/bamman-burns-latin-bert",  # or model_path for local
+    top_k=10,
+    similarity_threshold=0.85,
+    max_length=256,
+    min_token_length=2,
+    use_stopword_filter=True,
+)
+
+results = pipeline.run(query=query, source=source, top_k=10)
+```
+
 ### Word2Vec Retrieval Pipeline (Burns-Style)
 
 A retrieval-only pipeline using a local Word2Vec model and pair-aware

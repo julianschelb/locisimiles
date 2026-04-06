@@ -66,6 +66,16 @@ locisimiles query.csv source.csv -o results.csv \
   --threshold 0.85
 ```
 
+### Latin BERT Retrieval Example (Gong-Style)
+
+```bash
+locisimiles query.csv source.csv -o results.csv \
+  --pipeline latin-bert-retrieval \
+  --latin-bert-model ashleygong03/bamman-burns-latin-bert \
+  --top-k 20 \
+  --threshold 0.85
+```
+
 If `--word2vec-model-path` is not provided, the CLI expects a local model at:
 
 `models/latin_w2v_bamman_lemma300_100_1.model`
