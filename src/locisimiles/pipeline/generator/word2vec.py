@@ -18,19 +18,16 @@ DEFAULT_WORD2VEC_MODEL_PATH = (
 class _KeyedVectorsLike(Protocol):
     """Protocol for the subset of KeyedVectors used by this generator."""
 
-    def similarity(self, w1: str, w2: str) -> float:
-        ...
+    def similarity(self, w1: str, w2: str) -> float: ...
 
-    def __contains__(self, key: str) -> bool:
-        ...
+    def __contains__(self, key: str) -> bool: ...
 
 
 class _Word2VecLike(Protocol):
     """Protocol for the subset of gensim Word2Vec used by this generator."""
 
     @property
-    def wv(self) -> _KeyedVectorsLike:
-        ...
+    def wv(self) -> _KeyedVectorsLike: ...
 
 
 def _load_word2vec_model(model_path: Path) -> _Word2VecLike:
@@ -202,6 +199,6 @@ class Word2VecCandidateGenerator(CandidateGeneratorBase):
                     scored.append(Candidate(segment=src_segment, score=score))
 
             scored.sort(key=lambda item: item.score, reverse=True)
-            results[query_segment.id] = scored[:eff_top_k]
+            results[str(query_segment.id)] = scored[:eff_top_k]
 
         return results

@@ -251,10 +251,13 @@ class LatinBertContextualCandidateGenerator(CandidateGeneratorBase):
             scored: list[Candidate] = []
             for source_segment in source_segments:
                 source_vectors = self._source_cache.get(str(source_segment.id))
-                score = self._segment_similarity(query_vectors, source_vectors)
+                if source_vectors is None:
+                    score = 0.0
+                else:
+                    score = self._segment_similarity(query_vectors, source_vectors)
                 scored.append(Candidate(segment=source_segment, score=score))
 
             scored.sort(key=lambda c: c.score, reverse=True)
-            results[query_segment.id] = scored[:eff_top_k]
+            results[str(query_segment.id)] = scored[:eff_top_k]
 
         return results

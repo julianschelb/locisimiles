@@ -12,10 +12,10 @@ gr = pytest.importorskip("gradio", reason="GUI tests require gradio")
 
 from locisimiles_gui.app import build_interface  # noqa: E402
 from locisimiles_gui.config_stage import (  # noqa: E402
-    PIPELINE_LATIN_BERT_RETRIEVAL,
-    PIPELINE_LATIN_BERT_TWO_STAGE,
     PIPELINE_CHOICES,
     PIPELINE_EXHAUSTIVE,
+    PIPELINE_LATIN_BERT_RETRIEVAL,
+    PIPELINE_LATIN_BERT_TWO_STAGE,
     PIPELINE_RETRIEVAL,
     PIPELINE_RULE_BASED,
     PIPELINE_TWO_STAGE,

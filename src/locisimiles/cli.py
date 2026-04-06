@@ -13,6 +13,7 @@ from locisimiles.pipeline import (
     DEFAULT_WORD2VEC_MODEL_PATH,
     LatinBertRetrievalPipeline,
     LatinBertTwoStagePipeline,
+    Pipeline,
     TwoStagePipeline,
     Word2VecRetrievalPipeline,
 )
@@ -235,6 +236,7 @@ CSV Format:
             )
             return 1
 
+        pipeline: Pipeline
         if args.pipeline == "two-stage":
             if args.verbose:
                 print(f"  Classification model: {args.classification_model}")

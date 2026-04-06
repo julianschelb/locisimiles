@@ -79,7 +79,9 @@ class TestWord2VecCandidateGenerator:
         mock_loader.assert_not_called()
 
     @patch("locisimiles.pipeline.generator.word2vec._load_word2vec_model")
-    def test_order_free_and_interval_overrides(self, mock_loader, query_document, source_document, temp_dir):
+    def test_order_free_and_interval_overrides(
+        self, mock_loader, query_document, source_document, temp_dir
+    ):
         """Runtime kwargs should override interval/order settings for generate()."""
         from locisimiles.pipeline.generator.word2vec import Word2VecCandidateGenerator
 
@@ -122,9 +124,7 @@ class TestWord2VecTrainer:
 
         train_csv = temp_dir / "train.csv"
         train_csv.write_text(
-            "seg_id,text\n"
-            "q1,Arma virumque cano\n"
-            "q2,Fato profugus Italiam venit\n",
+            "seg_id,text\nq1,Arma virumque cano\nq2,Fato profugus Italiam venit\n",
             encoding="utf-8",
         )
 
