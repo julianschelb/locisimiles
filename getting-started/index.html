@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.5">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
@@ -487,6 +487,28 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#latin-bert-retrieval-pipeline-gong-style" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Latin BERT Retrieval Pipeline (Gong-Style)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#word2vec-retrieval-pipeline-burns-style" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Word2Vec Retrieval Pipeline (Burns-Style)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#rule-based-pipeline" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -590,6 +612,17 @@
     <span class="md-ellipsis">
       
         Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gui-quick-flow-word2vec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GUI Quick Flow (Word2Vec)
       
     </span>
   </a>
@@ -1103,6 +1136,28 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#latin-bert-retrieval-pipeline-gong-style" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Latin BERT Retrieval Pipeline (Gong-Style)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#word2vec-retrieval-pipeline-burns-style" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Word2Vec Retrieval Pipeline (Burns-Style)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#rule-based-pipeline" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1206,6 +1261,17 @@
     <span class="md-ellipsis">
       
         Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gui-quick-flow-word2vec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GUI Quick Flow (Word2Vec)
       
     </span>
   </a>
@@ -1332,22 +1398,67 @@ model needed.</p>
 <a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="c1"># Run pipeline</span>
 <a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="n">results</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="n">query</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
 </code></pre></div>
+<h3 id="latin-bert-retrieval-pipeline-gong-style">Latin BERT Retrieval Pipeline (Gong-Style)<a class="headerlink" href="#latin-bert-retrieval-pipeline-gong-style" title="Permanent link">&para;</a></h3>
+<p>A contextual token-level retrieval pipeline using BERT. Computes word-level
+embeddings and scores segment pairs by their best token-token cosine similarity.
+Excels at detecting lexical echoes and word reuse.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Document</span><span class="p">,</span> <span class="n">LatinBertRetrievalPipeline</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="n">query</span> <span class="o">=</span> <span class="n">Document</span><span class="p">(</span><span class="s2">&quot;query.csv&quot;</span><span class="p">)</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="n">source</span> <span class="o">=</span> <span class="n">Document</span><span class="p">(</span><span class="s2">&quot;source.csv&quot;</span><span class="p">)</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="n">pipeline</span> <span class="o">=</span> <span class="n">LatinBertRetrievalPipeline</span><span class="p">(</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>    <span class="n">model_name</span><span class="o">=</span><span class="s2">&quot;ashleygong03/bamman-burns-latin-bert&quot;</span><span class="p">,</span>  <span class="c1"># or model_path for local</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>    <span class="n">top_k</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>    <span class="n">similarity_threshold</span><span class="o">=</span><span class="mf">0.85</span><span class="p">,</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>    <span class="n">max_length</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>    <span class="n">min_token_length</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>    <span class="n">use_stopword_filter</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="p">)</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="n">results</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="n">query</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="word2vec-retrieval-pipeline-burns-style">Word2Vec Retrieval Pipeline (Burns-Style)<a class="headerlink" href="#word2vec-retrieval-pipeline-burns-style" title="Permanent link">&para;</a></h3>
+<p>A retrieval-only pipeline using a local Word2Vec model and pair-aware
+bigram scoring.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Document</span><span class="p">,</span> <span class="n">Word2VecRetrievalPipeline</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="n">query</span> <span class="o">=</span> <span class="n">Document</span><span class="p">(</span><span class="s2">&quot;query.csv&quot;</span><span class="p">)</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="n">source</span> <span class="o">=</span> <span class="n">Document</span><span class="p">(</span><span class="s2">&quot;source.csv&quot;</span><span class="p">)</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="n">pipeline</span> <span class="o">=</span> <span class="n">Word2VecRetrievalPipeline</span><span class="p">(</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>    <span class="n">model_path</span><span class="o">=</span><span class="s2">&quot;./models/latin_w2v_bamman_lemma300_100_1.model&quot;</span><span class="p">,</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>    <span class="n">top_k</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>    <span class="n">similarity_threshold</span><span class="o">=</span><span class="mf">0.85</span><span class="p">,</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>    <span class="n">interval</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>    <span class="n">order_free</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="p">)</span>
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>
+<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="n">results</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="n">query</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+</code></pre></div>
+<p>Model path expectations:</p>
+<ul>
+<li>The path must reference a local gensim <code>.model</code> file.</li>
+<li>If no path is provided, LociSimiles checks <code>models/latin_w2v_bamman_lemma300_100_1.model</code>.</li>
+<li>The model is not downloaded automatically.</li>
+<li>Input text should already be lemmatized.</li>
+</ul>
 <h3 id="rule-based-pipeline">Rule-Based Pipeline<a class="headerlink" href="#rule-based-pipeline" title="Permanent link">&para;</a></h3>
 <p>A purely lexical pipeline that does not require any neural models.
 It finds shared words between segments and applies distance, punctuation,
 and optional POS / similarity filters.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">RuleBasedPipeline</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Document</span>
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1"># Load documents</span>
-<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="n">query</span> <span class="o">=</span> <span class="n">Document</span><span class="p">(</span><span class="s2">&quot;query.csv&quot;</span><span class="p">)</span>
-<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="n">source</span> <span class="o">=</span> <span class="n">Document</span><span class="p">(</span><span class="s2">&quot;source.csv&quot;</span><span class="p">)</span>
-<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>
-<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="c1"># Define pipeline</span>
-<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="n">pipeline</span> <span class="o">=</span> <span class="n">RuleBasedPipeline</span><span class="p">(</span><span class="n">min_shared_words</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">max_distance</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>
-<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="c1"># Run pipeline</span>
-<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="n">results</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="n">query</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">RuleBasedPipeline</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Document</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="c1"># Load documents</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="n">query</span> <span class="o">=</span> <span class="n">Document</span><span class="p">(</span><span class="s2">&quot;query.csv&quot;</span><span class="p">)</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="n">source</span> <span class="o">=</span> <span class="n">Document</span><span class="p">(</span><span class="s2">&quot;source.csv&quot;</span><span class="p">)</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="c1"># Define pipeline</span>
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="n">pipeline</span> <span class="o">=</span> <span class="n">RuleBasedPipeline</span><span class="p">(</span><span class="n">min_shared_words</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">max_distance</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>
+<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="c1"># Run pipeline</span>
+<a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="n">results</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="n">query</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="pipeline-summary">Pipeline Summary<a class="headerlink" href="#pipeline-summary" title="Permanent link">&para;</a></h3>
 <table>
@@ -1379,6 +1490,12 @@ and optional POS / similarity filters.</p>
 <td>Quick similarity search</td>
 </tr>
 <tr>
+<td><code>Word2VecRetrievalPipeline</code></td>
+<td>Fast</td>
+<td>Local Word2Vec <code>.model</code></td>
+<td>Lightweight Burns-style retrieval</td>
+</tr>
+<tr>
 <td><code>RuleBasedPipeline</code></td>
 <td>Fast</td>
 <td>None</td>
@@ -1388,16 +1505,16 @@ and optional POS / similarity filters.</p>
 </table>
 <h3 id="saving-results">Saving Results<a class="headerlink" href="#saving-results" title="Permanent link">&para;</a></h3>
 <p>Save pipeline output to CSV or JSON:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">results</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="n">query</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="c1"># Save directly from the pipeline</span>
-<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="n">pipeline</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s2">&quot;results.csv&quot;</span><span class="p">)</span>
-<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="n">pipeline</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="s2">&quot;results.json&quot;</span><span class="p">)</span>
-<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>
-<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="c1"># Or use standalone utility functions</span>
-<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">results_to_csv</span><span class="p">,</span> <span class="n">results_to_json</span>
-<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="n">results_to_csv</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="s2">&quot;results.csv&quot;</span><span class="p">)</span>
-<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="n">results_to_json</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="s2">&quot;results.json&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="n">results</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="n">query</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="c1"># Save directly from the pipeline</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="n">pipeline</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s2">&quot;results.csv&quot;</span><span class="p">)</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="n">pipeline</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="s2">&quot;results.json&quot;</span><span class="p">)</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="c1"># Or use standalone utility functions</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">results_to_csv</span><span class="p">,</span> <span class="n">results_to_json</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="n">results_to_csv</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="s2">&quot;results.csv&quot;</span><span class="p">)</span>
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="n">results_to_json</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="s2">&quot;results.json&quot;</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="building-custom-pipelines">Building Custom Pipelines<a class="headerlink" href="#building-custom-pipelines" title="Permanent link">&para;</a></h2>
 <p>For advanced use cases you can compose your own pipeline from individual
@@ -1425,6 +1542,10 @@ A <strong>judge</strong> then scores or classifies each candidate pair.</p>
 <td><code>RuleBasedCandidateGenerator</code></td>
 <td>Lexical matching + linguistic filters</td>
 </tr>
+<tr>
+<td><code>Word2VecCandidateGenerator</code></td>
+<td>Pair-aware Word2Vec bigram retrieval</td>
+</tr>
 </tbody>
 </table>
 <h3 id="available-judges">Available Judges<a class="headerlink" href="#available-judges" title="Permanent link">&para;</a></h3>
@@ -1451,34 +1572,34 @@ A <strong>judge</strong> then scores or classifies each candidate pair.</p>
 </tbody>
 </table>
 <h3 id="example">Example<a class="headerlink" href="#example" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pipeline</span>
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles.pipeline.generator</span><span class="w"> </span><span class="kn">import</span> <span class="n">EmbeddingCandidateGenerator</span>
-<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles.pipeline.judge</span><span class="w"> </span><span class="kn">import</span> <span class="n">ClassificationJudge</span>
-<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>
-<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="n">pipeline</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="p">(</span>
-<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>    <span class="n">generator</span><span class="o">=</span><span class="n">EmbeddingCandidateGenerator</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">),</span>
-<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>    <span class="n">judge</span><span class="o">=</span><span class="n">ClassificationJudge</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">),</span>
-<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="p">)</span>
-<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>
-<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="n">results</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="n">query_doc</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">source_doc</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
-<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>
-<a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="c1"># You can also run each stage separately</span>
-<a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="n">candidates</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">generate_candidates</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="n">query_doc</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">source_doc</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
-<a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a><span class="n">results</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">judge_candidates</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="n">query_doc</span><span class="p">,</span> <span class="n">candidates</span><span class="o">=</span><span class="n">candidates</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pipeline</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles.pipeline.generator</span><span class="w"> </span><span class="kn">import</span> <span class="n">EmbeddingCandidateGenerator</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles.pipeline.judge</span><span class="w"> </span><span class="kn">import</span> <span class="n">ClassificationJudge</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="n">pipeline</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="p">(</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>    <span class="n">generator</span><span class="o">=</span><span class="n">EmbeddingCandidateGenerator</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">),</span>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>    <span class="n">judge</span><span class="o">=</span><span class="n">ClassificationJudge</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">),</span>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="p">)</span>
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="n">results</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="n">query_doc</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">source_doc</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>
+<a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a><span class="c1"># You can also run each stage separately</span>
+<a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a><span class="n">candidates</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">generate_candidates</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="n">query_doc</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">source_doc</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a><span class="n">results</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">judge_candidates</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="n">query_doc</span><span class="p">,</span> <span class="n">candidates</span><span class="o">=</span><span class="n">candidates</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="evaluation">Evaluation<a class="headerlink" href="#evaluation" title="Permanent link">&para;</a></h2>
 <p>Use the <code>IntertextEvaluator</code> to assess detection quality:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">IntertextEvaluator</span>
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
-<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="n">evaluator</span> <span class="o">=</span> <span class="n">IntertextEvaluator</span><span class="p">(</span>
-<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>    <span class="n">predictions</span><span class="o">=</span><span class="n">predictions</span><span class="p">,</span>
-<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>    <span class="n">ground_truth</span><span class="o">=</span><span class="n">ground_truth</span>
-<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="p">)</span>
-<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>
-<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="n">metrics</span> <span class="o">=</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
-<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Precision: </span><span class="si">{</span><span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;precision&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Recall: </span><span class="si">{</span><span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;recall&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;F1: </span><span class="si">{</span><span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;f1&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">IntertextEvaluator</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="n">evaluator</span> <span class="o">=</span> <span class="n">IntertextEvaluator</span><span class="p">(</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>    <span class="n">predictions</span><span class="o">=</span><span class="n">predictions</span><span class="p">,</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>    <span class="n">ground_truth</span><span class="o">=</span><span class="n">ground_truth</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="p">)</span>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="n">metrics</span> <span class="o">=</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Precision: </span><span class="si">{</span><span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;precision&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Recall: </span><span class="si">{</span><span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;recall&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;F1: </span><span class="si">{</span><span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;f1&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
@@ -1486,6 +1607,15 @@ A <strong>judge</strong> then scores or classifies each candidate pair.</p>
 <li>Explore the <a href="../api/">API Reference</a> for detailed documentation</li>
 <li>Check out the <a href="https://github.com/julianschelb/locisimiles/tree/main/examples">examples</a> for complete workflows</li>
 </ul>
+<h2 id="gui-quick-flow-word2vec">GUI Quick Flow (Word2Vec)<a class="headerlink" href="#gui-quick-flow-word2vec" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Start GUI with <code>locisimiles-gui</code>.</li>
+<li>Upload query/source CSV files (<code>seg_id</code>, <code>text</code>).</li>
+<li>In Pipeline Configuration, choose Word2Vec Retrieval (Burns-Style).</li>
+<li>Set a valid local Word2Vec <code>.model</code> path.</li>
+<li>Configure Bigram Interval and Order-Free Bigrams.</li>
+<li>Run processing and inspect thresholded matches in the results step.</li>
+</ol>
 
 
 
