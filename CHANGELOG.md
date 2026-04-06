@@ -2,6 +2,39 @@
 
 <!-- version list -->
 
+## v1.5.0 (2026-04-06)
+
+### Features
+
+- Add contextual Latin BERT pipelines for retrieval and two-stage classification
+  ([#12](https://github.com/julianschelb/locisimiles/pull/12),
+  [`1b84f3b`](https://github.com/julianschelb/locisimiles/commit/1b84f3b066f8e3ff3e7bdc61a0ef536febf718e5))
+
+- Add Latin BERT contextual retrieval pipeline (Gong-style token-level similarity)
+  ([#12](https://github.com/julianschelb/locisimiles/pull/12),
+  [`1b84f3b`](https://github.com/julianschelb/locisimiles/commit/1b84f3b066f8e3ff3e7bdc61a0ef536febf718e5))
+
+- Add Word2Vec example notebook and update documentation
+  ([#12](https://github.com/julianschelb/locisimiles/pull/12),
+  [`1b84f3b`](https://github.com/julianschelb/locisimiles/commit/1b84f3b066f8e3ff3e7bdc61a0ef536febf718e5))
+
+- Add Word2Vec generic smoketest example and model training
+  ([#12](https://github.com/julianschelb/locisimiles/pull/12),
+  [`1b84f3b`](https://github.com/julianschelb/locisimiles/commit/1b84f3b066f8e3ff3e7bdc61a0ef536febf718e5))
+
+- Add Word2Vec retrieval pipeline and candidate generator
+  ([#12](https://github.com/julianschelb/locisimiles/pull/12),
+  [`1b84f3b`](https://github.com/julianschelb/locisimiles/commit/1b84f3b066f8e3ff3e7bdc61a0ef536febf718e5))
+
+- Enhance pipeline type annotations and improve scoring logic in candidate generators
+  ([#12](https://github.com/julianschelb/locisimiles/pull/12),
+  [`1b84f3b`](https://github.com/julianschelb/locisimiles/commit/1b84f3b066f8e3ff3e7bdc61a0ef536febf718e5))
+
+- Reorganize imports and enhance Word2Vec and contextual BERT parameter configuration in GUI
+  ([#12](https://github.com/julianschelb/locisimiles/pull/12),
+  [`1b84f3b`](https://github.com/julianschelb/locisimiles/commit/1b84f3b066f8e3ff3e7bdc61a0ef536febf718e5))
+
+
 ## v1.4.0 (2026-03-15)
 
 ### Bug Fixes
