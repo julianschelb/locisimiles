@@ -16,6 +16,7 @@ This module provides:
 - ``TwoStagePipeline``: Embedding retrieval + classification
 - ``ExhaustiveClassificationPipeline``: Exhaustive pairs + classification
 - ``RetrievalPipeline``: Embedding retrieval + threshold judge
+- ``Word2VecRetrievalPipeline``: Burns-style Word2Vec retrieval + threshold judge
 - ``RuleBasedPipeline``: Rule-based lexical matching + linguistic filters
 
 All exports are available at the package level::
@@ -51,13 +52,19 @@ from locisimiles.pipeline.classification import (
     ClassificationPipeline,  # backward-compat alias
     ExhaustiveClassificationPipeline,
 )
+from locisimiles.pipeline.contextual_retrieval import LatinBertRetrievalPipeline
+from locisimiles.pipeline.contextual_two_stage import LatinBertTwoStagePipeline
 
 # --- Modular components: generators ---
 from locisimiles.pipeline.generator import (
+    DEFAULT_CONTEXTUAL_BERT_MODEL_NAME,
+    DEFAULT_WORD2VEC_MODEL_PATH,
     CandidateGeneratorBase,
     EmbeddingCandidateGenerator,
     ExhaustiveCandidateGenerator,
+    LatinBertContextualCandidateGenerator,
     RuleBasedCandidateGenerator,
+    Word2VecCandidateGenerator,
 )
 
 # --- Modular components: judges ---
@@ -82,6 +89,7 @@ from locisimiles.pipeline.two_stage import (
     ClassificationPipelineWithCandidategeneration,  # backward-compat alias (old typo)
     TwoStagePipeline,
 )
+from locisimiles.pipeline.word2vec import Word2VecRetrievalPipeline
 
 # Define public API
 __all__ = [
@@ -109,6 +117,10 @@ __all__ = [
     "EmbeddingCandidateGenerator",
     "ExhaustiveCandidateGenerator",
     "RuleBasedCandidateGenerator",
+    "Word2VecCandidateGenerator",
+    "DEFAULT_WORD2VEC_MODEL_PATH",
+    "LatinBertContextualCandidateGenerator",
+    "DEFAULT_CONTEXTUAL_BERT_MODEL_NAME",
     # Judges
     "CandidateJudgeBase",
     "JudgeBase",  # backward-compat alias
@@ -121,6 +133,9 @@ __all__ = [
     "TwoStagePipeline",
     "ExhaustiveClassificationPipeline",
     "RetrievalPipeline",
+    "Word2VecRetrievalPipeline",
+    "LatinBertRetrievalPipeline",
+    "LatinBertTwoStagePipeline",
     "RuleBasedPipeline",
     # Backward-compatible aliases
     "ClassificationPipelineWithCandidateGeneration",

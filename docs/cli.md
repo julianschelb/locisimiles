@@ -1,130 +1,135 @@
 # CLI Reference
 
-LociSimiles provides a command-line interface for common workflows.
+LociSimiles provides a single CLI entrypoint:
+
+```bash
+locisimiles QUERY.csv SOURCE.csv -o RESULTS.csv [OPTIONS]
+```
 
 ## Installation
-
-The CLI is installed automatically with the package:
 
 ```bash
 pip install locisimiles
 ```
 
-## Commands
-
-### `locisimiles run`
-
-Run the intertextual detection pipeline on source and target documents.
+For Word2Vec retrieval, also install:
 
 ```bash
-locisimiles run SOURCE TARGET [OPTIONS]
+pip install "locisimiles[word2vec]"
 ```
 
-#### Arguments
+## Arguments
 
 | Argument | Description |
 |----------|-------------|
-| `SOURCE` | Path to the source CSV file |
-| `TARGET` | Path to the target CSV file |
+| `QUERY.csv` | Path to query CSV file (`seg_id`, `text`) |
+| `SOURCE.csv` | Path to source CSV file (`seg_id`, `text`) |
 
-#### Options
+## Options
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `--output`, `-o` | `results.csv` | Output file path |
-| `--model`, `-m` | `sentence-transformers/all-MiniLM-L6-v2` | Model name or path |
-| `--top-k`, `-k` | `10` | Number of candidates to retrieve |
-| `--threshold`, `-t` | `0.85` | Classification threshold |
-| `--batch-size`, `-b` | `32` | Batch size for processing |
+| `-o, --output` | required | Output CSV path |
+| `--pipeline` | `two-stage` | Pipeline type: `two-stage`, `word2vec-retrieval`, `latin-bert-retrieval`, or `latin-bert-two-stage` |
+| `--classification-model` | `julian-schelb/xlm-roberta-large-class-lat-intertext-v1` | Classifier model (two-stage pipelines only) |
+| `--embedding-model` | `julian-schelb/multilingual-e5-large-emb-lat-intertext-v1` | Embedding model (two-stage only) |
+| `--latin-bert-model` | `xlm-roberta-base` | HuggingFace model for contextual Latin BERT retrieval |
+| `--latin-bert-model-path` | none | Optional local model directory for Latin BERT |
+| `--latin-bert-max-length` | `256` | Max tokenized sequence length for contextual retrieval |
+| `--latin-bert-min-token-length` | `2` | Min token length for contextual scoring |
+| `--latin-bert-disable-stopword-filter` | `False` | Disable built-in Latin stopword filtering |
+| `--word2vec-model-path` | package default path | Local gensim `.model` path (Word2Vec pipeline) |
+| `--word2vec-interval` | `0` | Max token gap for Word2Vec bigrams |
+| `--word2vec-order-free` | `False` | Use order-insensitive bigrams |
+| `-k, --top-k` | `10` | Number of retrieved candidates per query |
+| `-t, --threshold` | `0.85` | Threshold for `above_threshold` in output |
+| `--device` | `auto` | `auto`, `cuda`, `mps`, or `cpu` |
+| `-v, --verbose` | `False` | Verbose logs |
 
-#### Examples
-
-Basic usage:
+## Two-Stage Flow
 
 ```bash
-locisimiles run source.csv target.csv
+locisimiles query.csv source.csv -o results.csv \
+    --pipeline two-stage \
+    --classification-model julian-schelb/xlm-roberta-large-class-lat-intertext-v1 \
+    --embedding-model julian-schelb/multilingual-e5-large-emb-lat-intertext-v1 \
+    --top-k 20 \
+    --threshold 0.85
 ```
 
-With custom output and model:
+## Word2Vec Flow
 
 ```bash
-locisimiles run source.csv target.csv \
-    --output results.csv \
-    --model bert-base-multilingual-cased \
+locisimiles query.csv source.csv -o results.csv \
+    --pipeline word2vec-retrieval \
+    --word2vec-model-path ./models/latin_w2v_bamman_lemma300_100_1.model \
+    --word2vec-interval 2 \
+    --word2vec-order-free \
+    --top-k 20 \
+    --threshold 0.85
+```
+
+If `--word2vec-model-path` is not set, the CLI uses this local default path:
+
+`models/latin_w2v_bamman_lemma300_100_1.model`
+
+The file must exist on disk. No automatic download is performed.
+
+Word2Vec mode expects pre-lemmatized text in the CSV `text` column.
+
+## Latin BERT Retrieval Flow
+
+Token-level contextual similarity using a BERT model (Gong-style approach):
+
+```bash
+locisimiles query.csv source.csv -o results.csv \
+    --pipeline latin-bert-retrieval \
+    --latin-bert-model ashleygong03/bamman-burns-latin-bert \
+    --latin-bert-max-length 256 \
+    --top-k 20 \
+    --threshold 0.85
+```
+
+Or use a local model directory:
+
+```bash
+locisimiles query.csv source.csv -o results.csv \
+    --pipeline latin-bert-retrieval \
+    --latin-bert-model-path ./models/latinbert \
     --top-k 20
 ```
 
-### `locisimiles evaluate`
+## Latin BERT Two-Stage Flow
 
-Evaluate detection results against ground truth.
-
-```bash
-locisimiles evaluate PREDICTIONS GROUND_TRUTH [OPTIONS]
-```
-
-#### Arguments
-
-| Argument | Description |
-|----------|-------------|
-| `PREDICTIONS` | Path to predictions CSV file |
-| `GROUND_TRUTH` | Path to ground truth CSV file |
-
-#### Options
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| `--output`, `-o` | `None` | Output file for metrics (prints to stdout if not specified) |
-
-#### Examples
+Combines contextual token retrieval with classification:
 
 ```bash
-locisimiles evaluate results.csv ground_truth.csv
+locisimiles query.csv source.csv -o results.csv \
+    --pipeline latin-bert-two-stage \
+    --latin-bert-model ashleygong03/bamman-burns-latin-bert \
+    --classification-model julian-schelb/xlm-roberta-large-class-lat-intertext-v1 \
+    --top-k 20 \
+    --threshold 0.85
 ```
-
-Save metrics to file:
-
-```bash
-locisimiles evaluate results.csv ground_truth.csv -o metrics.json
-```
-
-## Input File Formats
-
-### Source/Target CSV
-
-CSV files should contain at minimum an ID column and a text column:
-
-```csv
-id,text
-1,"Arma virumque cano Troiae qui primus ab oris"
-2,"Italiam fato profugus Laviniaque venit"
-```
-
-### Ground Truth CSV
-
-Ground truth files should contain query-reference pairs with labels:
-
-```csv
-query_id,reference_id,label
-1,42,1
-2,15,0
-```
-
-Where `label` is `1` for true matches and `0` for non-matches.
 
 ## Output Format
 
-The pipeline outputs a CSV with the following columns:
+The CLI writes the following columns:
 
 | Column | Description |
 |--------|-------------|
-| `query_id` | ID of the source text segment |
-| `reference_id` | ID of the matched target segment |
-| `score` | Similarity/classification score |
-| `above_threshold` | Whether the score exceeds the threshold |
+| `query_id` | Query segment identifier |
+| `query_text` | Query segment text |
+| `source_id` | Source segment identifier |
+| `source_text` | Source segment text |
+| `similarity` | Candidate similarity score |
+| `probability` | Final stage score (classification or thresholded retrieval score) |
+| `above_threshold` | `Yes` if score >= threshold, else `No` |
 
-## Environment Variables
+## GUI Equivalent
 
-| Variable | Description |
-|----------|-------------|
-| `LOCISIMILES_CACHE_DIR` | Directory for model caching |
-| `LOCISIMILES_DEVICE` | Device for computation (`cpu`, `cuda`, `mps`) |
+The same Word2Vec settings are available in the GUI under:
+
+1. Pipeline Configuration
+2. Pipeline Type: Word2Vec Retrieval (Burns-Style)
+3. Word2Vec Model Path / Bigram Interval / Order-Free Bigrams

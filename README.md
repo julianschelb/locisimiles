@@ -41,17 +41,46 @@ LociSimiles provides a command-line tool for running the pipeline directly from 
 locisimiles query.csv source.csv -o results.csv
 ```
 
-### Advanced Usage
+### Two-Stage Pipeline Example
 
 ```bash
 locisimiles query.csv source.csv -o results.csv \
+  --pipeline two-stage \
   --classification-model julian-schelb/xlm-roberta-large-class-lat-intertext-v1 \
   --embedding-model julian-schelb/multilingual-e5-large-emb-lat-intertext-v1 \
   --top-k 20 \
-  --threshold 0.7 \
+  --threshold 0.85 \
   --device cuda \
   --verbose
 ```
+
+### Word2Vec Retrieval Example
+
+```bash
+locisimiles query.csv source.csv -o results.csv \
+  --pipeline word2vec-retrieval \
+  --word2vec-model-path ./models/latin_w2v_bamman_lemma300_100_1.model \
+  --word2vec-interval 2 \
+  --word2vec-order-free \
+  --top-k 20 \
+  --threshold 0.85
+```
+
+### Latin BERT Retrieval Example (Gong-Style)
+
+```bash
+locisimiles query.csv source.csv -o results.csv \
+  --pipeline latin-bert-retrieval \
+  --latin-bert-model ashleygong03/bamman-burns-latin-bert \
+  --top-k 20 \
+  --threshold 0.85
+```
+
+If `--word2vec-model-path` is not provided, the CLI expects a local model at:
+
+`models/latin_w2v_bamman_lemma300_100_1.model`
+
+Word2Vec mode requires pre-lemmatized input in the same CSV format (`seg_id`, `text`).
 
 ### Options
 
@@ -63,10 +92,14 @@ locisimiles query.csv source.csv -o results.csv \
 - **Models:**
   - `--classification-model`: HuggingFace model for classification (default: xlm-roberta-large-class-lat-intertext-v1)
   - `--embedding-model`: HuggingFace model for embeddings (default: multilingual-e5-large-emb-lat-intertext-v1)
+  - `--word2vec-model-path`: Local path to a gensim `.model` file (Word2Vec pipeline)
 
 - **Pipeline Parameters:**
+  - `--pipeline`: Select `two-stage` or `word2vec-retrieval` (default: `two-stage`)
   - `-k, --top-k`: Number of top candidates to retrieve per query segment (default: 10)
-  - `-t, --threshold`: Classification probability threshold for filtering results (default: 0.85)
+  - `-t, --threshold`: Decision threshold for output filtering (default: 0.85)
+  - `--word2vec-interval`: Max token gap for Word2Vec bigrams (default: 0)
+  - `--word2vec-order-free`: Enable order-insensitive Word2Vec bigrams
 
 - **Device:**
   - `--device`: Choose `auto`, `cuda`, `mps`, or `cpu` (default: auto-detect)
@@ -100,3 +133,11 @@ Launch the interface from the command line:
 ```bash
 locisimiles-gui
 ```
+
+In the GUI, choose **Word2Vec Retrieval (Burns-Style)** in Pipeline Configuration to enable Word2Vec controls:
+
+- Word2Vec Model Path: local gensim `.model` file
+- Bigram Interval: token gap for bigram generation
+- Order-Free Bigrams: optional order-insensitive matching
+
+If the model path is invalid or missing, processing fails with a clear error message.

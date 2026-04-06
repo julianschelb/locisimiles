@@ -19,10 +19,15 @@ except ImportError as exc:
 
 from locisimiles.document import Document
 from locisimiles.pipeline import (
+    DEFAULT_CONTEXTUAL_BERT_MODEL_NAME,
+    DEFAULT_WORD2VEC_MODEL_PATH,
     ExhaustiveClassificationPipeline,
+    LatinBertRetrievalPipeline,
+    LatinBertTwoStagePipeline,
     RetrievalPipeline,
     RuleBasedPipeline,
     TwoStagePipeline,
+    Word2VecRetrievalPipeline,
 )
 
 from .utils import validate_csv
@@ -32,12 +37,18 @@ PIPELINE_TWO_STAGE = "Two-Stage (Embedding + Classification)"
 PIPELINE_EXHAUSTIVE = "Exhaustive Classification"
 PIPELINE_RETRIEVAL = "Retrieval Only (Embedding Similarity)"
 PIPELINE_RULE_BASED = "Rule-Based (Lexical Matching)"
+PIPELINE_WORD2VEC = "Word2Vec Retrieval (Burns-Style)"
+PIPELINE_LATIN_BERT_RETRIEVAL = "Contextual Latin BERT Retrieval"
+PIPELINE_LATIN_BERT_TWO_STAGE = "Contextual Latin BERT Two-Stage"
 
 PIPELINE_CHOICES = [
     PIPELINE_TWO_STAGE,
     PIPELINE_EXHAUSTIVE,
     PIPELINE_RETRIEVAL,
     PIPELINE_RULE_BASED,
+    PIPELINE_WORD2VEC,
+    PIPELINE_LATIN_BERT_RETRIEVAL,
+    PIPELINE_LATIN_BERT_TWO_STAGE,
 ]
 
 PIPELINE_DESCRIPTIONS = {
@@ -59,6 +70,21 @@ PIPELINE_DESCRIPTIONS = {
         "**Rule-Based Pipeline** — Identifies textual reuse through lexical matching "
         "and linguistic filters (shared words, distance criteria, punctuation patterns). "
         "No neural models required for the base configuration."
+    ),
+    PIPELINE_WORD2VEC: (
+        "**Word2Vec Retrieval Pipeline** — Uses a local pre-trained Word2Vec model "
+        "with bigram-level pair-aware similarity scoring inspired by Burns et al. (2021). "
+        "Fast retrieval-only option for lemmatized input."
+    ),
+    PIPELINE_LATIN_BERT_RETRIEVAL: (
+        "**Contextual Latin BERT Retrieval** — Computes token-level contextual embeddings "
+        "with a transformer model and retrieves source segments by max token similarity. "
+        "Best for exploratory semantic search without a second-stage classifier."
+    ),
+    PIPELINE_LATIN_BERT_TWO_STAGE: (
+        "**Contextual Latin BERT Two-Stage** — Uses contextual token retrieval first, "
+        "then reranks candidates with a classification model. Better precision for "
+        "intertextual detection workflows."
     ),
 }
 
@@ -88,19 +114,37 @@ def _update_pipeline_visibility(pipeline_type: str) -> tuple:
 
     Returns:
         Tuple of (description, embedding_group, classification_group,
-                  retrieval_group, rule_based_group)
+                  retrieval_group, rule_based_group, word2vec_group,
+                  contextual_group)
     """
     desc = PIPELINE_DESCRIPTIONS.get(pipeline_type, "")
     show_embedding = pipeline_type in (PIPELINE_TWO_STAGE, PIPELINE_RETRIEVAL)
-    show_classification = pipeline_type in (PIPELINE_TWO_STAGE, PIPELINE_EXHAUSTIVE)
-    show_retrieval = pipeline_type in (PIPELINE_TWO_STAGE, PIPELINE_RETRIEVAL)
+    show_classification = pipeline_type in (
+        PIPELINE_TWO_STAGE,
+        PIPELINE_EXHAUSTIVE,
+        PIPELINE_LATIN_BERT_TWO_STAGE,
+    )
+    show_retrieval = pipeline_type in (
+        PIPELINE_TWO_STAGE,
+        PIPELINE_RETRIEVAL,
+        PIPELINE_WORD2VEC,
+        PIPELINE_LATIN_BERT_RETRIEVAL,
+        PIPELINE_LATIN_BERT_TWO_STAGE,
+    )
     show_rule_based = pipeline_type == PIPELINE_RULE_BASED
+    show_word2vec = pipeline_type == PIPELINE_WORD2VEC
+    show_contextual = pipeline_type in (
+        PIPELINE_LATIN_BERT_RETRIEVAL,
+        PIPELINE_LATIN_BERT_TWO_STAGE,
+    )
     return (
         gr.update(value=desc),
         gr.update(visible=show_embedding),
         gr.update(visible=show_classification),
         gr.update(visible=show_retrieval),
         gr.update(visible=show_rule_based),
+        gr.update(visible=show_word2vec),
+        gr.update(visible=show_contextual),
     )
 
 
@@ -132,6 +176,14 @@ def _process_documents(
     rb_similarity_threshold: float,
     use_htrg: bool,
     use_similarity: bool,
+    word2vec_model_path: str,
+    word2vec_interval: int,
+    word2vec_order_free: bool,
+    contextual_model_name: str,
+    contextual_model_path: str,
+    contextual_max_length: int,
+    contextual_min_token_length: int,
+    contextual_use_stopword_filter: bool,
 ) -> tuple:
     """Process the documents using the selected pipeline and navigate to results step.
 
@@ -149,6 +201,14 @@ def _process_documents(
         rb_similarity_threshold: (Rule-based) Semantic similarity threshold.
         use_htrg: (Rule-based) Whether to apply HTRG POS filter.
         use_similarity: (Rule-based) Whether to apply spaCy similarity filter.
+        word2vec_model_path: (Word2Vec) Local path to gensim model file.
+        word2vec_interval: (Word2Vec) Bigram token gap interval.
+        word2vec_order_free: (Word2Vec) Whether bigrams are order-insensitive.
+        contextual_model_name: (Contextual) HuggingFace model identifier.
+        contextual_model_path: (Contextual) Optional local model path.
+        contextual_max_length: (Contextual) Max sequence length for encoding.
+        contextual_min_token_length: (Contextual) Minimum token length retained.
+        contextual_use_stopword_filter: (Contextual) Whether stopword filtering is applied.
 
     Returns:
         Tuple of (processing_status_update, walkthrough_update, results_state, query_doc_state)
@@ -196,6 +256,60 @@ def _process_documents(
                 use_similarity=bool(use_similarity),
                 device=device,
             )
+        elif pipeline_type == PIPELINE_WORD2VEC:
+            model_path = word2vec_model_path.strip() if word2vec_model_path else ""
+            pipeline = Word2VecRetrievalPipeline(
+                model_path=model_path or DEFAULT_WORD2VEC_MODEL_PATH,
+                top_k=int(top_k),
+                similarity_threshold=float(threshold),
+                interval=int(word2vec_interval),
+                order_free=bool(word2vec_order_free),
+            )
+        elif pipeline_type == PIPELINE_LATIN_BERT_RETRIEVAL:
+            resolved_local_path = contextual_model_path.strip() if contextual_model_path else ""
+            normalized_model_name = contextual_model_name.strip()
+            if (
+                resolved_local_path
+                and normalized_model_name
+                and normalized_model_name != DEFAULT_CONTEXTUAL_BERT_MODEL_NAME
+            ):
+                gr.Error(
+                    "Provide either a contextual HF model name or a local model path, not both."
+                )
+                return gr.update(visible=False), gr.Walkthrough(selected=1), None, None
+
+            pipeline = LatinBertRetrievalPipeline(
+                model_name=normalized_model_name or DEFAULT_CONTEXTUAL_BERT_MODEL_NAME,
+                model_path=resolved_local_path or None,
+                device=device,
+                top_k=int(top_k),
+                similarity_threshold=float(threshold),
+                max_length=int(contextual_max_length),
+                min_token_length=int(contextual_min_token_length),
+                use_stopword_filter=bool(contextual_use_stopword_filter),
+            )
+        elif pipeline_type == PIPELINE_LATIN_BERT_TWO_STAGE:
+            resolved_local_path = contextual_model_path.strip() if contextual_model_path else ""
+            normalized_model_name = contextual_model_name.strip()
+            if (
+                resolved_local_path
+                and normalized_model_name
+                and normalized_model_name != DEFAULT_CONTEXTUAL_BERT_MODEL_NAME
+            ):
+                gr.Error(
+                    "Provide either a contextual HF model name or a local model path, not both."
+                )
+                return gr.update(visible=False), gr.Walkthrough(selected=1), None, None
+
+            pipeline = LatinBertTwoStagePipeline(
+                classification_name=classification_model,
+                model_name=normalized_model_name or DEFAULT_CONTEXTUAL_BERT_MODEL_NAME,
+                model_path=resolved_local_path or None,
+                device=device,
+                max_length=int(contextual_max_length),
+                min_token_length=int(contextual_min_token_length),
+                use_stopword_filter=bool(contextual_use_stopword_filter),
+            )
         else:
             gr.Error(f"Unknown pipeline type: {pipeline_type}")
             return gr.update(visible=False), gr.Walkthrough(selected=1), None, None
@@ -206,7 +320,13 @@ def _process_documents(
 
         # Build run kwargs — only pass top_k when the pipeline uses it
         run_kwargs: dict = {}
-        if pipeline_type in (PIPELINE_TWO_STAGE, PIPELINE_RETRIEVAL):
+        if pipeline_type in (
+            PIPELINE_TWO_STAGE,
+            PIPELINE_RETRIEVAL,
+            PIPELINE_WORD2VEC,
+            PIPELINE_LATIN_BERT_RETRIEVAL,
+            PIPELINE_LATIN_BERT_TWO_STAGE,
+        ):
             run_kwargs["top_k"] = top_k
 
         # Run pipeline
@@ -389,6 +509,63 @@ def build_config_stage() -> tuple[gr.Step, dict]:
                 )
         components["rule_based_group"] = rule_based_group
 
+        with gr.Row(visible=False) as word2vec_group, gr.Column():
+            gr.Markdown("**🧠 Word2Vec Parameters**")
+            components["word2vec_model_path"] = gr.Textbox(
+                label="Word2Vec Model Path",
+                value=str(DEFAULT_WORD2VEC_MODEL_PATH),
+                info="Path to a local gensim .model file.",
+            )
+            components["word2vec_interval"] = gr.Slider(
+                minimum=0,
+                maximum=10,
+                value=0,
+                step=1,
+                label="Bigram Interval",
+                info="Maximum token gap between bigram words.",
+            )
+            components["word2vec_order_free"] = gr.Checkbox(
+                label="Order-Free Bigrams",
+                value=False,
+                info="Treat bigrams as order-insensitive.",
+            )
+        components["word2vec_group"] = word2vec_group
+
+        with gr.Row(visible=False) as contextual_group, gr.Column():
+            gr.Markdown("**🧠 Contextual Latin BERT Parameters**")
+            components["contextual_model_name"] = gr.Textbox(
+                label="Contextual Model Name (HF)",
+                value="xlm-roberta-base",
+                info="HuggingFace model id. Leave blank when using local path.",
+            )
+            components["contextual_model_path"] = gr.Textbox(
+                label="Contextual Model Path (Local)",
+                value="",
+                info="Optional local model directory. Leave blank to use HF model name.",
+            )
+            components["contextual_max_length"] = gr.Slider(
+                minimum=64,
+                maximum=512,
+                value=256,
+                step=16,
+                label="Max Sequence Length",
+                info="Maximum tokenized length per segment.",
+            )
+            components["contextual_min_token_length"] = gr.Slider(
+                minimum=1,
+                maximum=8,
+                value=2,
+                step=1,
+                label="Min Token Length",
+                info="Ignore shorter tokens during contextual scoring.",
+            )
+            components["contextual_use_stopword_filter"] = gr.Checkbox(
+                label="Use Latin Stopword Filter",
+                value=True,
+                info="Filters common function words before token-level similarity.",
+            )
+        components["contextual_group"] = contextual_group
+
         components["processing_status"] = gr.HTML(visible=False)
 
         with gr.Row():
@@ -428,6 +605,8 @@ def setup_config_handlers(
             components["classification_group"],
             components["retrieval_group"],
             components["rule_based_group"],
+            components["word2vec_group"],
+            components["contextual_group"],
         ],
     )
 
@@ -466,6 +645,14 @@ def setup_config_handlers(
             components["rb_similarity_threshold"],
             components["use_htrg"],
             components["use_similarity"],
+            components["word2vec_model_path"],
+            components["word2vec_interval"],
+            components["word2vec_order_free"],
+            components["contextual_model_name"],
+            components["contextual_model_path"],
+            components["contextual_max_length"],
+            components["contextual_min_token_length"],
+            components["contextual_use_stopword_filter"],
         ],
         outputs=[
             components["processing_status"],

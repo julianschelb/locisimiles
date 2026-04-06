@@ -131,6 +131,59 @@ pipeline = RetrievalPipeline(
 results = pipeline.run(query=query, source=source, top_k=5)
 ```
 
+### Latin BERT Retrieval Pipeline (Gong-Style)
+
+A contextual token-level retrieval pipeline using BERT. Computes word-level
+embeddings and scores segment pairs by their best token-token cosine similarity.
+Excels at detecting lexical echoes and word reuse.
+
+```python
+from locisimiles import Document, LatinBertRetrievalPipeline
+
+query = Document("query.csv")
+source = Document("source.csv")
+
+pipeline = LatinBertRetrievalPipeline(
+    model_name="ashleygong03/bamman-burns-latin-bert",  # or model_path for local
+    top_k=10,
+    similarity_threshold=0.85,
+    max_length=256,
+    min_token_length=2,
+    use_stopword_filter=True,
+)
+
+results = pipeline.run(query=query, source=source, top_k=10)
+```
+
+### Word2Vec Retrieval Pipeline (Burns-Style)
+
+A retrieval-only pipeline using a local Word2Vec model and pair-aware
+bigram scoring.
+
+```python
+from locisimiles import Document, Word2VecRetrievalPipeline
+
+query = Document("query.csv")
+source = Document("source.csv")
+
+pipeline = Word2VecRetrievalPipeline(
+    model_path="./models/latin_w2v_bamman_lemma300_100_1.model",
+    top_k=10,
+    similarity_threshold=0.85,
+    interval=2,
+    order_free=True,
+)
+
+results = pipeline.run(query=query, source=source, top_k=10)
+```
+
+Model path expectations:
+
+- The path must reference a local gensim `.model` file.
+- If no path is provided, LociSimiles checks `models/latin_w2v_bamman_lemma300_100_1.model`.
+- The model is not downloaded automatically.
+- Input text should already be lemmatized.
+
 ### Rule-Based Pipeline
 
 A purely lexical pipeline that does not require any neural models.
@@ -159,6 +212,7 @@ results = pipeline.run(query=query, source=source)
 | `ClassificationPipelineWithCandidateGeneration` | Medium | Embedding + classifier | Most use cases |
 | `ClassificationPipeline` | Slow | Classifier | Small datasets, exhaustive comparison |
 | `RetrievalPipeline` | Fast | Embedding | Quick similarity search |
+| `Word2VecRetrievalPipeline` | Fast | Local Word2Vec `.model` | Lightweight Burns-style retrieval |
 | `RuleBasedPipeline` | Fast | None | No GPU, lexical matching |
 
 ### Saving Results
@@ -193,6 +247,7 @@ A **judge** then scores or classifies each candidate pair.
 | `EmbeddingCandidateGenerator` | Semantic similarity via sentence transformers + ChromaDB |
 | `ExhaustiveCandidateGenerator` | All pairs — no filtering |
 | `RuleBasedCandidateGenerator` | Lexical matching + linguistic filters |
+| `Word2VecCandidateGenerator` | Pair-aware Word2Vec bigram retrieval |
 
 ### Available Judges
 
@@ -244,3 +299,12 @@ print(f"F1: {metrics['f1']:.3f}")
 - See the [CLI Reference](cli.md) for command-line usage
 - Explore the [API Reference](api/index.md) for detailed documentation
 - Check out the [examples](https://github.com/julianschelb/locisimiles/tree/main/examples) for complete workflows
+
+## GUI Quick Flow (Word2Vec)
+
+1. Start GUI with `locisimiles-gui`.
+2. Upload query/source CSV files (`seg_id`, `text`).
+3. In Pipeline Configuration, choose Word2Vec Retrieval (Burns-Style).
+4. Set a valid local Word2Vec `.model` path.
+5. Configure Bigram Interval and Order-Free Bigrams.
+6. Run processing and inspect thresholded matches in the results step.

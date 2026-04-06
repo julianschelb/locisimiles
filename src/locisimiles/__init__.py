@@ -10,6 +10,8 @@ from locisimiles.datasets import (
 from locisimiles.document import Document, TextSegment
 from locisimiles.evaluator import IntertextEvaluator
 from locisimiles.pipeline import (
+    DEFAULT_CONTEXTUAL_BERT_MODEL_NAME,
+    DEFAULT_WORD2VEC_MODEL_PATH,
     CandidateJudgeBase,
     ClassificationJudge,
     # Backward-compatible aliases
@@ -21,6 +23,9 @@ from locisimiles.pipeline import (
     ExhaustiveClassificationPipeline,
     IdentityJudge,
     JudgeBase,  # backward-compat alias
+    LatinBertContextualCandidateGenerator,
+    LatinBertRetrievalPipeline,
+    LatinBertTwoStagePipeline,
     # Modular components
     Pipeline,
     RetrievalPipeline,
@@ -29,6 +34,8 @@ from locisimiles.pipeline import (
     ThresholdJudge,
     # Preconfigured pipelines
     TwoStagePipeline,
+    Word2VecCandidateGenerator,
+    Word2VecRetrievalPipeline,
     # Utilities
     pretty_print,
     results_to_csv,
@@ -42,6 +49,9 @@ __all__ = [
     "TwoStagePipeline",
     "ExhaustiveClassificationPipeline",
     "RetrievalPipeline",
+    "Word2VecRetrievalPipeline",
+    "LatinBertRetrievalPipeline",
+    "LatinBertTwoStagePipeline",
     "RuleBasedPipeline",
     # Backward-compatible aliases
     "ClassificationPipeline",
@@ -54,6 +64,10 @@ __all__ = [
     "EmbeddingCandidateGenerator",
     "ExhaustiveCandidateGenerator",
     "RuleBasedCandidateGenerator",
+    "LatinBertContextualCandidateGenerator",
+    "Word2VecCandidateGenerator",
+    "DEFAULT_CONTEXTUAL_BERT_MODEL_NAME",
+    "DEFAULT_WORD2VEC_MODEL_PATH",
     "ClassificationJudge",
     "ThresholdJudge",
     "IdentityJudge",
