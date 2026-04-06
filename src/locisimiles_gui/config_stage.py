@@ -509,63 +509,61 @@ def build_config_stage() -> tuple[gr.Step, dict]:
                 )
         components["rule_based_group"] = rule_based_group
 
-        with gr.Row(visible=False) as word2vec_group:
-            with gr.Column():
-                gr.Markdown("**🧠 Word2Vec Parameters**")
-                components["word2vec_model_path"] = gr.Textbox(
-                    label="Word2Vec Model Path",
-                    value=str(DEFAULT_WORD2VEC_MODEL_PATH),
-                    info="Path to a local gensim .model file.",
-                )
-                components["word2vec_interval"] = gr.Slider(
-                    minimum=0,
-                    maximum=10,
-                    value=0,
-                    step=1,
-                    label="Bigram Interval",
-                    info="Maximum token gap between bigram words.",
-                )
-                components["word2vec_order_free"] = gr.Checkbox(
-                    label="Order-Free Bigrams",
-                    value=False,
-                    info="Treat bigrams as order-insensitive.",
-                )
+        with gr.Row(visible=False) as word2vec_group, gr.Column():
+            gr.Markdown("**🧠 Word2Vec Parameters**")
+            components["word2vec_model_path"] = gr.Textbox(
+                label="Word2Vec Model Path",
+                value=str(DEFAULT_WORD2VEC_MODEL_PATH),
+                info="Path to a local gensim .model file.",
+            )
+            components["word2vec_interval"] = gr.Slider(
+                minimum=0,
+                maximum=10,
+                value=0,
+                step=1,
+                label="Bigram Interval",
+                info="Maximum token gap between bigram words.",
+            )
+            components["word2vec_order_free"] = gr.Checkbox(
+                label="Order-Free Bigrams",
+                value=False,
+                info="Treat bigrams as order-insensitive.",
+            )
         components["word2vec_group"] = word2vec_group
 
-        with gr.Row(visible=False) as contextual_group:
-            with gr.Column():
-                gr.Markdown("**🧠 Contextual Latin BERT Parameters**")
-                components["contextual_model_name"] = gr.Textbox(
-                    label="Contextual Model Name (HF)",
-                    value="xlm-roberta-base",
-                    info="HuggingFace model id. Leave blank when using local path.",
-                )
-                components["contextual_model_path"] = gr.Textbox(
-                    label="Contextual Model Path (Local)",
-                    value="",
-                    info="Optional local model directory. Leave blank to use HF model name.",
-                )
-                components["contextual_max_length"] = gr.Slider(
-                    minimum=64,
-                    maximum=512,
-                    value=256,
-                    step=16,
-                    label="Max Sequence Length",
-                    info="Maximum tokenized length per segment.",
-                )
-                components["contextual_min_token_length"] = gr.Slider(
-                    minimum=1,
-                    maximum=8,
-                    value=2,
-                    step=1,
-                    label="Min Token Length",
-                    info="Ignore shorter tokens during contextual scoring.",
-                )
-                components["contextual_use_stopword_filter"] = gr.Checkbox(
-                    label="Use Latin Stopword Filter",
-                    value=True,
-                    info="Filters common function words before token-level similarity.",
-                )
+        with gr.Row(visible=False) as contextual_group, gr.Column():
+            gr.Markdown("**🧠 Contextual Latin BERT Parameters**")
+            components["contextual_model_name"] = gr.Textbox(
+                label="Contextual Model Name (HF)",
+                value="xlm-roberta-base",
+                info="HuggingFace model id. Leave blank when using local path.",
+            )
+            components["contextual_model_path"] = gr.Textbox(
+                label="Contextual Model Path (Local)",
+                value="",
+                info="Optional local model directory. Leave blank to use HF model name.",
+            )
+            components["contextual_max_length"] = gr.Slider(
+                minimum=64,
+                maximum=512,
+                value=256,
+                step=16,
+                label="Max Sequence Length",
+                info="Maximum tokenized length per segment.",
+            )
+            components["contextual_min_token_length"] = gr.Slider(
+                minimum=1,
+                maximum=8,
+                value=2,
+                step=1,
+                label="Min Token Length",
+                info="Ignore shorter tokens during contextual scoring.",
+            )
+            components["contextual_use_stopword_filter"] = gr.Checkbox(
+                label="Use Latin Stopword Filter",
+                value=True,
+                info="Filters common function words before token-level similarity.",
+            )
         components["contextual_group"] = contextual_group
 
         components["processing_status"] = gr.HTML(visible=False)

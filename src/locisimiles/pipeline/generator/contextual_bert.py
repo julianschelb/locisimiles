@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Any, Iterable, Sequence
+from typing import Any, Iterable
 
 import numpy as np
 import torch
@@ -121,9 +121,7 @@ class LatinBertContextualCandidateGenerator(CandidateGeneratorBase):
         lower = token.lower()
         if len(lower) < min_token_length:
             return False
-        if use_stopword_filter and lower in LATIN_STOPWORDS:
-            return False
-        return True
+        return not (use_stopword_filter and lower in LATIN_STOPWORDS)
 
     def _segment_word_embeddings(
         self,

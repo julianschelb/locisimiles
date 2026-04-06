@@ -57,8 +57,8 @@ from locisimiles.pipeline.contextual_two_stage import LatinBertTwoStagePipeline
 
 # --- Modular components: generators ---
 from locisimiles.pipeline.generator import (
-    DEFAULT_WORD2VEC_MODEL_PATH,
     DEFAULT_CONTEXTUAL_BERT_MODEL_NAME,
+    DEFAULT_WORD2VEC_MODEL_PATH,
     CandidateGeneratorBase,
     EmbeddingCandidateGenerator,
     ExhaustiveCandidateGenerator,
@@ -79,7 +79,6 @@ from locisimiles.pipeline.judge import (
 # --- Pipeline composer ---
 from locisimiles.pipeline.pipeline import Pipeline
 from locisimiles.pipeline.retrieval import RetrievalPipeline
-from locisimiles.pipeline.word2vec import Word2VecRetrievalPipeline
 
 # --- Rule-based pipeline ---
 from locisimiles.pipeline.rule_based import RuleBasedPipeline
@@ -90,6 +89,7 @@ from locisimiles.pipeline.two_stage import (
     ClassificationPipelineWithCandidategeneration,  # backward-compat alias (old typo)
     TwoStagePipeline,
 )
+from locisimiles.pipeline.word2vec import Word2VecRetrievalPipeline
 
 # Define public API
 __all__ = [

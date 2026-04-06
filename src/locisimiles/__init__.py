@@ -10,6 +10,8 @@ from locisimiles.datasets import (
 from locisimiles.document import Document, TextSegment
 from locisimiles.evaluator import IntertextEvaluator
 from locisimiles.pipeline import (
+    DEFAULT_CONTEXTUAL_BERT_MODEL_NAME,
+    DEFAULT_WORD2VEC_MODEL_PATH,
     CandidateJudgeBase,
     ClassificationJudge,
     # Backward-compatible aliases
@@ -20,12 +22,10 @@ from locisimiles.pipeline import (
     ExhaustiveCandidateGenerator,
     ExhaustiveClassificationPipeline,
     IdentityJudge,
+    JudgeBase,  # backward-compat alias
     LatinBertContextualCandidateGenerator,
     LatinBertRetrievalPipeline,
     LatinBertTwoStagePipeline,
-    JudgeBase,  # backward-compat alias
-    DEFAULT_CONTEXTUAL_BERT_MODEL_NAME,
-    DEFAULT_WORD2VEC_MODEL_PATH,
     # Modular components
     Pipeline,
     RetrievalPipeline,

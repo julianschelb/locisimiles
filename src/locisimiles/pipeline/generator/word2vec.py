@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Any, Iterable, List, Optional, Protocol, Sequence, Tuple
+from typing import Any, Iterable, Optional, Protocol, Sequence
 
 from locisimiles.document import Document, TextSegment
 from locisimiles.pipeline._types import Candidate, CandidateGeneratorOutput

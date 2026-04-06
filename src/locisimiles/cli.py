@@ -223,16 +223,17 @@ CSV Format:
             print("Initializing pipeline...")
             print(f"  Pipeline type: {args.pipeline}")
 
-        if args.pipeline in {"latin-bert-retrieval", "latin-bert-two-stage"}:
-            if args.latin_bert_model_path is not None and (
-                args.latin_bert_model != DEFAULT_CONTEXTUAL_BERT_MODEL_NAME
-            ):
-                print(
-                    "Error: provide only one contextual model source: "
-                    "--latin-bert-model-path or a custom --latin-bert-model.",
-                    file=sys.stderr,
-                )
-                return 1
+        if (
+            args.pipeline in {"latin-bert-retrieval", "latin-bert-two-stage"}
+            and args.latin_bert_model_path is not None
+            and args.latin_bert_model != DEFAULT_CONTEXTUAL_BERT_MODEL_NAME
+        ):
+            print(
+                "Error: provide only one contextual model source: "
+                "--latin-bert-model-path or a custom --latin-bert-model.",
+                file=sys.stderr,
+            )
+            return 1
 
         if args.pipeline == "two-stage":
             if args.verbose:
