@@ -168,6 +168,26 @@ class TestDocumentMethods:
         text = sample_document.get_text("seg1")
         assert text == "This is the first segment."
 
+    def test_document_head_returns_first_segments(self, sample_document):
+        """head() returns the first n segments in document order."""
+        result = sample_document.head(2)
+
+        assert len(result) == 2
+        assert all(isinstance(segment, TextSegment) for segment in result)
+        assert [segment.id for segment in result] == ["seg1", "seg2"]
+
+    def test_document_head_uses_default_size_and_caps_at_length(self, sample_document):
+        """head() defaults to five rows and does not exceed document length."""
+        result = sample_document.head()
+
+        assert len(result) == 3
+        assert [segment.id for segment in result] == ["seg1", "seg2", "seg3"]
+
+    def test_document_head_non_positive_returns_empty_list(self, sample_document):
+        """head() returns an empty list for non-positive values."""
+        assert sample_document.head(0) == []
+        assert sample_document.head(-1) == []
+
     def test_document_get_text_missing(self, sample_document):
         """Test get_text() with missing ID raises KeyError."""
         with pytest.raises(KeyError):

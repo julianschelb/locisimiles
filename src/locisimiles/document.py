@@ -140,6 +140,16 @@ class Document:
         """Return raw text of a segment."""
         return self._segments[seg_id].text
 
+    def head(self, n: int = 5) -> List[TextSegment]:
+        """Return the first ``n`` segments in document order.
+
+        This is a lightweight convenience method for inspection and mirrors
+        the semantics of common tabular ``head()`` helpers.
+        """
+        if n <= 0:
+            return []
+        return list(self)[:n]
+
     # ---------- PUBLIC API ----------
     @property
     def segments(self) -> Dict[ID, TextSegment]:
