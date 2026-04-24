@@ -199,10 +199,7 @@ class TestDocumentMethods:
         """clean() can drop empty segments after trimming whitespace."""
         csv_path = temp_dir / "drop_empty.csv"
         csv_path.write_text(
-            "seg_id,text\n"
-            's1,"keep me"\n'
-            's2,"   \t  "\n'
-            's3,"keep me too"\n',
+            'seg_id,text\ns1,"keep me"\ns2,"   \t  "\ns3,"keep me too"\n',
             encoding="utf-8",
         )
         doc = Document(csv_path)
