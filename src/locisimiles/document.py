@@ -1,5 +1,6 @@
 import csv
 import re
+import unicodedata
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterator, List, Optional, Union
 
@@ -130,6 +131,32 @@ class Document:
 
     # ---------- CONVENIENCE ----------
 
+    _QUOTE_TRANSLATION = str.maketrans(
+        {
+            "“": '"',
+            "”": '"',
+            "„": '"',
+            "«": '"',
+            "»": '"',
+            "‘": "'",
+            "’": "'",
+            "‚": "'",
+            "‛": "'",
+            "`": "'",
+            "´": "'",
+        }
+    )
+    _DASH_TRANSLATION = str.maketrans(
+        {
+            "–": "-",
+            "—": "-",
+            "‒": "-",
+            "―": "-",
+            "−": "-",
+            "‑": "-",
+        }
+    )
+
     def ids(self) -> List[ID]:
         """Return segment IDs in original order."""
         return [s.id for s in self]
@@ -177,6 +204,85 @@ class Document:
             "min_segment_chars": min(lengths, default=0),
             "max_segment_chars": max(lengths, default=0),
         }
+
+    @classmethod
+    def _basic_text_cleanup(
+        cls,
+        text: str,
+        *,
+        normalize_unicode: bool = True,
+        normalize_quotes: bool = True,
+        normalize_dashes: bool = True,
+        collapse_whitespace: bool = True,
+        strip_whitespace: bool = True,
+    ) -> str:
+        """Apply conservative text cleanup that preserves lexical content.
+
+        This helper intentionally avoids case folding, punctuation removal,
+        or historical orthography normalization because those can affect
+        retrieval behavior and evaluation for the contextual pipelines.
+        """
+        cleaned = text
+
+        if normalize_unicode:
+            cleaned = unicodedata.normalize("NFC", cleaned)
+        if normalize_quotes:
+            cleaned = cleaned.translate(cls._QUOTE_TRANSLATION)
+        if normalize_dashes:
+            cleaned = cleaned.translate(cls._DASH_TRANSLATION)
+        if collapse_whitespace:
+            cleaned = re.sub(r"\s+", " ", cleaned)
+        if strip_whitespace:
+            cleaned = cleaned.strip()
+
+        return cleaned
+
+    def clean(
+        self,
+        *,
+        normalize_unicode: bool = True,
+        normalize_quotes: bool = True,
+        normalize_dashes: bool = True,
+        collapse_whitespace: bool = True,
+        strip_whitespace: bool = True,
+        drop_empty: bool = True,
+    ) -> "Document":
+        """Apply conservative text cleanup to all segments in-place.
+
+        The default behavior is designed to be safe for contextual retrieval:
+        it normalizes Unicode composition, quote and dash variants, and
+        whitespace without changing case, punctuation, or Latin orthography.
+
+        Args:
+            normalize_unicode: Normalize text to Unicode NFC.
+            normalize_quotes: Replace curly and angled quotation variants with
+                plain ASCII quotes/apostrophes.
+            normalize_dashes: Replace Unicode dash variants with ``-``.
+            collapse_whitespace: Collapse repeated whitespace to single spaces.
+            strip_whitespace: Remove leading and trailing whitespace.
+            drop_empty: Remove segments that become empty after cleaning.
+
+        Returns:
+            The same ``Document`` instance after in-place cleaning.
+        """
+        new_segments: Dict[ID, TextSegment] = {}
+
+        for seg in self:
+            seg.text = self._basic_text_cleanup(
+                seg.text,
+                normalize_unicode=normalize_unicode,
+                normalize_quotes=normalize_quotes,
+                normalize_dashes=normalize_dashes,
+                collapse_whitespace=collapse_whitespace,
+                strip_whitespace=strip_whitespace,
+            )
+            if drop_empty and not seg.text:
+                continue
+            seg.row_id = len(new_segments)
+            new_segments[seg.id] = seg
+
+        self._segments = new_segments
+        return self
 
     # ---------- SENTENCIZATION ----------
 
