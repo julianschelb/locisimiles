@@ -178,6 +178,53 @@ class TestDocumentMethods:
         assert isinstance(segments, dict)
         assert len(segments) == 3
 
+    def test_document_clean_normalizes_text_safely(self, temp_dir):
+        """clean() normalizes whitespace and punctuation variants conservatively."""
+        csv_path = temp_dir / "clean.csv"
+        csv_path.write_text(
+            "seg_id,text\n"
+            's1,"  Salve\t\n  “amicus”  --  vale  "\n'
+            's2,"Arma\u0301 virumque — cano"\n',
+            encoding="utf-8",
+        )
+        doc = Document(csv_path)
+
+        result = doc.clean()
+
+        assert result is doc
+        assert doc["s1"].text == 'Salve "amicus" -- vale'
+        assert doc["s2"].text == "Arm\u00e1 virumque - cano"
+
+    def test_document_clean_drops_empty_segments_and_reindexes(self, temp_dir):
+        """clean() can drop empty segments after trimming whitespace."""
+        csv_path = temp_dir / "drop_empty.csv"
+        csv_path.write_text(
+            'seg_id,text\ns1,"keep me"\ns2,"   \t  "\ns3,"keep me too"\n',
+            encoding="utf-8",
+        )
+        doc = Document(csv_path)
+
+        doc.clean()
+
+        assert doc.ids() == ["s1", "s3"]
+        assert [seg.row_id for seg in doc] == [0, 1]
+
+    def test_document_clean_preserves_meta_and_can_keep_empty_segments(self, temp_dir):
+        """clean() keeps IDs and metadata intact for retained segments."""
+        csv_path = temp_dir / "meta_clean.csv"
+        csv_path.write_text("seg_id,text\nseg1,  test  \n", encoding="utf-8")
+        doc = Document(csv_path)
+        doc["seg1"].meta["source"] = "fixture"
+        doc.add_segment("   ", "seg2", meta={"blank": True})
+
+        doc.clean(drop_empty=False)
+
+        assert doc.ids() == ["seg1", "seg2"]
+        assert doc["seg1"].text == "test"
+        assert doc["seg1"].meta == {"source": "fixture"}
+        assert doc["seg2"].text == ""
+        assert doc["seg2"].meta == {"blank": True}
+
 
 class TestDocumentAddRemoveSegments:
     """Tests for add_segment and remove_segment methods."""
