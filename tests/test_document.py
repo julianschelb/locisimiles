@@ -5,8 +5,8 @@ Tests TextSegment and Document classes.
 
 from pathlib import Path
 
-import pytest
 import pandas as pd
+import pytest
 
 from locisimiles.document import Document, TextSegment
 
@@ -229,7 +229,9 @@ class TestDocumentMethods:
         sample_document["seg2"].meta["source"] = "fixture"
         df = sample_document.to_dataframe()
 
-        result = Document.from_dataframe(df, path="roundtrip.csv", author="Vergil", meta={"genre": "epic"})
+        result = Document.from_dataframe(
+            df, path="roundtrip.csv", author="Vergil", meta={"genre": "epic"}
+        )
 
         assert isinstance(result, Document)
         assert result.path == Path("roundtrip.csv")
@@ -279,7 +281,9 @@ class TestDocumentMethods:
         """from_dict() allows overriding document-level attributes."""
         payload = sample_document.to_dict()
 
-        result = Document.from_dict(payload, path="override.txt", author="Override", meta={"kind": "test"})
+        result = Document.from_dict(
+            payload, path="override.txt", author="Override", meta={"kind": "test"}
+        )
 
         assert result.path == Path("override.txt")
         assert result.author == "Override"
