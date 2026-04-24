@@ -2,6 +2,21 @@
 
 <!-- version list -->
 
+## v1.6.0 (2026-04-24)
+
+### Bug Fixes
+
+- Streamline CSV formatting in test_document.py for cleaner input
+  ([#14](https://github.com/julianschelb/locisimiles/pull/14),
+  [`625e882`](https://github.com/julianschelb/locisimiles/commit/625e882560f92353f969e174259a50a7f13cb433))
+
+### Features
+
+- Implement basic text cleanup methods in Document class
+  ([#14](https://github.com/julianschelb/locisimiles/pull/14),
+  [`625e882`](https://github.com/julianschelb/locisimiles/commit/625e882560f92353f969e174259a50a7f13cb433))
+
+
 ## v1.5.0 (2026-04-06)
 
 ### Features
