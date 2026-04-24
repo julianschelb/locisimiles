@@ -341,6 +341,7 @@ class TestDocumentMethods:
         assert doc["seg2"].text == ""
         assert doc["seg2"].meta == {"blank": True}
 
+
 class TestDocumentAddRemoveSegments:
     """Tests for add_segment and remove_segment methods."""
 
