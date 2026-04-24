@@ -3,6 +3,8 @@ import re
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterator, List, Optional, Union
 
+import pandas as pd
+
 ID = Union[str, int]
 
 # =================== TEXT SEGMENT ===================
@@ -177,6 +179,138 @@ class Document:
             "min_segment_chars": min(lengths, default=0),
             "max_segment_chars": max(lengths, default=0),
         }
+
+    def to_dataframe(self) -> pd.DataFrame:
+        """Return document segments as a pandas DataFrame in document order.
+
+        The resulting DataFrame contains one row per segment with the
+        columns ``seg_id``, ``text``, ``row_id``, and ``meta``.
+        """
+        records = [
+            {
+                "seg_id": seg.id,
+                "text": seg.text,
+                "row_id": seg.row_id,
+                "meta": dict(seg.meta),
+            }
+            for seg in self
+        ]
+        return pd.DataFrame(records, columns=["seg_id", "text", "row_id", "meta"])
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Return the document as a plain Python dictionary.
+
+        The result contains document-level metadata and an ordered list of
+        segment records that can be passed to :meth:`from_dict`.
+        """
+        return {
+            "path": str(self.path),
+            "author": self.author,
+            "meta": dict(self.meta),
+            "segments": [
+                {
+                    "seg_id": seg.id,
+                    "text": seg.text,
+                    "row_id": seg.row_id,
+                    "meta": dict(seg.meta),
+                }
+                for seg in self
+            ],
+        }
+
+    @staticmethod
+    def _coerce_segment_meta(value: Any) -> Dict[str, Any]:
+        """Normalize serialized segment metadata to a dictionary."""
+        if value is None or pd.isna(value):
+            return {}
+        if not isinstance(value, dict):
+            raise TypeError("Segment 'meta' values must be dictionaries or null")
+        return dict(value)
+
+    @classmethod
+    def _from_records(
+        cls,
+        records: List[Dict[str, Any]],
+        *,
+        path: str | Path = "<memory>",
+        author: str | None = None,
+        meta: Dict[str, Any] | None = None,
+    ) -> "Document":
+        """Build a document from ordered segment records."""
+        doc = cls.__new__(cls)
+        doc.path = Path(path)
+        doc.author = author
+        doc.meta = dict(meta or {})
+        doc._segments = {}
+
+        ordered_records = sorted(
+            records,
+            key=lambda record: (
+                record.get("row_id") is None,
+                record.get("row_id", 0),
+            ),
+        )
+        for fallback_row_id, record in enumerate(ordered_records):
+            if "seg_id" not in record or "text" not in record:
+                raise ValueError("Each segment record must contain 'seg_id' and 'text'")
+            row_id = record.get("row_id")
+            if row_id is None:
+                row_id = fallback_row_id
+            doc.add_segment(
+                text=record["text"],
+                seg_id=record["seg_id"],
+                row_id=row_id,
+                meta=cls._coerce_segment_meta(record.get("meta")),
+            )
+        return doc
+
+    @classmethod
+    def from_dataframe(
+        cls,
+        df: pd.DataFrame,
+        *,
+        path: str | Path = "<memory>",
+        author: str | None = None,
+        meta: Dict[str, Any] | None = None,
+    ) -> "Document":
+        """Construct a document from a pandas DataFrame.
+
+        The DataFrame must contain ``seg_id`` and ``text`` columns. Optional
+        ``row_id`` and ``meta`` columns are used when present.
+        """
+        required_columns = {"seg_id", "text"}
+        if not required_columns.issubset(df.columns):
+            raise ValueError("DataFrame must contain 'seg_id' and 'text' columns")
+
+        records = df.to_dict(orient="records")
+        return cls._from_records(records, path=path, author=author, meta=meta)
+
+    @classmethod
+    def from_dict(
+        cls,
+        data: Dict[str, Any],
+        *,
+        path: str | Path | None = None,
+        author: str | None = None,
+        meta: Dict[str, Any] | None = None,
+    ) -> "Document":
+        """Construct a document from a dictionary produced by :meth:`to_dict`."""
+        if "segments" not in data:
+            raise ValueError("Document dictionary must contain a 'segments' key")
+
+        doc_path = path if path is not None else data.get("path", "<memory>")
+        doc_author = author if author is not None else data.get("author")
+        doc_meta = meta if meta is not None else data.get("meta")
+
+        if doc_meta is not None and not isinstance(doc_meta, dict):
+            raise TypeError("Document 'meta' value must be a dictionary or null")
+
+        return cls._from_records(
+            list(data["segments"]),
+            path=doc_path,
+            author=doc_author,
+            meta=doc_meta,
+        )
 
     # ---------- SENTENCIZATION ----------
 

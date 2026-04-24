@@ -6,6 +6,7 @@ Tests TextSegment and Document classes.
 from pathlib import Path
 
 import pytest
+import pandas as pd
 
 from locisimiles.document import Document, TextSegment
 
@@ -177,6 +178,97 @@ class TestDocumentMethods:
         segments = sample_document.segments
         assert isinstance(segments, dict)
         assert len(segments) == 3
+
+    def test_document_to_dataframe_returns_ordered_rows(self, sample_document):
+        """to_dataframe() returns one ordered row per segment."""
+        sample_document["seg1"].meta["kind"] = "opening"
+
+        result = sample_document.to_dataframe()
+
+        assert isinstance(result, pd.DataFrame)
+        assert list(result.columns) == ["seg_id", "text", "row_id", "meta"]
+        assert result["seg_id"].tolist() == ["seg1", "seg2", "seg3"]
+        assert result["row_id"].tolist() == [0, 1, 2]
+        assert result.iloc[0]["text"] == "This is the first segment."
+        assert result.iloc[0]["meta"] == {"kind": "opening"}
+
+    def test_document_to_dataframe_empty_document(self, temp_dir):
+        """to_dataframe() on an empty document returns an empty DataFrame."""
+        csv_path = temp_dir / "empty.csv"
+        csv_path.write_text("seg_id,text\n", encoding="utf-8")
+        doc = Document(csv_path)
+
+        result = doc.to_dataframe()
+
+        assert isinstance(result, pd.DataFrame)
+        assert result.empty
+        assert list(result.columns) == ["seg_id", "text", "row_id", "meta"]
+
+    def test_document_from_dataframe_roundtrip(self, sample_document):
+        """from_dataframe() reconstructs an ordered document from DataFrame rows."""
+        sample_document["seg2"].meta["source"] = "fixture"
+        df = sample_document.to_dataframe()
+
+        result = Document.from_dataframe(df, path="roundtrip.csv", author="Vergil", meta={"genre": "epic"})
+
+        assert isinstance(result, Document)
+        assert result.path == Path("roundtrip.csv")
+        assert result.author == "Vergil"
+        assert result.meta == {"genre": "epic"}
+        assert result.ids() == ["seg1", "seg2", "seg3"]
+        assert result["seg2"].text == sample_document["seg2"].text
+        assert result["seg2"].meta == {"source": "fixture"}
+
+    def test_document_from_dataframe_missing_required_columns(self):
+        """from_dataframe() requires seg_id and text columns."""
+        df = pd.DataFrame([{"seg_id": "seg1"}])
+
+        with pytest.raises(ValueError, match="DataFrame must contain 'seg_id' and 'text' columns"):
+            Document.from_dataframe(df)
+
+    def test_document_to_dict_returns_serializable_structure(self, sample_document):
+        """to_dict() returns document and segment data in order."""
+        sample_document.meta["genre"] = "epic"
+        sample_document["seg1"].meta["kind"] = "opening"
+
+        result = sample_document.to_dict()
+
+        assert result["path"] == str(sample_document.path)
+        assert result["author"] == sample_document.author
+        assert result["meta"] == {"genre": "epic"}
+        assert [segment["seg_id"] for segment in result["segments"]] == ["seg1", "seg2", "seg3"]
+        assert result["segments"][0]["meta"] == {"kind": "opening"}
+
+    def test_document_from_dict_roundtrip(self, sample_document):
+        """from_dict() reconstructs a document from serialized content."""
+        sample_document.meta["genre"] = "epic"
+        sample_document["seg3"].meta["book"] = 1
+        payload = sample_document.to_dict()
+
+        result = Document.from_dict(payload)
+
+        assert isinstance(result, Document)
+        assert result.path == sample_document.path
+        assert result.author == sample_document.author
+        assert result.meta == {"genre": "epic"}
+        assert result.ids() == sample_document.ids()
+        assert result["seg3"].text == sample_document["seg3"].text
+        assert result["seg3"].meta == {"book": 1}
+
+    def test_document_from_dict_allows_overrides(self, sample_document):
+        """from_dict() allows overriding document-level attributes."""
+        payload = sample_document.to_dict()
+
+        result = Document.from_dict(payload, path="override.txt", author="Override", meta={"kind": "test"})
+
+        assert result.path == Path("override.txt")
+        assert result.author == "Override"
+        assert result.meta == {"kind": "test"}
+
+    def test_document_from_dict_requires_segments(self):
+        """from_dict() requires a top-level segments key."""
+        with pytest.raises(ValueError, match="Document dictionary must contain a 'segments' key"):
+            Document.from_dict({"author": "Vergil"})
 
 
 class TestDocumentAddRemoveSegments:
