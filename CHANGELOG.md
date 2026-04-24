@@ -2,6 +2,28 @@
 
 <!-- version list -->
 
+## v1.7.0 (2026-04-24)
+
+### Bug Fixes
+
+- Add blank line for better readability in TestDocumentMethods
+  ([`70a3844`](https://github.com/julianschelb/locisimiles/commit/70a38442a375f1d72fd13af12b99edc2aa339a31))
+
+- Improve readability of Document class test cases by formatting long lines
+  ([#13](https://github.com/julianschelb/locisimiles/pull/13),
+  [`07aac26`](https://github.com/julianschelb/locisimiles/commit/07aac2660b66c7e54f1003b8073c3758ca3959fe))
+
+### Features
+
+- Add head() method to Document class for segment inspection and corresponding tests
+  ([#13](https://github.com/julianschelb/locisimiles/pull/13),
+  [`07aac26`](https://github.com/julianschelb/locisimiles/commit/07aac2660b66c7e54f1003b8073c3758ca3959fe))
+
+- Enhance Document class with DataFrame conversion methods and serialization support
+  ([#13](https://github.com/julianschelb/locisimiles/pull/13),
+  [`07aac26`](https://github.com/julianschelb/locisimiles/commit/07aac2660b66c7e54f1003b8073c3758ca3959fe))
+
+
 ## v1.6.0 (2026-04-24)
 
 ### Bug Fixes
