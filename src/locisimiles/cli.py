@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import json
 import sys
 from pathlib import Path
 
@@ -325,19 +326,30 @@ CSV Format:
         if args.verbose:
             print(f"Writing results to {args.output}...")
 
+        include_classifier_metadata = any(
+            any(
+                getattr(judgment, "predicted_label", None) is not None
+                or getattr(judgment, "predicted_class_id", None) is not None
+                or getattr(judgment, "class_probabilities", None) is not None
+                for judgment in matches
+            )
+            for matches in results.values()
+        )
+
         with open(args.output, "w", newline="", encoding="utf-8") as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(
-                [
-                    "query_id",
-                    "query_text",
-                    "source_id",
-                    "source_text",
-                    "similarity",
-                    "probability",
-                    "above_threshold",
-                ]
-            )
+            headers = [
+                "query_id",
+                "query_text",
+                "source_id",
+                "source_text",
+                "similarity",
+                "probability",
+                "above_threshold",
+            ]
+            if include_classifier_metadata:
+                headers.extend(["predicted_class_id", "predicted_label", "class_probabilities"])
+            writer.writerow(headers)
 
             for query_segment in query_doc:
                 query_id = query_segment.id
@@ -353,20 +365,39 @@ CSV Format:
                         above_threshold_flag = "Yes" if probability >= args.threshold else "No"
 
                         sim_str = f"{similarity:.6f}" if similarity is not None else ""
-                        writer.writerow(
-                            [
-                                query_id,
-                                query_text,
-                                source_id,
-                                source_text,
-                                sim_str,
-                                f"{probability:.6f}",
-                                above_threshold_flag,
-                            ]
-                        )
+                        row = [
+                            query_id,
+                            query_text,
+                            source_id,
+                            source_text,
+                            sim_str,
+                            f"{probability:.6f}",
+                            above_threshold_flag,
+                        ]
+                        if include_classifier_metadata:
+                            class_probabilities = getattr(
+                                judgment, "class_probabilities", None
+                            )
+                            row.extend(
+                                [
+                                    getattr(judgment, "predicted_class_id", "") or "",
+                                    getattr(judgment, "predicted_label", "") or "",
+                                    json.dumps(
+                                        class_probabilities,
+                                        ensure_ascii=False,
+                                        sort_keys=True,
+                                    )
+                                    if class_probabilities is not None
+                                    else "",
+                                ]
+                            )
+                        writer.writerow(row)
                 else:
                     # Write row even if no matches
-                    writer.writerow([query_id, query_text, "", "", "", "", ""])
+                    row = [query_id, query_text, "", "", "", "", ""]
+                    if include_classifier_metadata:
+                        row.extend(["", "", ""])
+                    writer.writerow(row)
 
         print(f"✅ Results saved to {args.output}")
         print(f"   Found {above_threshold} matches above threshold {args.threshold}")

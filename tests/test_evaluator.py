@@ -329,6 +329,107 @@ class TestIntertextEvaluatorMetrics:
             configured_evaluator.evaluate(average="invalid")
 
 
+class TestIntertextEvaluatorMulticlass:
+    """Tests for per-label multiclass evaluation."""
+
+    @pytest.fixture
+    def multiclass_evaluator(self, temp_dir):
+        """Create an evaluator with cit/cf gold labels and multiclass predictions."""
+        query_csv = temp_dir / "query.csv"
+        query_csv.write_text("seg_id,text\nq1,Query one.\nq2,Query two.\n", encoding="utf-8")
+        source_csv = temp_dir / "source.csv"
+        source_csv.write_text("seg_id,text\ns1,Source one.\ns2,Source two.\n", encoding="utf-8")
+        gt_csv = temp_dir / "gt.csv"
+        gt_csv.write_text(
+            "query_id,source_id,label\n"
+            "q1,s1,cit.\n"
+            "q1,s2,cf.\n"
+            "q2,s1,0\n"
+            "q2,s2,cf.\n",
+            encoding="utf-8",
+        )
+
+        s1 = TextSegment("Source one.", "s1", row_id=0)
+        s2 = TextSegment("Source two.", "s2", row_id=1)
+        mock_pipeline = MagicMock()
+        mock_pipeline.run.return_value = {
+            "q1": [
+                CandidateJudge(
+                    segment=s1,
+                    candidate_score=0.9,
+                    judgment_score=0.95,
+                    predicted_class_id=1,
+                    predicted_label="cit",
+                    class_probabilities={"no_match": 0.05, "cit": 0.90, "cf": 0.05},
+                ),
+                CandidateJudge(
+                    segment=s2,
+                    candidate_score=0.8,
+                    judgment_score=0.85,
+                    predicted_class_id=2,
+                    predicted_label="cf",
+                    class_probabilities={"no_match": 0.15, "cit": 0.05, "cf": 0.80},
+                ),
+            ],
+            "q2": [
+                CandidateJudge(
+                    segment=s1,
+                    candidate_score=0.7,
+                    judgment_score=0.45,
+                    predicted_class_id=1,
+                    predicted_label="cit",
+                    class_probabilities={"no_match": 0.55, "cit": 0.40, "cf": 0.05},
+                ),
+                CandidateJudge(
+                    segment=s2,
+                    candidate_score=0.6,
+                    judgment_score=0.45,
+                    predicted_class_id=0,
+                    predicted_label="no_match",
+                    class_probabilities={"no_match": 0.55, "cit": 0.05, "cf": 0.40},
+                ),
+            ],
+        }
+
+        return IntertextEvaluator(
+            query_doc=Document(query_csv),
+            source_doc=Document(source_csv),
+            ground_truth_csv=str(gt_csv),
+            pipeline=mock_pipeline,
+            threshold=0.5,
+        )
+
+    def test_evaluate_multiclass_argmax_breakdown(self, multiclass_evaluator):
+        """Argmax multiclass evaluation should report cit/cf rows."""
+        df = multiclass_evaluator.evaluate_multiclass(labels=["cit", "cf"], strategy="argmax")
+        rows = {row.label: row for row in df.itertuples(index=False)}
+
+        assert set(rows) == {"cit", "cf"}
+        assert rows["cit"].tp == 1
+        assert rows["cit"].fp == 1
+        assert rows["cit"].fn == 0
+        assert rows["cf"].tp == 1
+        assert rows["cf"].fp == 0
+        assert rows["cf"].fn == 1
+
+    def test_evaluate_multiclass_thresholded_breakdown(self, multiclass_evaluator):
+        """Thresholded multiclass evaluation should suppress weak positive classes."""
+        df = multiclass_evaluator.evaluate_multiclass(
+            labels=["cit", "cf"], strategy="thresholded"
+        )
+        rows = {row.label: row for row in df.itertuples(index=False)}
+
+        assert rows["cit"].tp == 1
+        assert rows["cit"].fp == 0
+        assert rows["cf"].tp == 1
+        assert rows["cf"].fn == 1
+
+    def test_evaluate_multiclass_invalid_strategy(self, multiclass_evaluator):
+        """Invalid multiclass strategy should raise a clear error."""
+        with pytest.raises(ValueError, match="strategy must be"):
+            multiclass_evaluator.evaluate_multiclass(strategy="bad")
+
+
 class TestIntertextEvaluatorThreshold:
     """Tests for threshold optimization in IntertextEvaluator."""
 

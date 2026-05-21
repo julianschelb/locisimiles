@@ -104,6 +104,30 @@ class TestResultsToCsv:
 
         assert header == "query_id,source_id,source_text,candidate_score,judgment_score"
 
+    def test_multiclass_metadata_columns(self, tmp_path):
+        """CSV export should include class metadata only when present."""
+        out = tmp_path / "results.csv"
+        results = {
+            "q1": [
+                CandidateJudge(
+                    segment=TextSegment("Arma virumque cano", seg_id="s1", row_id=0),
+                    candidate_score=0.85,
+                    judgment_score=0.95,
+                    predicted_class_id=1,
+                    predicted_label="cit",
+                    class_probabilities={"no_match": 0.05, "cit": 0.9, "cf": 0.05},
+                )
+            ]
+        }
+        results_to_csv(results, out)
+
+        with out.open(newline="", encoding="utf-8") as f:
+            reader = list(csv.DictReader(f))
+
+        assert reader[0]["predicted_class_id"] == "1"
+        assert reader[0]["predicted_label"] == "cit"
+        assert "class_probabilities" in reader[0]
+
 
 # ============== results_to_json ==============
 
@@ -149,6 +173,29 @@ class TestResultsToJson:
         out = str(tmp_path / "results.json")
         results_to_json(sample_results, out)
         assert (tmp_path / "results.json").exists()
+
+    def test_multiclass_metadata(self, tmp_path):
+        """JSON export should preserve optional class metadata."""
+        out = tmp_path / "results.json"
+        results = {
+            "q1": [
+                CandidateJudge(
+                    segment=TextSegment("Arma virumque cano", seg_id="s1", row_id=0),
+                    candidate_score=0.85,
+                    judgment_score=0.95,
+                    predicted_class_id=1,
+                    predicted_label="cit",
+                    class_probabilities={"no_match": 0.05, "cit": 0.9, "cf": 0.05},
+                )
+            ]
+        }
+        results_to_json(results, out)
+
+        data = json.loads(out.read_text(encoding="utf-8"))
+        row = data["q1"][0]
+        assert row["predicted_class_id"] == 1
+        assert row["predicted_label"] == "cit"
+        assert row["class_probabilities"]["cit"] == pytest.approx(0.9)
 
 
 # ============== Pipeline.to_csv / Pipeline.to_json ==============

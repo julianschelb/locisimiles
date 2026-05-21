@@ -1,7 +1,7 @@
 # evaluator.py
 from __future__ import annotations
 
-from typing import Dict, List, Tuple, Union
+from typing import Any, Dict, List, Mapping, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -13,6 +13,33 @@ from locisimiles.pipeline import (
     Pipeline,
     TwoStagePipeline,
 )
+
+LabelValue = Union[int, str]
+
+DEFAULT_MULTICLASS_LABEL_MAP: Dict[LabelValue, str] = {
+    0: "no_match",
+    "0": "no_match",
+    "LABEL_0": "no_match",
+    "negative": "no_match",
+    "none": "no_match",
+    "no_match": "no_match",
+    "no match": "no_match",
+    1: "cit",
+    "1": "cit",
+    "LABEL_1": "cit",
+    "cit": "cit",
+    "cit.": "cit",
+    "verbatim": "cit",
+    "verbatim reference": "cit",
+    2: "cf",
+    "2": "cf",
+    "LABEL_2": "cf",
+    "cf": "cf",
+    "cf.": "cf",
+    "allusion": "cf",
+}
+
+NEGATIVE_LABEL_NAMES = {"0", "label_0", "negative", "none", "no_match", "no match", "no-match"}
 
 # ────────────────────────────────
 # Metric helpers (scalar, no deps)
@@ -335,6 +362,93 @@ class IntertextEvaluator:
 
         return pd.DataFrame([aggregated_metrics]).reset_index(drop=True)
 
+    def evaluate_multiclass(
+        self,
+        *,
+        labels: List[str] | None = None,
+        strategy: str = "argmax",
+        negative_label: str = "no_match",
+        label_map: Mapping[LabelValue, str] | None = None,
+        include_negative: bool = False,
+    ) -> pd.DataFrame:
+        """Compute one-vs-rest precision/recall/F1 for multiclass predictions.
+
+        Args:
+            labels: Optional positive labels to report.  If omitted, labels are
+                inferred from gold and predicted labels.  For Loci Similes
+                multiclass models this will usually include ``"cit"`` and
+                ``"cf"``.
+            strategy: ``"argmax"`` uses the model argmax label. ``"thresholded"``
+                predicts the highest-probability positive label only when its
+                probability is at least ``self.threshold``; otherwise the pair is
+                treated as ``negative_label``.
+            negative_label: Canonical label used for non-links.
+            label_map: Optional mapping from raw labels/model labels to canonical
+                labels.  Defaults map ``0/LABEL_0`` to ``no_match``,
+                ``1/LABEL_1/cit.`` to ``cit``, and ``2/LABEL_2/cf.`` to ``cf``.
+            include_negative: Include the negative class in the returned rows.
+
+        Returns:
+            DataFrame with one row per reported label and columns ``tp``, ``fp``,
+            ``fn``, ``support``, ``predicted``, ``precision``, ``recall``, and
+            ``f1``.
+        """
+        if strategy not in {"argmax", "thresholded"}:
+            raise ValueError("strategy must be 'argmax' or 'thresholded'")
+
+        label_lookup = {**DEFAULT_MULTICLASS_LABEL_MAP, **(dict(label_map) if label_map else {})}
+        canonical_negative = self._canonical_label(negative_label, label_lookup)
+
+        prediction_lookup = self._prediction_lookup()
+        pairs: List[Tuple[str, str, str]] = []
+        observed_labels: set[str] = set()
+
+        for query_id in self.query_doc.ids():
+            for source_id in self.source_doc.ids():
+                gold_label = self._canonical_label(
+                    self.gold_labels.get((query_id, source_id), 0), label_lookup
+                )
+                prediction = prediction_lookup.get((query_id, source_id))
+                predicted_label = self._predicted_multiclass_label(
+                    prediction,
+                    strategy=strategy,
+                    negative_label=canonical_negative,
+                    label_lookup=label_lookup,
+                )
+                pairs.append((gold_label, predicted_label, source_id))
+                observed_labels.update({gold_label, predicted_label})
+
+        if labels is None:
+            labels_to_report = sorted(observed_labels)
+        else:
+            labels_to_report = [self._canonical_label(label, label_lookup) for label in labels]
+
+        if not include_negative:
+            labels_to_report = [label for label in labels_to_report if label != canonical_negative]
+
+        rows = []
+        for label in labels_to_report:
+            tp = sum(1 for gold, pred, _ in pairs if gold == label and pred == label)
+            fp = sum(1 for gold, pred, _ in pairs if gold != label and pred == label)
+            fn = sum(1 for gold, pred, _ in pairs if gold == label and pred != label)
+            precision = _precision(tp, fp)
+            recall = _recall(tp, fn)
+            rows.append(
+                {
+                    "label": label,
+                    "precision": precision,
+                    "recall": recall,
+                    "f1": _f1(precision, recall),
+                    "support": sum(1 for gold, _, _ in pairs if gold == label),
+                    "predicted": sum(1 for _, pred, _ in pairs if pred == label),
+                    "tp": tp,
+                    "fp": fp,
+                    "fn": fn,
+                }
+            )
+
+        return pd.DataFrame(rows)
+
     def confusion_matrix(self, query_id: str) -> np.ndarray:
         """Return 2x2 confusion matrix [[TP,FP],[FN,TN]] for one query sentence."""
         if query_id not in self._conf_matrix_cache:
@@ -454,7 +568,7 @@ class IntertextEvaluator:
 
     def _load_gold_labels(
         self, ground_truth_csv: Union[str, pd.DataFrame]
-    ) -> Dict[Tuple[str, str], int]:
+    ) -> Dict[Tuple[str, str], LabelValue]:
         """Load ground truth labels from a CSV file or DataFrame."""
 
         # If a DataFrame is provided, use it directly; otherwise, read from CSV
@@ -468,11 +582,104 @@ class IntertextEvaluator:
         if req_cols - set(gold_df.columns):
             raise ValueError(f"ground-truth file must contain columns {req_cols}")
 
-        # Create a dictionary mapping (query_id, source_id) to label
+        # Create a dictionary mapping (query_id, source_id) to label.
+        # Numeric binary labels remain ints for backward compatibility;
+        # string labels such as ``cit.``/``cf.`` are preserved.
         return {
-            (row.query_id, row.source_id): int(row.label)  # type: ignore[misc]
+            (row.query_id, row.source_id): self._coerce_label(row.label)  # type: ignore[misc]
             for row in gold_df.itertuples(index=False)
         }
+
+    @staticmethod
+    def _coerce_label(label: Any) -> LabelValue:
+        """Preserve string labels while keeping numeric labels as ints."""
+        if pd.isna(label):
+            return 0
+        if isinstance(label, (int, np.integer)):
+            return int(label)
+        text = str(label).strip()
+        try:
+            return int(text)
+        except ValueError:
+            return text
+
+    @staticmethod
+    def _normalise_label(label: Any) -> str:
+        """Canonicalise label strings for matching."""
+        return str(label).strip().lower().replace("_", " ").replace("-", " ").rstrip(".")
+
+    @classmethod
+    def _is_positive_label(cls, label: LabelValue) -> bool:
+        """Return whether a raw gold/predicted label denotes a positive link."""
+        if isinstance(label, (int, np.integer)):
+            return int(label) != 0
+        return cls._normalise_label(label) not in NEGATIVE_LABEL_NAMES
+
+    @classmethod
+    def _canonical_label(
+        cls,
+        label: LabelValue,
+        label_lookup: Mapping[LabelValue, str],
+    ) -> str:
+        """Map raw labels/model labels to canonical multiclass labels."""
+        if label in label_lookup:
+            return label_lookup[label]
+        text = str(label).strip()
+        if text in label_lookup:
+            return label_lookup[text]
+        normalised = cls._normalise_label(text)
+        for raw_label, canonical in label_lookup.items():
+            if cls._normalise_label(raw_label) == normalised:
+                return canonical
+        return normalised.replace(" ", "_")
+
+    def _prediction_lookup(self) -> Dict[Tuple[str, str], CandidateJudge]:
+        """Index current predictions by query/source pair."""
+        lookup: Dict[Tuple[str, str], CandidateJudge] = {}
+        for query_id, result_list in self.predictions.items():
+            for item in result_list:
+                if isinstance(item, CandidateJudge):
+                    lookup[(query_id, str(item.segment.id))] = item
+        return lookup
+
+    def _predicted_multiclass_label(
+        self,
+        prediction: CandidateJudge | None,
+        *,
+        strategy: str,
+        negative_label: str,
+        label_lookup: Mapping[LabelValue, str],
+    ) -> str:
+        """Return the canonical predicted label for one query/source pair."""
+        if prediction is None:
+            return negative_label
+
+        probabilities = prediction.class_probabilities or {}
+        if probabilities:
+            canonical_probs: Dict[str, float] = {}
+            for raw_label, probability in probabilities.items():
+                label = self._canonical_label(raw_label, label_lookup)
+                canonical_probs[label] = canonical_probs.get(label, 0.0) + float(probability)
+
+            if strategy == "argmax":
+                if prediction.predicted_label is not None:
+                    return self._canonical_label(prediction.predicted_label, label_lookup)
+                return max(canonical_probs, key=canonical_probs.__getitem__)
+
+            positive_probs = {
+                label: probability
+                for label, probability in canonical_probs.items()
+                if label != negative_label
+            }
+            if not positive_probs:
+                return negative_label
+            best_positive = max(positive_probs, key=positive_probs.__getitem__)
+            return best_positive if positive_probs[best_positive] >= self.threshold else negative_label
+
+        if prediction.predicted_label is not None and strategy == "argmax":
+            return self._canonical_label(prediction.predicted_label, label_lookup)
+
+        return "match" if prediction.judgment_score >= self.threshold else negative_label
 
     def _predicted_link_set(self) -> set[Tuple[str, str]]:
         """

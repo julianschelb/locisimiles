@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Mapping, Sequence
 
 from locisimiles.pipeline.generator.contextual_bert import (
     DEFAULT_CONTEXTUAL_BERT_MODEL_NAME,
@@ -27,6 +28,11 @@ class LatinBertTwoStagePipeline(Pipeline):
         model_path: str | Path | None = None,
         device: str | int | None = None,
         pos_class_idx: int = 1,
+        label_names: Sequence[str] | Mapping[int | str, str] | None = None,
+        positive_class_ids: Sequence[int] | None = None,
+        positive_labels: Sequence[str] | None = None,
+        negative_labels: Sequence[str] | None = None,
+        emit_class_metadata: bool | None = None,
         max_length: int = 256,
         min_token_length: int = 2,
         use_stopword_filter: bool = True,
@@ -44,5 +50,10 @@ class LatinBertTwoStagePipeline(Pipeline):
                 classification_name=classification_name,
                 device=device,
                 pos_class_idx=pos_class_idx,
+                label_names=label_names,
+                positive_class_ids=positive_class_ids,
+                positive_labels=positive_labels,
+                negative_labels=negative_labels,
+                emit_class_metadata=emit_class_metadata,
             ),
         )

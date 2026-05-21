@@ -31,6 +31,29 @@ pipeline.to_csv("results.csv")
 pipeline.to_json("results.json")
 ```
 
+### Multiclass Classifier Inference
+
+Binary classifiers remain supported. If you load a trained multiclass
+sequence-classification model, LociSimiles preserves the usual
+`judgment_score` as the total probability of an intertextual link while also
+returning the predicted class label and full class probabilities.
+
+```python
+pipeline = ClassificationPipelineWithCandidateGeneration(
+  classification_name="path-or-hf-id-for-trained-multiclass-model",
+  embedding_model_name="julian-schelb/multilingual-e5-large-emb-lat-intertext-v1",
+  label_names=["no_match", "cit", "cf"],
+  positive_labels=["cit", "cf"],
+  device="cpu",
+)
+
+results = pipeline.run(query=query_doc, source=source_doc, top_k=20)
+first = results["query-id"][0]
+print(first.judgment_score)       # P(cit) + P(cf)
+print(first.predicted_label)      # e.g. "cit" or "cf"
+print(first.class_probabilities)  # {"no_match": ..., "cit": ..., "cf": ...}
+```
+
 ## Command-Line Interface
 
 LociSimiles provides a command-line tool for running the pipeline directly from the terminal:
@@ -116,8 +139,11 @@ The CLI saves results to a CSV file with the following columns:
 - `source_id`: Source segment identifier
 - `source_text`: Source text content
 - `similarity`: Cosine similarity score (0-1)
-- `probability`: Classification confidence (0-1)
+- `probability`: Link confidence (0-1); for multiclass classifiers this is the summed probability of positive classes
 - `above_threshold`: "Yes" if probability ≥ threshold, otherwise "No"
+
+When a multiclass classifier returns class metadata, the CLI also writes
+`predicted_class_id`, `predicted_label`, and `class_probabilities`.
 
 
 ## Optional Gradio GUI

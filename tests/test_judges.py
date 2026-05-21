@@ -313,6 +313,46 @@ class TestClassificationJudge:
 
     @patch("locisimiles.pipeline.judge.classification.AutoModelForSequenceClassification")
     @patch("locisimiles.pipeline.judge.classification.AutoTokenizer")
+    def test_predict_batch_details_multiclass(self, mock_tokenizer_class, mock_model_class):
+        """Multiclass models should expose argmax labels and class probabilities."""
+        from locisimiles.pipeline.judge.classification import ClassificationJudge
+
+        mock_tokenizer = MagicMock()
+        mock_tokenizer.num_special_tokens_to_add.return_value = 3
+        mock_tokenizer.tokenize.side_effect = lambda x: x.split()
+        mock_tokenizer.convert_tokens_to_string.side_effect = lambda x: " ".join(x)
+
+        mock_encoding = MagicMock()
+        mock_encoding.to.return_value = mock_encoding
+        mock_tokenizer.return_value = mock_encoding
+        mock_tokenizer_class.from_pretrained.return_value = mock_tokenizer
+
+        mock_model = MagicMock()
+        mock_model.to.return_value = mock_model
+        mock_model.eval.return_value = mock_model
+        mock_model.config.num_labels = 3
+        mock_model.config.id2label = {0: "no_match", 1: "cit", 2: "cf"}
+        mock_result = MagicMock()
+        mock_result.logits = torch.tensor([[3.0, 1.0, 0.0], [0.0, 2.0, 3.0]])
+        mock_model.return_value = mock_result
+        mock_model_class.from_pretrained.return_value = mock_model
+
+        judge = ClassificationJudge(
+            device="cpu",
+            label_names=["no_match", "cit", "cf"],
+            positive_labels=["cit", "cf"],
+        )
+        predictions = judge._predict_batch_details("query text", ["c1", "c2"])
+
+        assert predictions[0].predicted_label == "no_match"
+        assert predictions[1].predicted_label == "cf"
+        assert set(predictions[1].class_probabilities) == {"no_match", "cit", "cf"}
+        assert predictions[0].judgment_score == pytest.approx(
+            predictions[0].class_probabilities["cit"] + predictions[0].class_probabilities["cf"]
+        )
+
+    @patch("locisimiles.pipeline.judge.classification.AutoModelForSequenceClassification")
+    @patch("locisimiles.pipeline.judge.classification.AutoTokenizer")
     @patch("locisimiles.pipeline.judge.classification.tqdm", lambda x, **kwargs: x)
     def test_judge(self, mock_tokenizer_class, mock_model_class, temp_dir):
         """Test judge() returns CandidateJudgeOutput."""
@@ -373,6 +413,22 @@ class TestClassificationJudge:
                 assert isinstance(j, CandidateJudge)
                 assert 0.0 <= j.judgment_score <= 1.0
                 assert j.candidate_score is not None
+                assert j.predicted_class_id is None
+                assert j.predicted_label is None
+                assert j.class_probabilities is None
+
+        metadata_judge = ClassificationJudge(
+            device="cpu",
+            label_names=["no_match", "cit"],
+            positive_labels=["cit"],
+        )
+        metadata_result = metadata_judge.judge(query=query_doc, candidates=candidates)
+
+        for judgments in metadata_result.values():
+            for judgment in judgments:
+                assert judgment.predicted_class_id is not None
+                assert judgment.predicted_label is not None
+                assert judgment.class_probabilities is not None
 
     def test_is_judge_base(self):
         """ClassificationJudge is a JudgeBase."""

@@ -291,6 +291,68 @@ class TestCLIOutputGeneration:
         ]
         assert headers == expected_headers
 
+    @patch("locisimiles.cli.TwoStagePipeline")
+    @patch("locisimiles.cli.Document")
+    def test_cli_output_multiclass_columns(self, mock_doc_class, mock_pipeline_class, temp_dir):
+        """CLI output should include class metadata when the judge returns it."""
+        import csv
+
+        from locisimiles.cli import main
+        from locisimiles.document import TextSegment
+
+        mock_query_doc = MagicMock()
+        query_segment = TextSegment("Query", "q1", row_id=0)
+        mock_query_doc.__iter__ = MagicMock(return_value=iter([query_segment]))
+        mock_query_doc.__len__ = MagicMock(return_value=1)
+
+        mock_source_doc = MagicMock()
+        source_segment = TextSegment("Source", "s1", row_id=0)
+        mock_source_doc.__iter__ = MagicMock(return_value=iter([source_segment]))
+        mock_source_doc.__len__ = MagicMock(return_value=1)
+
+        mock_doc_class.side_effect = [mock_query_doc, mock_source_doc]
+
+        mock_pipeline = MagicMock()
+        mock_pipeline.run.return_value = {
+            "q1": [
+                CandidateJudge(
+                    segment=source_segment,
+                    candidate_score=0.9,
+                    judgment_score=0.8,
+                    predicted_class_id=2,
+                    predicted_label="cf",
+                    class_probabilities={"no_match": 0.2, "cit": 0.1, "cf": 0.7},
+                )
+            ],
+        }
+        mock_pipeline_class.return_value = mock_pipeline
+
+        query_csv = temp_dir / "query.csv"
+        query_csv.write_text("seg_id,text\nq1,Query\n", encoding="utf-8")
+        source_csv = temp_dir / "source.csv"
+        source_csv.write_text("seg_id,text\ns1,Source\n", encoding="utf-8")
+        output_path = temp_dir / "output.csv"
+
+        with patch.object(
+            sys,
+            "argv",
+            [
+                "locisimiles",
+                str(query_csv),
+                str(source_csv),
+                "-o",
+                str(output_path),
+            ],
+        ):
+            main()
+
+        with open(output_path, newline="", encoding="utf-8") as f:
+            rows = list(csv.DictReader(f))
+
+        assert rows[0]["predicted_class_id"] == "2"
+        assert rows[0]["predicted_label"] == "cf"
+        assert "class_probabilities" in rows[0]
+
 
 class TestCLIVerboseMode:
     """Tests for CLI verbose mode."""

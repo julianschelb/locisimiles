@@ -8,6 +8,8 @@ query-source pair using a fine-tuned sequence-classification model.
 
 from __future__ import annotations
 
+from typing import Mapping, Sequence
+
 from locisimiles.pipeline.generator.exhaustive import ExhaustiveCandidateGenerator
 from locisimiles.pipeline.judge.classification import ClassificationJudge
 from locisimiles.pipeline.pipeline import Pipeline
@@ -33,6 +35,12 @@ class ExhaustiveClassificationPipeline(Pipeline):
             sequence-classification model.
         device: Torch device string (``"cpu"``, ``"cuda"``, ...).
         pos_class_idx: Index of the positive class in the classifier output.
+        label_names: Optional class labels for binary or multiclass models.
+        positive_class_ids: Optional class ids that count as intertextual links.
+        positive_labels: Optional labels that count as intertextual links.
+        negative_labels: Optional labels that count as non-links.
+        emit_class_metadata: Whether to attach predicted labels and class
+            probabilities to results.
 
     Example:
         ```python
@@ -57,6 +65,11 @@ class ExhaustiveClassificationPipeline(Pipeline):
         classification_name: str = "julian-schelb/xlm-roberta-large-class-lat-intertext-v1",
         device: str | int | None = None,
         pos_class_idx: int = 1,
+        label_names: Sequence[str] | Mapping[int | str, str] | None = None,
+        positive_class_ids: Sequence[int] | None = None,
+        positive_labels: Sequence[str] | None = None,
+        negative_labels: Sequence[str] | None = None,
+        emit_class_metadata: bool | None = None,
     ):
         super().__init__(
             generator=ExhaustiveCandidateGenerator(),
@@ -64,6 +77,11 @@ class ExhaustiveClassificationPipeline(Pipeline):
                 classification_name=classification_name,
                 device=device,
                 pos_class_idx=pos_class_idx,
+                label_names=label_names,
+                positive_class_ids=positive_class_ids,
+                positive_labels=positive_labels,
+                negative_labels=negative_labels,
+                emit_class_metadata=emit_class_metadata,
             ),
         )
 

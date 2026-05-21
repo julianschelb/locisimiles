@@ -229,6 +229,31 @@ print(evaluator.evaluate(average="macro"))
 print(evaluator.evaluate(average="micro"))
 ```
 
+### Multiclass Evaluation by Reference Type
+
+For trained multiclass classifiers, `CandidateJudge` results can include an
+argmax label and per-class probabilities.  Use `evaluate_multiclass()` to get a
+one-vs-rest breakdown for reference types such as `cit` and `cf`.
+
+```python
+breakdown = evaluator.evaluate_multiclass(
+    labels=["cit", "cf"],
+    strategy="argmax",
+)
+print(breakdown[["label", "precision", "recall", "f1", "support"]])
+
+thresholded_breakdown = evaluator.evaluate_multiclass(
+    labels=["cit", "cf"],
+    strategy="thresholded",
+)
+print(thresholded_breakdown)
+```
+
+`strategy="argmax"` evaluates the model's highest-probability class directly.
+`strategy="thresholded"` predicts the best positive class only when that
+class probability reaches the evaluator threshold; otherwise the pair is treated
+as `no_match`.
+
 ## Finding the Best Threshold
 
 Automatically find the optimal probability threshold:

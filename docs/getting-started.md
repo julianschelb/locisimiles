@@ -83,6 +83,45 @@ pipeline = ClassificationPipelineWithCandidateGeneration(
 results = pipeline.run(query=query, source=source, top_k=10)
 ```
 
+### Multiclass Classifier Inference
+
+Classifier training is not part of the package API, but inference works with
+both binary and already-trained multiclass sequence classifiers.  For binary
+models, `judgment_score` is the positive-class probability, as before.  For
+multiclass models, configure the label names and positive labels so the same
+score remains usable for thresholding links.
+
+```python
+from locisimiles import ClassificationPipelineWithCandidateGeneration, Document
+
+query = Document("query.csv")
+source = Document("source.csv")
+
+pipeline = ClassificationPipelineWithCandidateGeneration(
+    classification_name="path-or-hf-id-for-trained-multiclass-model",
+    embedding_model_name="julian-schelb/multilingual-e5-large-emb-lat-intertext-v1",
+    label_names=["no_match", "cit", "cf"],
+    positive_labels=["cit", "cf"],
+    device="cpu",
+)
+
+results = pipeline.run(query=query, source=source, top_k=10)
+
+for query_id, matches in results.items():
+    for match in matches:
+        print(
+            query_id,
+            match.segment.id,
+            match.judgment_score,
+            match.predicted_label,
+            match.class_probabilities,
+        )
+```
+
+If the model config already defines meaningful `id2label` metadata, explicit
+`label_names` can be omitted.  If the config uses generic labels such as
+`LABEL_0`, pass `label_names` to make outputs readable and evaluation stable.
+
 ### Classification Pipeline
 
 Classifies **every possible** query–source pair using a fine-tuned

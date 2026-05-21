@@ -64,6 +64,9 @@ class CandidateJudge:
             generator is exhaustive, i.e. all pairs are candidates).
         judgment_score: Final judgment value — e.g. a classification
             probability, a binary 1.0/0.0 decision, or a rule-based score.
+        predicted_class_id: Optional integer class predicted by a classifier.
+        predicted_label: Optional human-readable predicted class label.
+        class_probabilities: Optional mapping from class label to probability.
 
     Example:
         ```python
@@ -82,6 +85,9 @@ class CandidateJudge:
     segment: TextSegment
     candidate_score: Optional[float]
     judgment_score: float
+    predicted_class_id: Optional[int] = None
+    predicted_label: Optional[str] = None
+    class_probabilities: Optional[Dict[str, float]] = None
 
 
 # ============== TYPE ALIASES — new names ==============
@@ -168,7 +174,9 @@ def pretty_print(results: CandidateJudgeOutput) -> None:
                 # Backward compat: tuple (segment, sim, prob)
                 seg, cand, judg = item  # type: ignore[misc]
             cand_str = f"{cand:+.3f}" if cand is not None else "N/A"
-            print(f"  {seg.id:<25}  candidate={cand_str}  judgment={judg:.3f}")
+            label = getattr(item, "predicted_label", None)
+            label_str = f"  label={label}" if label is not None else ""
+            print(f"  {seg.id:<25}  candidate={cand_str}  judgment={judg:.3f}{label_str}")
 
 
 def _unpack_item(item: Any) -> tuple[TextSegment, Optional[float], float]:
@@ -178,6 +186,21 @@ def _unpack_item(item: Any) -> tuple[TextSegment, Optional[float], float]:
     # Backward compat: tuple (segment, sim, prob)
     seg, cand, judg = item
     return seg, cand, judg
+
+
+def _item_to_serializable_dict(item: Any) -> Dict[str, Any]:
+    """Return optional classifier metadata for a result item."""
+    if not isinstance(item, CandidateJudge):
+        return {}
+
+    data: Dict[str, Any] = {}
+    if item.predicted_class_id is not None:
+        data["predicted_class_id"] = item.predicted_class_id
+    if item.predicted_label is not None:
+        data["predicted_label"] = item.predicted_label
+    if item.class_probabilities is not None:
+        data["class_probabilities"] = item.class_probabilities
+    return data
 
 
 def results_to_csv(
@@ -208,6 +231,10 @@ def results_to_csv(
         ```
     """
     path = Path(path)
+    include_classifier_metadata = any(
+        bool(_item_to_serializable_dict(item)) for lst in results.values() for item in lst
+    )
+
     fieldnames = [
         "query_id",
         "source_id",
@@ -215,21 +242,33 @@ def results_to_csv(
         "candidate_score",
         "judgment_score",
     ]
+    if include_classifier_metadata:
+        fieldnames.extend(["predicted_class_id", "predicted_label", "class_probabilities"])
+
     with path.open("w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         for qid, lst in results.items():
             for item in lst:
                 seg, cand, judg = _unpack_item(item)
-                writer.writerow(
-                    {
-                        "query_id": qid,
-                        "source_id": seg.id,
-                        "source_text": seg.text,
-                        "candidate_score": cand if cand is not None else "",
-                        "judgment_score": judg,
-                    }
-                )
+                row: Dict[str, Any] = {
+                    "query_id": qid,
+                    "source_id": seg.id,
+                    "source_text": seg.text,
+                    "candidate_score": cand if cand is not None else "",
+                    "judgment_score": judg,
+                }
+                if include_classifier_metadata:
+                    metadata = _item_to_serializable_dict(item)
+                    row["predicted_class_id"] = metadata.get("predicted_class_id", "")
+                    row["predicted_label"] = metadata.get("predicted_label", "")
+                    probabilities = metadata.get("class_probabilities")
+                    row["class_probabilities"] = (
+                        json.dumps(probabilities, ensure_ascii=False, sort_keys=True)
+                        if probabilities is not None
+                        else ""
+                    )
+                writer.writerow(row)
 
 
 def results_to_json(
@@ -263,14 +302,14 @@ def results_to_json(
         matches = []
         for item in lst:
             seg, cand, judg = _unpack_item(item)
-            matches.append(
-                {
-                    "source_id": str(seg.id),
-                    "source_text": seg.text,
-                    "candidate_score": cand,
-                    "judgment_score": judg,
-                }
-            )
+            match = {
+                "source_id": str(seg.id),
+                "source_text": seg.text,
+                "candidate_score": cand,
+                "judgment_score": judg,
+            }
+            match.update(_item_to_serializable_dict(item))
+            matches.append(match)
         data[qid] = matches
     with path.open("w", encoding="utf-8") as f:
         json.dump(data, f, indent=indent, ensure_ascii=False)
