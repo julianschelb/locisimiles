@@ -24,6 +24,8 @@ For the Burns-style retrieval flow, see the [Word2Vec notebook](https://github.c
 
 For contextual token-level retrieval (Gong-style), see the [Latin BERT notebook](https://github.com/julianschelb/locisimiles/blob/main/examples/example_contextual_bert.ipynb).
 
+For multiclass classifier inference with `cit`/`cf` evaluation, see the [multiclass classification notebook](https://github.com/julianschelb/locisimiles/blob/main/examples/example_multiclass_classification.ipynb).
+
 The notebook covers:
 
 1. **Loading Documents** - Creating Document objects from CSV files
@@ -31,6 +33,7 @@ The notebook covers:
 3. **Finding Optimal Threshold** - Automatic threshold tuning
 4. **Evaluating Different K Values** - Comparing top-k settings
 5. **Classification-Only Pipeline** - Exhaustive pairwise comparison
+6. **Multiclass Inference** - Running trained models with `no_match`, `cit`, and `cf` labels
 
 ## Two-Stage Pipeline
 
@@ -306,4 +309,4 @@ pip install -r requirements.txt
 python example.py
 ```
 
-Or open `example.ipynb` in Jupyter for the interactive version.
+Or open `example.ipynb` or `example_multiclass_classification.ipynb` in Jupyter for the interactive versions.
