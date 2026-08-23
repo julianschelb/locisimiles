@@ -2,6 +2,18 @@
 
 <!-- version list -->
 
+## v1.8.0 (2026-08-23)
+
+### Features
+
+- Add lexical/BM25/TF-IDF retrieval and classification baselines
+  ([#15](https://github.com/julianschelb/locisimiles/pull/15),
+  [`1aab521`](https://github.com/julianschelb/locisimiles/commit/1aab52152e60691042f381decb73d53572140ed5))
+
+- Enhance multiclass evaluation and metadata handling in Loci Similes
+  ([`c5606b0`](https://github.com/julianschelb/locisimiles/commit/c5606b035120ab119b2f1d5809b185d6228f16e7))
+
+
 ## v1.7.0 (2026-04-24)
 
 ### Bug Fixes
