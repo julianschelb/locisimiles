@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Any, Dict, List, Mapping, Sequence, Tuple
 
 import torch
@@ -18,35 +17,18 @@ from locisimiles.pipeline._types import (
     CandidateJudgeOutput,
 )
 from locisimiles.pipeline.judge._base import CandidateJudgeBase
-
-DEFAULT_NEGATIVE_LABELS = {
-    "0",
-    "label_0",
-    "negative",
-    "no",
-    "none",
-    "no_match",
-    "no-match",
-    "no match",
-    "not_intertext",
-    "non_link",
-    "non-link",
-}
-
-
-@dataclass(frozen=True)
-class _ClassificationPrediction:
-    """Internal representation of one classifier output row."""
-
-    judgment_score: float
-    predicted_class_id: int
-    predicted_label: str
-    class_probabilities: Dict[str, float]
-
-
-def _normalise_label(label: object) -> str:
-    """Canonicalise class labels for matching user/model metadata."""
-    return str(label).strip().lower().replace("-", "_").replace(" ", "_").rstrip(".")
+from locisimiles.pipeline.judge._positive_classes import (
+    DEFAULT_NEGATIVE_LABELS,
+)
+from locisimiles.pipeline.judge._positive_classes import (
+    ClassifierPrediction as _ClassificationPrediction,
+)
+from locisimiles.pipeline.judge._positive_classes import (
+    normalise_label as _normalise_label,
+)
+from locisimiles.pipeline.judge._positive_classes import (
+    prediction_from_probabilities as _prediction_from_probabilities,
+)
 
 
 class ClassificationJudge(CandidateJudgeBase):
@@ -123,7 +105,9 @@ class ClassificationJudge(CandidateJudgeBase):
         self.clf_model.to(self.device).eval()
 
         self.label_names = self._resolve_label_names(label_names)
-        self.positive_class_ids = list(positive_class_ids) if positive_class_ids is not None else None
+        self.positive_class_ids = (
+            list(positive_class_ids) if positive_class_ids is not None else None
+        )
         self.positive_labels = (
             {_normalise_label(label) for label in positive_labels}
             if positive_labels is not None
@@ -181,39 +165,28 @@ class ClassificationJudge(CandidateJudgeBase):
 
     def _positive_class_ids(self, num_labels: int) -> List[int]:
         """Resolve class ids that count as positive intertextual links."""
-        if self.positive_class_ids is not None:
-            return [idx for idx in self.positive_class_ids if 0 <= idx < num_labels]
+        from locisimiles.pipeline.judge._positive_classes import resolve_positive_class_ids
 
-        if self.positive_labels is not None:
-            return [
-                idx
-                for idx in range(num_labels)
-                if _normalise_label(self._label_for_class_id(idx)) in self.positive_labels
-            ]
+        return resolve_positive_class_ids(
+            num_labels=num_labels,
+            label_for_class_id=self._label_for_class_id,
+            positive_class_ids=self.positive_class_ids,
+            positive_labels=self.positive_labels,
+            negative_labels=self.negative_labels,
+            pos_class_idx=self.pos_class_idx,
+        )
 
-        if num_labels <= 2:
-            return [self.pos_class_idx] if 0 <= self.pos_class_idx < num_labels else []
-
-        return [
-            idx
-            for idx in range(num_labels)
-            if _normalise_label(self._label_for_class_id(idx)) not in self.negative_labels
-        ]
-
-    def _prediction_from_probabilities(self, probabilities: Sequence[float]) -> _ClassificationPrediction:
+    def _prediction_from_probabilities(
+        self, probabilities: Sequence[float]
+    ) -> _ClassificationPrediction:
         """Build classifier metadata from one softmax probability row."""
-        prob_list = [float(probability) for probability in probabilities]
-        predicted_class_id = max(range(len(prob_list)), key=prob_list.__getitem__)
-        positive_ids = self._positive_class_ids(len(prob_list))
-        judgment_score = sum(prob_list[idx] for idx in positive_ids)
-        class_probabilities = {
-            self._label_for_class_id(idx): probability for idx, probability in enumerate(prob_list)
-        }
-        return _ClassificationPrediction(
-            judgment_score=judgment_score,
-            predicted_class_id=predicted_class_id,
-            predicted_label=self._label_for_class_id(predicted_class_id),
-            class_probabilities=class_probabilities,
+        return _prediction_from_probabilities(
+            probabilities,
+            label_for_class_id=self._label_for_class_id,
+            positive_class_ids=self.positive_class_ids,
+            positive_labels=self.positive_labels,
+            negative_labels=self.negative_labels,
+            pos_class_idx=self.pos_class_idx,
         )
 
     # ---------- Tokenizer helpers ----------

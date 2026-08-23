@@ -17,6 +17,10 @@ This module provides:
 - ``ExhaustiveClassificationPipeline``: Exhaustive pairs + classification
 - ``RetrievalPipeline``: Embedding retrieval + threshold judge
 - ``Word2VecRetrievalPipeline``: Burns-style Word2Vec retrieval + threshold judge
+- ``TfidfRetrievalPipeline``: TF-IDF retrieval + threshold judge
+- ``BM25RetrievalPipeline``: BM25 retrieval + threshold judge
+- ``BM25TwoStagePipeline``: BM25 retrieval + classification ("best combined")
+- ``BM25LexicalTwoStagePipeline``: BM25 retrieval + lexical classification ("best non-neural")
 - ``RuleBasedPipeline``: Rule-based lexical matching + linguistic filters
 
 All exports are available at the package level::
@@ -48,6 +52,9 @@ from locisimiles.pipeline._types import (
     results_to_csv,
     results_to_json,
 )
+from locisimiles.pipeline.bm25 import BM25RetrievalPipeline
+from locisimiles.pipeline.bm25_lexical_two_stage import BM25LexicalTwoStagePipeline
+from locisimiles.pipeline.bm25_two_stage import BM25TwoStagePipeline
 from locisimiles.pipeline.classification import (
     ClassificationPipeline,  # backward-compat alias
     ExhaustiveClassificationPipeline,
@@ -59,11 +66,13 @@ from locisimiles.pipeline.contextual_two_stage import LatinBertTwoStagePipeline
 from locisimiles.pipeline.generator import (
     DEFAULT_CONTEXTUAL_BERT_MODEL_NAME,
     DEFAULT_WORD2VEC_MODEL_PATH,
+    BM25CandidateGenerator,
     CandidateGeneratorBase,
     EmbeddingCandidateGenerator,
     ExhaustiveCandidateGenerator,
     LatinBertContextualCandidateGenerator,
     RuleBasedCandidateGenerator,
+    TfidfCandidateGenerator,
     Word2VecCandidateGenerator,
 )
 
@@ -73,6 +82,7 @@ from locisimiles.pipeline.judge import (
     ClassificationJudge,
     IdentityJudge,
     JudgeBase,  # backward-compat alias
+    LexicalClassifierJudge,
     ThresholdJudge,
 )
 
@@ -82,6 +92,7 @@ from locisimiles.pipeline.retrieval import RetrievalPipeline
 
 # --- Rule-based pipeline ---
 from locisimiles.pipeline.rule_based import RuleBasedPipeline
+from locisimiles.pipeline.tfidf import TfidfRetrievalPipeline
 
 # --- Preconfigured pipelines ---
 from locisimiles.pipeline.two_stage import (
@@ -121,10 +132,13 @@ __all__ = [
     "DEFAULT_WORD2VEC_MODEL_PATH",
     "LatinBertContextualCandidateGenerator",
     "DEFAULT_CONTEXTUAL_BERT_MODEL_NAME",
+    "TfidfCandidateGenerator",
+    "BM25CandidateGenerator",
     # Judges
     "CandidateJudgeBase",
     "JudgeBase",  # backward-compat alias
     "ClassificationJudge",
+    "LexicalClassifierJudge",
     "ThresholdJudge",
     "IdentityJudge",
     # Pipeline composer
@@ -134,6 +148,10 @@ __all__ = [
     "ExhaustiveClassificationPipeline",
     "RetrievalPipeline",
     "Word2VecRetrievalPipeline",
+    "TfidfRetrievalPipeline",
+    "BM25RetrievalPipeline",
+    "BM25TwoStagePipeline",
+    "BM25LexicalTwoStagePipeline",
     "LatinBertRetrievalPipeline",
     "LatinBertTwoStagePipeline",
     "RuleBasedPipeline",
