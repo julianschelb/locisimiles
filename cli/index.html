@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -484,6 +484,50 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#tf-idf-retrieval-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TF-IDF Retrieval Flow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bm25-retrieval-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BM25 Retrieval Flow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bm25-two-stage-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BM25 Two-Stage Flow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bm25-lexical-two-stage-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BM25 Lexical Two-Stage Flow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#output-format" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -901,6 +945,50 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#tf-idf-retrieval-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TF-IDF Retrieval Flow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bm25-retrieval-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BM25 Retrieval Flow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bm25-two-stage-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BM25 Two-Stage Flow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bm25-lexical-two-stage-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BM25 Lexical Two-Stage Flow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#output-format" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -950,7 +1038,18 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>pip<span class="w"> </span>install<span class="w"> </span>locisimiles
 </code></pre></div>
 <p>For Word2Vec retrieval, also install:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;locisimiles[word2vec]&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"locisimiles[word2vec]"</span>
+</code></pre></div>
+<p>For TF-IDF, BM25, or the lexical classifier, also install:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"locisimiles[lexical]"</span>
+</code></pre></div>
+<p>CLTK — used for Latin tokenization/lemmatization — has no release that
+supports Python 3.13: the newest 1.x requires <code>&lt;3.13</code>, and its 2.x rewrite
+requires <code>&gt;=3.13</code> with an incompatible API. These three pipelines are
+therefore only available on Python 3.10–3.12; on 3.13 the extra installs
+without CLTK, and using them raises a clear <code>ImportError</code>.</p>
+<p>CLTK also needs its Latin corpus data fetched once (a one-time download, not run automatically):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">"from cltk.data.fetch import FetchCorpus; FetchCorpus(language='lat').import_corpus('lat_models_cltk')"</span>
 </code></pre></div>
 <h2 id="arguments">Arguments<a class="headerlink" href="#arguments" title="Permanent link">&para;</a></h2>
 <table>
@@ -989,7 +1088,7 @@
 <tr>
 <td><code>--pipeline</code></td>
 <td><code>two-stage</code></td>
-<td>Pipeline type: <code>two-stage</code>, <code>word2vec-retrieval</code>, <code>latin-bert-retrieval</code>, or <code>latin-bert-two-stage</code></td>
+<td>Pipeline type: <code>two-stage</code>, <code>word2vec-retrieval</code>, <code>latin-bert-retrieval</code>, <code>latin-bert-two-stage</code>, <code>tfidf-retrieval</code>, <code>bm25-retrieval</code>, <code>bm25-two-stage</code>, or <code>bm25-lexical-two-stage</code></td>
 </tr>
 <tr>
 <td><code>--classification-model</code></td>
@@ -1042,6 +1141,31 @@
 <td>Use order-insensitive bigrams</td>
 </tr>
 <tr>
+<td><code>--lexical-disable-lemmatize</code></td>
+<td><code>False</code></td>
+<td>Disable CLTK lemmatization for TF-IDF/BM25/lexical-classifier pipelines</td>
+</tr>
+<tr>
+<td><code>--tfidf-ngram-max</code></td>
+<td><code>1</code></td>
+<td>Maximum lemma n-gram size for TF-IDF (1 = unigrams, 2 = unigrams+bigrams)</td>
+</tr>
+<tr>
+<td><code>--bm25-k1</code></td>
+<td><code>1.5</code></td>
+<td>BM25 term-frequency saturation parameter</td>
+</tr>
+<tr>
+<td><code>--bm25-b</code></td>
+<td><code>0.75</code></td>
+<td>BM25 length-normalization parameter</td>
+</tr>
+<tr>
+<td><code>--lexical-classifier-path</code></td>
+<td>none</td>
+<td>Path to a <code>.joblib</code> artifact from <code>LexicalClassifierTrainer</code> (required for <code>bm25-lexical-two-stage</code>)</td>
+</tr>
+<tr>
 <td><code>-k, --top-k</code></td>
 <td><code>10</code></td>
 <td>Number of retrieved candidates per query</td>
@@ -1064,21 +1188,21 @@
 </tbody>
 </table>
 <h2 id="two-stage-flow">Two-Stage Flow<a class="headerlink" href="#two-stage-flow" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>locisimiles<span class="w"> </span>query.csv<span class="w"> </span>source.csv<span class="w"> </span>-o<span class="w"> </span>results.csv<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span>--pipeline<span class="w"> </span>two-stage<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span>--classification-model<span class="w"> </span>julian-schelb/xlm-roberta-large-class-lat-intertext-v1<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span>--embedding-model<span class="w"> </span>julian-schelb/multilingual-e5-large-emb-lat-intertext-v1<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span>--top-k<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span>--threshold<span class="w"> </span><span class="m">0</span>.85
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>locisimiles<span class="w"> </span>query.csv<span class="w"> </span>source.csv<span class="w"> </span>-o<span class="w"> </span>results.csv<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span>--pipeline<span class="w"> </span>two-stage<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span>--classification-model<span class="w"> </span>julian-schelb/xlm-roberta-large-class-lat-intertext-v1<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">    </span>--embedding-model<span class="w"> </span>julian-schelb/multilingual-e5-large-emb-lat-intertext-v1<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">    </span>--top-k<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">    </span>--threshold<span class="w"> </span><span class="m">0</span>.85
 </code></pre></div>
 <h2 id="word2vec-flow">Word2Vec Flow<a class="headerlink" href="#word2vec-flow" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>locisimiles<span class="w"> </span>query.csv<span class="w"> </span>source.csv<span class="w"> </span>-o<span class="w"> </span>results.csv<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span>--pipeline<span class="w"> </span>word2vec-retrieval<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span>--word2vec-model-path<span class="w"> </span>./models/latin_w2v_bamman_lemma300_100_1.model<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span>--word2vec-interval<span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">    </span>--word2vec-order-free<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">    </span>--top-k<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">    </span>--threshold<span class="w"> </span><span class="m">0</span>.85
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>locisimiles<span class="w"> </span>query.csv<span class="w"> </span>source.csv<span class="w"> </span>-o<span class="w"> </span>results.csv<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">    </span>--pipeline<span class="w"> </span>word2vec-retrieval<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span>--word2vec-model-path<span class="w"> </span>./models/latin_w2v_bamman_lemma300_100_1.model<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span>--word2vec-interval<span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">    </span>--word2vec-order-free<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">    </span>--top-k<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">    </span>--threshold<span class="w"> </span><span class="m">0</span>.85
 </code></pre></div>
 <p>If <code>--word2vec-model-path</code> is not set, the CLI uses this local default path:</p>
 <p><code>models/latin_w2v_bamman_lemma300_100_1.model</code></p>
@@ -1086,28 +1210,66 @@
 <p>Word2Vec mode expects pre-lemmatized text in the CSV <code>text</code> column.</p>
 <h2 id="latin-bert-retrieval-flow">Latin BERT Retrieval Flow<a class="headerlink" href="#latin-bert-retrieval-flow" title="Permanent link">&para;</a></h2>
 <p>Token-level contextual similarity using a BERT model (Gong-style approach):</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>locisimiles<span class="w"> </span>query.csv<span class="w"> </span>source.csv<span class="w"> </span>-o<span class="w"> </span>results.csv<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span>--pipeline<span class="w"> </span>latin-bert-retrieval<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span>--latin-bert-model<span class="w"> </span>ashleygong03/bamman-burns-latin-bert<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">    </span>--latin-bert-max-length<span class="w"> </span><span class="m">256</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">    </span>--top-k<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">    </span>--threshold<span class="w"> </span><span class="m">0</span>.85
-</code></pre></div>
-<p>Or use a local model directory:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>locisimiles<span class="w"> </span>query.csv<span class="w"> </span>source.csv<span class="w"> </span>-o<span class="w"> </span>results.csv<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">    </span>--pipeline<span class="w"> </span>latin-bert-retrieval<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span>--latin-bert-model-path<span class="w"> </span>./models/latinbert<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span>--top-k<span class="w"> </span><span class="m">20</span>
-</code></pre></div>
-<h2 id="latin-bert-two-stage-flow">Latin BERT Two-Stage Flow<a class="headerlink" href="#latin-bert-two-stage-flow" title="Permanent link">&para;</a></h2>
-<p>Combines contextual token retrieval with classification:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>locisimiles<span class="w"> </span>query.csv<span class="w"> </span>source.csv<span class="w"> </span>-o<span class="w"> </span>results.csv<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">    </span>--pipeline<span class="w"> </span>latin-bert-two-stage<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">    </span>--pipeline<span class="w"> </span>latin-bert-retrieval<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span>--latin-bert-model<span class="w"> </span>ashleygong03/bamman-burns-latin-bert<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span>--classification-model<span class="w"> </span>julian-schelb/xlm-roberta-large-class-lat-intertext-v1<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span>--latin-bert-max-length<span class="w"> </span><span class="m">256</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span>--top-k<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">    </span>--threshold<span class="w"> </span><span class="m">0</span>.85
 </code></pre></div>
+<p>Or use a local model directory:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>locisimiles<span class="w"> </span>query.csv<span class="w"> </span>source.csv<span class="w"> </span>-o<span class="w"> </span>results.csv<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">    </span>--pipeline<span class="w"> </span>latin-bert-retrieval<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">    </span>--latin-bert-model-path<span class="w"> </span>./models/latinbert<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">    </span>--top-k<span class="w"> </span><span class="m">20</span>
+</code></pre></div>
+<h2 id="latin-bert-two-stage-flow">Latin BERT Two-Stage Flow<a class="headerlink" href="#latin-bert-two-stage-flow" title="Permanent link">&para;</a></h2>
+<p>Combines contextual token retrieval with classification:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>locisimiles<span class="w"> </span>query.csv<span class="w"> </span>source.csv<span class="w"> </span>-o<span class="w"> </span>results.csv<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">    </span>--pipeline<span class="w"> </span>latin-bert-two-stage<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">    </span>--latin-bert-model<span class="w"> </span>ashleygong03/bamman-burns-latin-bert<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">    </span>--classification-model<span class="w"> </span>julian-schelb/xlm-roberta-large-class-lat-intertext-v1<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">    </span>--top-k<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">    </span>--threshold<span class="w"> </span><span class="m">0</span>.85
+</code></pre></div>
+<h2 id="tf-idf-retrieval-flow">TF-IDF Retrieval Flow<a class="headerlink" href="#tf-idf-retrieval-flow" title="Permanent link">&para;</a></h2>
+<p>Lexical retrieval over (optionally lemmatized) Latin text, no trained model required:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>locisimiles<span class="w"> </span>query.csv<span class="w"> </span>source.csv<span class="w"> </span>-o<span class="w"> </span>results.csv<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">    </span>--pipeline<span class="w"> </span>tfidf-retrieval<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">    </span>--tfidf-ngram-max<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">    </span>--top-k<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">    </span>--threshold<span class="w"> </span><span class="m">0</span>.85
+</code></pre></div>
+<p>Pass <code>--lexical-disable-lemmatize</code> to skip CLTK lemmatization (raw tokens instead).</p>
+<h2 id="bm25-retrieval-flow">BM25 Retrieval Flow<a class="headerlink" href="#bm25-retrieval-flow" title="Permanent link">&para;</a></h2>
+<p>Okapi BM25 over (optionally lemmatized) Latin text — the benchmark's best
+single retriever:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>locisimiles<span class="w"> </span>query.csv<span class="w"> </span>source.csv<span class="w"> </span>-o<span class="w"> </span>results.csv<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">    </span>--pipeline<span class="w"> </span>bm25-retrieval<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">    </span>--bm25-k1<span class="w"> </span><span class="m">1</span>.5<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">    </span>--bm25-b<span class="w"> </span><span class="m">0</span>.75<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">    </span>--top-k<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">    </span>--threshold<span class="w"> </span><span class="m">0</span>.85
+</code></pre></div>
+<h2 id="bm25-two-stage-flow">BM25 Two-Stage Flow<a class="headerlink" href="#bm25-two-stage-flow" title="Permanent link">&para;</a></h2>
+<p>BM25 retrieval + cross-encoder classification — the benchmark's "best combined" configuration:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>locisimiles<span class="w"> </span>query.csv<span class="w"> </span>source.csv<span class="w"> </span>-o<span class="w"> </span>results.csv<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">    </span>--pipeline<span class="w"> </span>bm25-two-stage<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">    </span>--classification-model<span class="w"> </span>julian-schelb/xlm-roberta-large-class-lat-intertext-v1<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">    </span>--top-k<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">    </span>--threshold<span class="w"> </span><span class="m">0</span>.85
+</code></pre></div>
+<h2 id="bm25-lexical-two-stage-flow">BM25 Lexical Two-Stage Flow<a class="headerlink" href="#bm25-lexical-two-stage-flow" title="Permanent link">&para;</a></h2>
+<p>BM25 retrieval + a trained LogReg/GBDT classifier — the benchmark's "best
+non-neural" configuration (no neural model required end to end):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>locisimiles<span class="w"> </span>query.csv<span class="w"> </span>source.csv<span class="w"> </span>-o<span class="w"> </span>results.csv<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">    </span>--pipeline<span class="w"> </span>bm25-lexical-two-stage<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">    </span>--lexical-classifier-path<span class="w"> </span>./models/lexical_classifier.joblib<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="w">    </span>--top-k<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="w">    </span>--threshold<span class="w"> </span><span class="m">0</span>.85
+</code></pre></div>
+<p><code>--lexical-classifier-path</code> must point to a <code>.joblib</code> artifact produced by
+<code>LexicalClassifierTrainer</code> (see the <a href="../examples/">training example</a>).</p>
 <h2 id="output-format">Output Format<a class="headerlink" href="#output-format" title="Permanent link">&para;</a></h2>
 <p>The CLI writes the following columns:</p>
 <table>
@@ -1148,6 +1310,10 @@
 </tr>
 </tbody>
 </table>
+<p>When a multiclass classifier (<code>bm25-two-stage</code>, <code>two-stage</code>, or
+<code>bm25-lexical-two-stage</code> with a multiclass artifact) returns class metadata,
+the CLI also writes <code>predicted_class_id</code>, <code>predicted_label</code>, and
+<code>class_probabilities</code>.</p>
 <h2 id="gui-equivalent">GUI Equivalent<a class="headerlink" href="#gui-equivalent" title="Permanent link">&para;</a></h2>
 <p>The same Word2Vec settings are available in the GUI under:</p>
 <ol>
@@ -1229,7 +1395,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>
