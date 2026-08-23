@@ -37,6 +37,29 @@ judge = ClassificationJudge(
     options:
       heading_level: 3
 
+## LexicalClassifierJudge
+
+Judge candidates using a trained LogReg/GBDT classifier over TF-IDF/Jaccard/
+overlap features (no neural model required). Loads a `.joblib` artifact
+produced by `LexicalClassifierTrainer`, and follows the same binary/
+multiclass rules as `ClassificationJudge`: `judgment_score` is the
+positive-class probability for a binary model, or the summed probability of
+the configured positive classes for a multiclass model, which also exposes
+`predicted_class_id`, `predicted_label`, and `class_probabilities`.
+
+```python
+from locisimiles.pipeline.judge import LexicalClassifierJudge
+
+judge = LexicalClassifierJudge(
+  artifact_path="./models/lexical_classifier.joblib",
+  positive_labels=["cit", "cf"],
+)
+```
+
+::: locisimiles.pipeline.judge.lexical_classifier.LexicalClassifierJudge
+    options:
+      heading_level: 3
+
 ## ThresholdJudge
 
 Binary decisions based on candidate scores (top-k or threshold).

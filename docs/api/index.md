@@ -20,6 +20,11 @@ The [Pipelines](pipelines.md) module provides the main processing pipelines:
 - `ClassificationPipeline` - Text pair classification
 - `ClassificationPipelineWithCandidateGeneration` - Two-stage retrieval + classification
 - `RuleBasedPipeline` - Lexical matching + linguistic filters
+- `Word2VecRetrievalPipeline` - Burns-style Word2Vec bigram retrieval
+- `LatinBertRetrievalPipeline` / `LatinBertTwoStagePipeline` - Gong-style contextual BERT retrieval
+- `TfidfRetrievalPipeline` / `BM25RetrievalPipeline` - Lexical TF-IDF/BM25 retrieval
+- `BM25TwoStagePipeline` - BM25 + classification ("best combined")
+- `BM25LexicalTwoStagePipeline` - BM25 + trained lexical classifier ("best non-neural")
 
 ### Generators Module
 
@@ -28,12 +33,17 @@ The [Generators](generators.md) module provides candidate-generation components:
 - `EmbeddingCandidateGenerator` - Semantic embedding similarity
 - `ExhaustiveCandidateGenerator` - All-pairs (no filtering)
 - `RuleBasedCandidateGenerator` - Lexical matching + linguistic filters
+- `Word2VecCandidateGenerator` - Burns-style Word2Vec bigram similarity
+- `LatinBertContextualCandidateGenerator` - Gong-style contextual token similarity
+- `TfidfCandidateGenerator` - TF-IDF cosine similarity
+- `BM25CandidateGenerator` - Okapi BM25 retrieval
 
 ### Judges Module
 
 The [Judges](judges.md) module provides scoring/classification components:
 
 - `ClassificationJudge` - Transformer-based sequence classification
+- `LexicalClassifierJudge` - Trained LogReg/GBDT lexical classification (no neural model)
 - `ThresholdJudge` - Binary decisions from candidate scores
 - `IdentityJudge` - Pass-through (judgment_score = 1.0)
 
