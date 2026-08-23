@@ -31,6 +31,16 @@ rule-based = [
 word2vec = [
     "gensim (>=4.3.0,<5.0.0)",
 ]
+lexical = [
+    # cltk has no release that supports Python 3.13: the newest 1.x (1.5.0)
+    # requires <3.13, and 2.x is a from-scratch, API-incompatible rewrite
+    # that requires >=3.13. On 3.13, this extra installs without cltk and
+    # TF-IDF/BM25/the lexical classifier raise a clear ImportError at use.
+    "cltk (>=1.1.0,<2.0.0) ; python_version < '3.13'",
+    "scikit-learn (>=1.3.0,<2.0.0)",
+    "rank-bm25 (>=0.2.2,<0.3.0)",
+    "joblib (>=1.3.0)",
+]
 dev = [
     "pytest (>=8.0.0,<10.0.0)",
     "pytest-cov (>=4.0.0)",
@@ -119,7 +129,11 @@ known-first-party = ["locisimiles", "locisimiles_gui"]
 # ---------- Mypy ----------
 
 [tool.mypy]
-python_version = "3.10"
+# Matches CI's typecheck job (which runs on 3.12), not the package's minimum
+# supported Python (3.10): newer numpy releases ship inline .pyi stubs using
+# PEP 695 `type` statements, which mypy refuses to parse when python_version
+# is set below 3.12, regardless of the interpreter mypy itself runs under.
+python_version = "3.12"
 warn_return_any = false              # too noisy with base-class delegation
 warn_unused_configs = true
 disallow_untyped_defs = false        # gradual adoption

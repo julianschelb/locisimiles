@@ -12,9 +12,13 @@ from locisimiles.document import Document
 from locisimiles.pipeline import (
     DEFAULT_CONTEXTUAL_BERT_MODEL_NAME,
     DEFAULT_WORD2VEC_MODEL_PATH,
+    BM25LexicalTwoStagePipeline,
+    BM25RetrievalPipeline,
+    BM25TwoStagePipeline,
     LatinBertRetrievalPipeline,
     LatinBertTwoStagePipeline,
     Pipeline,
+    TfidfRetrievalPipeline,
     TwoStagePipeline,
     Word2VecRetrievalPipeline,
 )
@@ -77,6 +81,10 @@ CSV Format:
             "word2vec-retrieval",
             "latin-bert-retrieval",
             "latin-bert-two-stage",
+            "tfidf-retrieval",
+            "bm25-retrieval",
+            "bm25-two-stage",
+            "bm25-lexical-two-stage",
         ],
         default="two-stage",
         help="Pipeline type to run (default: %(default)s)",
@@ -144,6 +152,44 @@ CSV Format:
         "--word2vec-order-free",
         action="store_true",
         help="Treat Word2Vec bigrams as order-insensitive",
+    )
+    parser.add_argument(
+        "--lexical-disable-lemmatize",
+        action="store_true",
+        help=(
+            "Disable CLTK lemmatization for TF-IDF/BM25/lexical-classifier "
+            "pipelines (default: lemmatize)"
+        ),
+    )
+    parser.add_argument(
+        "--tfidf-ngram-max",
+        type=int,
+        default=1,
+        help=(
+            "Maximum lemma n-gram size for TF-IDF (1 = unigrams, 2 = unigrams+bigrams; "
+            "used only with --pipeline tfidf-retrieval) (default: %(default)s)"
+        ),
+    )
+    parser.add_argument(
+        "--bm25-k1",
+        type=float,
+        default=1.5,
+        help="BM25 term-frequency saturation parameter (default: %(default)s)",
+    )
+    parser.add_argument(
+        "--bm25-b",
+        type=float,
+        default=0.75,
+        help="BM25 length-normalization parameter (default: %(default)s)",
+    )
+    parser.add_argument(
+        "--lexical-classifier-path",
+        type=Path,
+        default=None,
+        help=(
+            "Path to a .joblib artifact produced by LexicalClassifierTrainer "
+            "(required with --pipeline bm25-lexical-two-stage)"
+        ),
     )
 
     # Pipeline parameters
@@ -281,7 +327,7 @@ CSV Format:
                 min_token_length=args.latin_bert_min_token_length,
                 use_stopword_filter=not args.latin_bert_disable_stopword_filter,
             )
-        else:
+        elif args.pipeline == "latin-bert-two-stage":
             if args.verbose:
                 if args.latin_bert_model_path is None:
                     print(f"  Latin BERT model (HF): {args.latin_bert_model}")
@@ -296,6 +342,56 @@ CSV Format:
                 max_length=args.latin_bert_max_length,
                 min_token_length=args.latin_bert_min_token_length,
                 use_stopword_filter=not args.latin_bert_disable_stopword_filter,
+            )
+        elif args.pipeline == "tfidf-retrieval":
+            if args.verbose:
+                print(f"  TF-IDF n-gram range: (1, {args.tfidf_ngram_max})")
+
+            pipeline = TfidfRetrievalPipeline(
+                top_k=args.top_k,
+                similarity_threshold=args.threshold,
+                lemmatize=not args.lexical_disable_lemmatize,
+                ngram_range=(1, args.tfidf_ngram_max),
+            )
+        elif args.pipeline == "bm25-retrieval":
+            if args.verbose:
+                print(f"  BM25 k1={args.bm25_k1}, b={args.bm25_b}")
+
+            pipeline = BM25RetrievalPipeline(
+                top_k=args.top_k,
+                similarity_threshold=args.threshold,
+                lemmatize=not args.lexical_disable_lemmatize,
+                k1=args.bm25_k1,
+                b=args.bm25_b,
+            )
+        elif args.pipeline == "bm25-two-stage":
+            if args.verbose:
+                print(f"  Classification model: {args.classification_model}")
+                print(f"  BM25 k1={args.bm25_k1}, b={args.bm25_b}")
+
+            pipeline = BM25TwoStagePipeline(
+                classification_name=args.classification_model,
+                device=device,
+                lemmatize=not args.lexical_disable_lemmatize,
+                k1=args.bm25_k1,
+                b=args.bm25_b,
+            )
+        else:
+            if args.lexical_classifier_path is None:
+                print(
+                    "Error: --pipeline bm25-lexical-two-stage requires --lexical-classifier-path.",
+                    file=sys.stderr,
+                )
+                return 1
+            if args.verbose:
+                print(f"  Lexical classifier artifact: {args.lexical_classifier_path}")
+                print(f"  BM25 k1={args.bm25_k1}, b={args.bm25_b}")
+
+            pipeline = BM25LexicalTwoStagePipeline(
+                artifact_path=str(args.lexical_classifier_path),
+                lemmatize=not args.lexical_disable_lemmatize,
+                k1=args.bm25_k1,
+                b=args.bm25_b,
             )
 
         # Run pipeline
@@ -375,9 +471,7 @@ CSV Format:
                             above_threshold_flag,
                         ]
                         if include_classifier_metadata:
-                            class_probabilities = getattr(
-                                judgment, "class_probabilities", None
-                            )
+                            class_probabilities = getattr(judgment, "class_probabilities", None)
                             row.extend(
                                 [
                                     getattr(judgment, "predicted_class_id", "") or "",

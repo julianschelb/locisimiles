@@ -12,6 +12,10 @@ from locisimiles.evaluator import IntertextEvaluator
 from locisimiles.pipeline import (
     DEFAULT_CONTEXTUAL_BERT_MODEL_NAME,
     DEFAULT_WORD2VEC_MODEL_PATH,
+    BM25CandidateGenerator,
+    BM25LexicalTwoStagePipeline,
+    BM25RetrievalPipeline,
+    BM25TwoStagePipeline,
     CandidateJudgeBase,
     ClassificationJudge,
     # Backward-compatible aliases
@@ -26,11 +30,14 @@ from locisimiles.pipeline import (
     LatinBertContextualCandidateGenerator,
     LatinBertRetrievalPipeline,
     LatinBertTwoStagePipeline,
+    LexicalClassifierJudge,
     # Modular components
     Pipeline,
     RetrievalPipeline,
     RuleBasedCandidateGenerator,
     RuleBasedPipeline,
+    TfidfCandidateGenerator,
+    TfidfRetrievalPipeline,
     ThresholdJudge,
     # Preconfigured pipelines
     TwoStagePipeline,
@@ -52,6 +59,10 @@ __all__ = [
     "Word2VecRetrievalPipeline",
     "LatinBertRetrievalPipeline",
     "LatinBertTwoStagePipeline",
+    "TfidfRetrievalPipeline",
+    "BM25RetrievalPipeline",
+    "BM25TwoStagePipeline",
+    "BM25LexicalTwoStagePipeline",
     "RuleBasedPipeline",
     # Backward-compatible aliases
     "ClassificationPipeline",
@@ -66,9 +77,12 @@ __all__ = [
     "RuleBasedCandidateGenerator",
     "LatinBertContextualCandidateGenerator",
     "Word2VecCandidateGenerator",
+    "TfidfCandidateGenerator",
+    "BM25CandidateGenerator",
     "DEFAULT_CONTEXTUAL_BERT_MODEL_NAME",
     "DEFAULT_WORD2VEC_MODEL_PATH",
     "ClassificationJudge",
+    "LexicalClassifierJudge",
     "ThresholdJudge",
     "IdentityJudge",
     # Utilities

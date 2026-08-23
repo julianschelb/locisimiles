@@ -172,6 +172,81 @@ locisimiles hieronymus_samples.csv vergil_samples.csv -o results.csv \
     --threshold 0.85
 ```
 
+## BM25 Retrieval (Best Retriever)
+
+Use this for fast, lexical retrieval with no trained model required. BM25 is
+the benchmark's best single retriever.
+
+```python
+from locisimiles import Document, BM25RetrievalPipeline
+
+query_doc = Document("./hieronymus_samples.csv", author="Hieronymus")
+source_doc = Document("./vergil_samples.csv", author="Vergil")
+
+pipeline = BM25RetrievalPipeline(top_k=10, similarity_threshold=0.85)
+results = pipeline.run(query=query_doc, source=source_doc, top_k=10)
+```
+
+`TfidfRetrievalPipeline` has the same interface for plain TF-IDF cosine
+retrieval instead of BM25. Both lemmatize with CLTK by default
+(`lemmatize=False` to use raw tokens) and require the `lexical` extra:
+
+```bash
+pip install "locisimiles[lexical]"
+```
+
+## Training and Using the Lexical Classifier (Best Non-Neural)
+
+`LexicalClassifierTrainer` fits a LogReg or GBDT classifier over TF-IDF
+cosine, Jaccard, token-overlap, and length features — no neural model
+required. Combined with BM25 retrieval, this is the benchmark's "best
+non-neural" configuration.
+
+```python
+from locisimiles.training.lexical import (
+    LexicalClassifierTrainer,
+    LexicalClassifierTrainerConfig,
+)
+
+# train.csv columns: query_text, corpus_text, label
+config = LexicalClassifierTrainerConfig(
+    train_path="./train.csv",
+    output_dir="./models",
+    classifier="logreg",  # or "gbdt"
+)
+trainer = LexicalClassifierTrainer(config)
+trainer.fit()
+artifact_path = trainer.save()  # ./models/lexical_classifier.joblib
+```
+
+Use the saved artifact directly with `LexicalClassifierJudge`, or via the
+preconfigured `BM25LexicalTwoStagePipeline`:
+
+```python
+from locisimiles import Document, BM25LexicalTwoStagePipeline
+
+query_doc = Document("./hieronymus_samples.csv", author="Hieronymus")
+source_doc = Document("./vergil_samples.csv", author="Vergil")
+
+pipeline = BM25LexicalTwoStagePipeline(artifact_path=str(artifact_path))
+results = pipeline.run(query=query_doc, source=source_doc, top_k=10)
+```
+
+`LexicalClassifierTrainerConfig(label_names={0: "no_match", 1: "cit", 2: "cf"})`
+trains a multiclass model; `LexicalClassifierJudge`/`BM25LexicalTwoStagePipeline`
+then emit `predicted_label` and `class_probabilities` the same way
+`ClassificationJudge` does for multiclass transformer models.
+
+### CLI Example
+
+```bash
+locisimiles hieronymus_samples.csv vergil_samples.csv -o results.csv \
+    --pipeline bm25-lexical-two-stage \
+    --lexical-classifier-path ./models/lexical_classifier.joblib \
+    --top-k 10 \
+    --threshold 0.85
+```
+
 ## Saving Results
 
 Pipeline results can be saved to CSV or JSON directly from the pipeline

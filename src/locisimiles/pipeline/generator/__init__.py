@@ -11,9 +11,12 @@ Available generators:
 - ``ExhaustiveCandidateGenerator`` — all pairs (no filtering)
 - ``RuleBasedCandidateGenerator`` — lexical matching + linguistic filters
 - ``Word2VecCandidateGenerator`` — Burns-style bigram similarity retrieval
+- ``TfidfCandidateGenerator`` — TF-IDF cosine similarity retrieval
+- ``BM25CandidateGenerator`` — Okapi BM25 retrieval
 """
 
 from locisimiles.pipeline.generator._base import CandidateGeneratorBase
+from locisimiles.pipeline.generator.bm25 import BM25CandidateGenerator
 from locisimiles.pipeline.generator.contextual_bert import (
     DEFAULT_CONTEXTUAL_BERT_MODEL_NAME,
     LatinBertContextualCandidateGenerator,
@@ -21,6 +24,7 @@ from locisimiles.pipeline.generator.contextual_bert import (
 from locisimiles.pipeline.generator.embedding import EmbeddingCandidateGenerator
 from locisimiles.pipeline.generator.exhaustive import ExhaustiveCandidateGenerator
 from locisimiles.pipeline.generator.rule_based import RuleBasedCandidateGenerator
+from locisimiles.pipeline.generator.tfidf import TfidfCandidateGenerator
 from locisimiles.pipeline.generator.word2vec import (
     DEFAULT_WORD2VEC_MODEL_PATH,
     Word2VecCandidateGenerator,
@@ -35,4 +39,6 @@ __all__ = [
     "RuleBasedCandidateGenerator",
     "Word2VecCandidateGenerator",
     "DEFAULT_WORD2VEC_MODEL_PATH",
+    "TfidfCandidateGenerator",
+    "BM25CandidateGenerator",
 ]

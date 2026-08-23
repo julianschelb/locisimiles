@@ -102,6 +102,109 @@ class TestWord2VecCandidateGenerator:
         assert generator.order_free is True
 
 
+class _PairwiseKeyedVectors:
+    """Fake KeyedVectors returning a fixed raw cosine per unordered word pair."""
+
+    def __init__(self, pairwise: dict[frozenset[str], float]):
+        self._pairwise = pairwise
+        self._known = {w for pair in pairwise for w in pair}
+
+    def __contains__(self, key: str) -> bool:
+        return key in self._known
+
+    def similarity(self, w1: str, w2: str) -> float:
+        if w1 == w2:
+            return 1.0
+        return self._pairwise[frozenset((w1, w2))]
+
+
+class TestWord2VecBigramPairScore:
+    """Regression tests for the Burns et al. (2021) bigram-pair formula.
+
+    ``_word_similarity`` rescales each raw cosine from ``[-1, 1]`` to
+    ``[0, 1]`` via the affine, monotonically increasing map
+    ``f(x) = (x + 1) / 2``. Because the bigram-pair score is built only from
+    ``max``/``mean`` over these per-word similarities, and both operations
+    commute with an affine monotonic map, the package's rescaled output for
+    any bigram pair equals ``f(raw_score)``. Expected values below are
+    derived accordingly from raw-cosine worked examples.
+    """
+
+    def _make_generator(self, mock_loader, temp_dir, pairwise):
+        from locisimiles.pipeline.generator.word2vec import Word2VecCandidateGenerator
+
+        model_path = temp_dir / "latin.model"
+        model_path.write_text("stub", encoding="utf-8")
+        model = _FakeWord2VecModel()
+        model.wv = _PairwiseKeyedVectors(pairwise)
+        mock_loader.return_value = model
+        return Word2VecCandidateGenerator(model_path=model_path)
+
+    @patch("locisimiles.pipeline.generator.word2vec._load_word2vec_model")
+    def test_matches_burns_2021_worked_example(self, mock_loader, temp_dir):
+        """flammifero Olympo vs. flammifera nocte -> paper's worked example.
+
+        Raw cosines: flammifer~flammifer = 1.0 (same word), olympus~nox =
+        0.35 (the "remaining" pair), both cross pairs low. Paper's raw
+        result: (1.0 + 0.35) / 2 = 0.675 -> rescaled: (0.675 + 1) / 2 = 0.8375.
+        """
+        generator = self._make_generator(
+            mock_loader,
+            temp_dir,
+            pairwise={
+                frozenset({"olympus", "nox"}): 0.35,
+                frozenset({"flammifer", "nox"}): 0.05,
+                frozenset({"olympus", "flammifer"}): 0.05,
+            },
+        )
+        score = generator._bigram_pair_score(("flammifer", "olympus"), ("flammifer", "nox"))
+        assert score == pytest.approx(0.8375)
+
+    @patch("locisimiles.pipeline.generator.word2vec._load_word2vec_model")
+    def test_picks_higher_scoring_pairing_not_just_global_max(self, mock_loader, temp_dir):
+        """The best single cross-cosine need not belong to the better-scoring pairing.
+
+        Raw cosines: q1s1=0.9, q1s2=0.85, q2s1=0.85, q2s2=0.1. The single
+        highest value (0.9) belongs to the "direct" pairing (q1s1, q2s2),
+        whose mean (0.5) is *lower* than the "crossed" pairing's mean
+        (mean(0.85, 0.85) = 0.85). The correct Burns formula still follows
+        the global max (0.9) and pairs it with its non-overlapping partner
+        (q2s2=0.1): raw = (0.9 + 0.1) / 2 = 0.5 -> rescaled = 0.75. A
+        max-of-pairings implementation would incorrectly return the
+        crossed pairing's mean instead (rescaled 0.925).
+        """
+        generator = self._make_generator(
+            mock_loader,
+            temp_dir,
+            pairwise={
+                frozenset({"q1", "s1"}): 0.9,
+                frozenset({"q1", "s2"}): 0.85,
+                frozenset({"q2", "s1"}): 0.85,
+                frozenset({"q2", "s2"}): 0.1,
+            },
+        )
+        score = generator._bigram_pair_score(("q1", "q2"), ("s1", "s2"))
+        assert score == pytest.approx(0.75)
+        assert score != pytest.approx(0.925)  # the old, incorrect formula's result
+
+    @patch("locisimiles.pipeline.generator.word2vec._load_word2vec_model")
+    def test_requires_all_four_words_in_vocabulary(self, mock_loader, temp_dir):
+        """Returns None (not a partial score) when one of the four words is OOV.
+
+        ``s2`` never appears in the pairwise similarity map, so it is
+        out-of-vocabulary; two of the four cross pairs involve it and
+        therefore cannot be scored, which should void the whole bigram pair
+        rather than silently scoring on the remaining two.
+        """
+        generator = self._make_generator(
+            mock_loader,
+            temp_dir,
+            pairwise={frozenset({"q1", "s1"}): 0.9, frozenset({"q2", "s1"}): 0.5},
+        )
+        score = generator._bigram_pair_score(("q1", "q2"), ("s1", "s2"))
+        assert score is None
+
+
 class TestWord2VecRetrievalPipeline:
     @patch("locisimiles.pipeline.word2vec.Word2VecCandidateGenerator")
     def test_pipeline_composition(self, mock_generator):

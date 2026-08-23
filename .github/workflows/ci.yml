@@ -62,7 +62,15 @@ jobs:
           cache: pip
 
       - name: Install dependencies
-        run: pip install -e ".[dev]"
+        run: pip install -e ".[dev,lexical]"
+
+      - name: Fetch CLTK Latin corpus data
+        # cltk has no release supporting Python 3.13 (see the `lexical` extra
+        # in pyproject.toml), so it's absent there and lexical tests self-skip.
+        run: |
+          python -c "import cltk" 2>/dev/null && \
+            python -c "from cltk.data.fetch import FetchCorpus; FetchCorpus(language='lat').import_corpus('lat_models_cltk')" || \
+            echo "cltk not installed for this Python version, skipping corpus fetch"
 
       - name: Run tests
         run: pytest --tb=short -q

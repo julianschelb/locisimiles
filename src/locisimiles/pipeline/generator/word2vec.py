@@ -46,8 +46,10 @@ class Word2VecCandidateGenerator(CandidateGeneratorBase):
     """Generate candidates with pair-aware bigram similarity.
 
     The generator compares query/source bigrams and scores each source segment
-    by its best matching bigram pair. Similarities are mapped from cosine
-    ``[-1, 1]`` to ``[0, 1]`` for consistency with existing threshold UX.
+    by its best matching bigram pair, using the bigram-pair formula from
+    Burns et al. (2021), *Profiling of Intertextuality in Latin Literature
+    Using Word Embeddings*. Similarities are mapped from cosine ``[-1, 1]``
+    to ``[0, 1]`` for consistency with existing threshold UX.
 
     Args:
         model_path: Path to a local gensim ``.model`` file.
@@ -117,30 +119,35 @@ class Word2VecCandidateGenerator(CandidateGeneratorBase):
         query_bigram: tuple[str, str],
         source_bigram: tuple[str, str],
     ) -> Optional[float]:
-        """Score a query/source bigram pair with pair-aware alignment."""
+        """Score a query/source bigram pair with the Burns et al. (2021) formula.
+
+        The score is the mean of (a) the highest cosine similarity among the
+        four cross pairs ``(q1,s1)``, ``(q1,s2)``, ``(q2,s1)``, ``(q2,s2)``,
+        and (b) the cosine similarity of the remaining, non-overlapping word
+        pair (the pair sharing neither word with the best-scoring one).
+        Requires all four words to be present in the embedding vocabulary,
+        matching the reference implementation used to produce the benchmark's
+        reported Word2Vec/FastText baseline results.
+        """
         q1, q2 = query_bigram
         s1, s2 = source_bigram
 
-        q1s1 = self._word_similarity(q1, s1)
-        q1s2 = self._word_similarity(q1, s2)
-        q2s1 = self._word_similarity(q2, s1)
-        q2s2 = self._word_similarity(q2, s2)
-
-        direct = None
-        if q1s1 is not None and q2s2 is not None:
-            direct = (q1s1 + q2s2) / 2.0
-
-        crossed = None
-        if q1s2 is not None and q2s1 is not None:
-            crossed = (q1s2 + q2s1) / 2.0
-
-        if direct is None and crossed is None:
+        pairs = [
+            (0, 0, self._word_similarity(q1, s1)),
+            (0, 1, self._word_similarity(q1, s2)),
+            (1, 0, self._word_similarity(q2, s1)),
+            (1, 1, self._word_similarity(q2, s2)),
+        ]
+        scored_pairs = [(i, j, score) for i, j, score in pairs if score is not None]
+        if len(scored_pairs) < len(pairs):
             return None
-        if direct is None:
-            return crossed
-        if crossed is None:
-            return direct
-        return max(direct, crossed)
+
+        best_i, best_j, best_score = max(scored_pairs, key=lambda item: item[2])
+        remaining_i, remaining_j = 1 - best_i, 1 - best_j
+        remaining_score = next(
+            score for i, j, score in scored_pairs if i == remaining_i and j == remaining_j
+        )
+        return (best_score + remaining_score) / 2.0
 
     def _segment_score(
         self,
