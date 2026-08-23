@@ -24,6 +24,13 @@ For TF-IDF, BM25, or the lexical classifier, also install:
 pip install "locisimiles[lexical]"
 ```
 
+These pipelines use CLTK for Latin tokenization/lemmatization, which needs
+its Latin corpus data fetched once (a one-time download, not run automatically):
+
+```bash
+python -c "from cltk.data.fetch import FetchCorpus; FetchCorpus(language='lat').import_corpus('lat_models_cltk')"
+```
+
 ## Arguments
 
 | Argument | Description |

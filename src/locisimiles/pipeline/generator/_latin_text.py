@@ -23,19 +23,32 @@ def _load_latin_word_tokenizer() -> Any:
         return _tokenizer_cache["tokenizer"]
 
     errors: list[str] = []
+    module_missing = True
     for module_name in ("cltk.tokenizers.lat.lat", "cltk.tokenizers.lat.word"):
         try:
             module = __import__(module_name, fromlist=["LatinWordTokenizer"])
+            module_missing = False
             tokenizer_cls = module.LatinWordTokenizer
             tokenizer = tokenizer_cls()
             _tokenizer_cache["tokenizer"] = tokenizer
             return tokenizer
+        except ModuleNotFoundError as exc:
+            errors.append(f"{module_name}: {exc!r}")
         except Exception as exc:  # pragma: no cover - depends on optional install
+            module_missing = False
             errors.append(f"{module_name}: {exc!r}")
 
+    if module_missing:
+        raise ImportError(
+            "This generator requires CLTK's Latin word tokenizer. Install it with: "
+            "pip install 'locisimiles[lexical]'. Tried: " + "; ".join(errors)
+        )
     raise ImportError(
-        "This generator requires CLTK's Latin word tokenizer. Install it with: "
-        "pip install 'locisimiles[lexical]'. Tried: " + "; ".join(errors)
+        "CLTK is installed, but its Latin corpus data (sentence tokenizer model) "
+        "could not be loaded. Fetch it once with:\n"
+        '  python -c "from cltk.data.fetch import FetchCorpus; '
+        "FetchCorpus(language='lat').import_corpus('lat_models_cltk')\"\n"
+        "Tried: " + "; ".join(errors)
     )
 
 

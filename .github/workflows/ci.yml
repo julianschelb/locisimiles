@@ -62,7 +62,10 @@ jobs:
           cache: pip
 
       - name: Install dependencies
-        run: pip install -e ".[dev]"
+        run: pip install -e ".[dev,lexical]"
+
+      - name: Fetch CLTK Latin corpus data
+        run: python -c "from cltk.data.fetch import FetchCorpus; FetchCorpus(language='lat').import_corpus('lat_models_cltk')"
 
       - name: Run tests
         run: pytest --tb=short -q
