@@ -604,6 +604,131 @@ class TestCLIPipelineParameters:
         assert call_kwargs["interval"] == 2
         assert call_kwargs["order_free"] is True
 
+    def _run_cli(self, temp_dir, extra_argv):
+        query_csv = temp_dir / "query.csv"
+        query_csv.write_text("seg_id,text\nq1,Query\n", encoding="utf-8")
+        source_csv = temp_dir / "source.csv"
+        source_csv.write_text("seg_id,text\ns1,Source\n", encoding="utf-8")
+        output_path = temp_dir / "output.csv"
+
+        from locisimiles.cli import main
+
+        with patch.object(
+            sys,
+            "argv",
+            ["locisimiles", str(query_csv), str(source_csv), "-o", str(output_path), *extra_argv],
+        ):
+            return main()
+
+    @patch("locisimiles.cli.TfidfRetrievalPipeline")
+    @patch("locisimiles.cli.Document")
+    def test_cli_tfidf_pipeline_selection(self, mock_doc_class, mock_tfidf_pipeline, temp_dir):
+        """Selecting --pipeline tfidf-retrieval should use TfidfRetrievalPipeline."""
+        mock_doc_class.return_value = MagicMock()
+        mock_doc_class.return_value.__iter__ = MagicMock(return_value=iter([]))
+        mock_doc_class.return_value.__len__ = MagicMock(return_value=1)
+        mock_pipeline = MagicMock()
+        mock_pipeline.run.return_value = {}
+        mock_tfidf_pipeline.return_value = mock_pipeline
+
+        exit_code = self._run_cli(
+            temp_dir, ["--pipeline", "tfidf-retrieval", "--tfidf-ngram-max", "2"]
+        )
+
+        assert exit_code == 0
+        mock_tfidf_pipeline.assert_called_once()
+        call_kwargs = mock_tfidf_pipeline.call_args[1]
+        assert call_kwargs["ngram_range"] == (1, 2)
+        assert call_kwargs["lemmatize"] is True
+
+    @patch("locisimiles.cli.BM25RetrievalPipeline")
+    @patch("locisimiles.cli.Document")
+    def test_cli_bm25_retrieval_pipeline_selection(
+        self, mock_doc_class, mock_bm25_pipeline, temp_dir
+    ):
+        """Selecting --pipeline bm25-retrieval should use BM25RetrievalPipeline."""
+        mock_doc_class.return_value = MagicMock()
+        mock_doc_class.return_value.__iter__ = MagicMock(return_value=iter([]))
+        mock_doc_class.return_value.__len__ = MagicMock(return_value=1)
+        mock_pipeline = MagicMock()
+        mock_pipeline.run.return_value = {}
+        mock_bm25_pipeline.return_value = mock_pipeline
+
+        exit_code = self._run_cli(
+            temp_dir,
+            [
+                "--pipeline",
+                "bm25-retrieval",
+                "--bm25-k1",
+                "1.2",
+                "--bm25-b",
+                "0.5",
+                "--lexical-disable-lemmatize",
+            ],
+        )
+
+        assert exit_code == 0
+        mock_bm25_pipeline.assert_called_once()
+        call_kwargs = mock_bm25_pipeline.call_args[1]
+        assert call_kwargs["k1"] == 1.2
+        assert call_kwargs["b"] == 0.5
+        assert call_kwargs["lemmatize"] is False
+
+    @patch("locisimiles.cli.BM25TwoStagePipeline")
+    @patch("locisimiles.cli.Document")
+    def test_cli_bm25_two_stage_pipeline_selection(
+        self, mock_doc_class, mock_bm25_two_stage, temp_dir
+    ):
+        """Selecting --pipeline bm25-two-stage should use BM25TwoStagePipeline."""
+        mock_doc_class.return_value = MagicMock()
+        mock_doc_class.return_value.__iter__ = MagicMock(return_value=iter([]))
+        mock_doc_class.return_value.__len__ = MagicMock(return_value=1)
+        mock_pipeline = MagicMock()
+        mock_pipeline.run.return_value = {}
+        mock_bm25_two_stage.return_value = mock_pipeline
+
+        exit_code = self._run_cli(temp_dir, ["--pipeline", "bm25-two-stage"])
+
+        assert exit_code == 0
+        mock_bm25_two_stage.assert_called_once()
+
+    @patch("locisimiles.cli.BM25LexicalTwoStagePipeline")
+    @patch("locisimiles.cli.Document")
+    def test_cli_bm25_lexical_two_stage_pipeline_selection(
+        self, mock_doc_class, mock_lexical_pipeline, temp_dir
+    ):
+        """Selecting --pipeline bm25-lexical-two-stage should use BM25LexicalTwoStagePipeline."""
+        mock_doc_class.return_value = MagicMock()
+        mock_doc_class.return_value.__iter__ = MagicMock(return_value=iter([]))
+        mock_doc_class.return_value.__len__ = MagicMock(return_value=1)
+        mock_pipeline = MagicMock()
+        mock_pipeline.run.return_value = {}
+        mock_lexical_pipeline.return_value = mock_pipeline
+
+        artifact_path = temp_dir / "classifier.joblib"
+        artifact_path.write_text("stub", encoding="utf-8")
+
+        exit_code = self._run_cli(
+            temp_dir,
+            [
+                "--pipeline",
+                "bm25-lexical-two-stage",
+                "--lexical-classifier-path",
+                str(artifact_path),
+            ],
+        )
+
+        assert exit_code == 0
+        mock_lexical_pipeline.assert_called_once()
+        assert mock_lexical_pipeline.call_args[1]["artifact_path"] == str(artifact_path)
+
+    def test_cli_bm25_lexical_two_stage_requires_artifact_path(self, temp_dir, capsys):
+        """--pipeline bm25-lexical-two-stage without --lexical-classifier-path should error."""
+        exit_code = self._run_cli(temp_dir, ["--pipeline", "bm25-lexical-two-stage"])
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "--lexical-classifier-path" in captured.err
+
 
 class TestCLIErrorHandling:
     """Tests for CLI error handling."""
