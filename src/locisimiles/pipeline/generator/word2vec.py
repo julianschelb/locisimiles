@@ -138,13 +138,14 @@ class Word2VecCandidateGenerator(CandidateGeneratorBase):
             (1, 0, self._word_similarity(q2, s1)),
             (1, 1, self._word_similarity(q2, s2)),
         ]
-        if any(score is None for _, _, score in pairs):
+        scored_pairs = [(i, j, score) for i, j, score in pairs if score is not None]
+        if len(scored_pairs) < len(pairs):
             return None
 
-        best_i, best_j, best_score = max(pairs, key=lambda item: item[2])
+        best_i, best_j, best_score = max(scored_pairs, key=lambda item: item[2])
         remaining_i, remaining_j = 1 - best_i, 1 - best_j
         remaining_score = next(
-            score for i, j, score in pairs if i == remaining_i and j == remaining_j
+            score for i, j, score in scored_pairs if i == remaining_i and j == remaining_j
         )
         return (best_score + remaining_score) / 2.0
 

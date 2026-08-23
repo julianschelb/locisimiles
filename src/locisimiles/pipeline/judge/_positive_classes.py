@@ -11,7 +11,7 @@ binary or multiclass.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, List, Sequence
+from typing import Callable, Dict, List, Sequence
 
 DEFAULT_NEGATIVE_LABELS = {
     "0",
@@ -46,7 +46,7 @@ class ClassifierPrediction:
 def resolve_positive_class_ids(
     *,
     num_labels: int,
-    label_for_class_id: callable[[int], str],
+    label_for_class_id: Callable[[int], str],
     positive_class_ids: Sequence[int] | None,
     positive_labels: set[str] | None,
     negative_labels: set[str],
@@ -76,7 +76,7 @@ def resolve_positive_class_ids(
 def prediction_from_probabilities(
     probabilities: Sequence[float],
     *,
-    label_for_class_id: callable[[int], str],
+    label_for_class_id: Callable[[int], str],
     positive_class_ids: Sequence[int] | None,
     positive_labels: set[str] | None,
     negative_labels: set[str],

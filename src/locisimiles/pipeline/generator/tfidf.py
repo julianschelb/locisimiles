@@ -48,7 +48,7 @@ class TfidfCandidateGenerator(CandidateGeneratorBase):
     ):
         self.lemmatize = bool(lemmatize)
         self.lowercase = bool(lowercase)
-        self.ngram_range = tuple(ngram_range)
+        self.ngram_range = ngram_range
         self.max_features = int(max_features)
         self.min_df = min_df
         self.max_df = max_df
