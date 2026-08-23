@@ -24,8 +24,13 @@ For TF-IDF, BM25, or the lexical classifier, also install:
 pip install "locisimiles[lexical]"
 ```
 
-These pipelines use CLTK for Latin tokenization/lemmatization, which needs
-its Latin corpus data fetched once (a one-time download, not run automatically):
+CLTK — used for Latin tokenization/lemmatization — has no release that
+supports Python 3.13: the newest 1.x requires `<3.13`, and its 2.x rewrite
+requires `>=3.13` with an incompatible API. These three pipelines are
+therefore only available on Python 3.10–3.12; on 3.13 the extra installs
+without CLTK, and using them raises a clear `ImportError`.
+
+CLTK also needs its Latin corpus data fetched once (a one-time download, not run automatically):
 
 ```bash
 python -c "from cltk.data.fetch import FetchCorpus; FetchCorpus(language='lat').import_corpus('lat_models_cltk')"

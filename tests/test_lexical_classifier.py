@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import pytest
 
+pytest.importorskip("cltk", reason="cltk has no release supporting this Python version")
+
 
 def _write_training_csv(path, rows):
     lines = ["query_text,corpus_text,label"]

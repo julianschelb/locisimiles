@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
+import pytest
+
 from locisimiles.document import Document
 from locisimiles.pipeline._types import Candidate
+
+pytest.importorskip("cltk", reason="cltk has no release supporting this Python version")
 
 
 class TestTfidfCandidateGenerator:
