@@ -341,11 +341,7 @@ class TestIntertextEvaluatorMulticlass:
         source_csv.write_text("seg_id,text\ns1,Source one.\ns2,Source two.\n", encoding="utf-8")
         gt_csv = temp_dir / "gt.csv"
         gt_csv.write_text(
-            "query_id,source_id,label\n"
-            "q1,s1,cit.\n"
-            "q1,s2,cf.\n"
-            "q2,s1,0\n"
-            "q2,s2,cf.\n",
+            "query_id,source_id,label\nq1,s1,cit.\nq1,s2,cf.\nq2,s1,0\nq2,s2,cf.\n",
             encoding="utf-8",
         )
 
@@ -414,9 +410,7 @@ class TestIntertextEvaluatorMulticlass:
 
     def test_evaluate_multiclass_thresholded_breakdown(self, multiclass_evaluator):
         """Thresholded multiclass evaluation should suppress weak positive classes."""
-        df = multiclass_evaluator.evaluate_multiclass(
-            labels=["cit", "cf"], strategy="thresholded"
-        )
+        df = multiclass_evaluator.evaluate_multiclass(labels=["cit", "cf"], strategy="thresholded")
         rows = {row.label: row for row in df.itertuples(index=False)}
 
         assert rows["cit"].tp == 1

@@ -674,7 +674,9 @@ class IntertextEvaluator:
             if not positive_probs:
                 return negative_label
             best_positive = max(positive_probs, key=positive_probs.__getitem__)
-            return best_positive if positive_probs[best_positive] >= self.threshold else negative_label
+            return (
+                best_positive if positive_probs[best_positive] >= self.threshold else negative_label
+            )
 
         if prediction.predicted_label is not None and strategy == "argmax":
             return self._canonical_label(prediction.predicted_label, label_lookup)
