@@ -2,6 +2,28 @@
 
 <!-- version list -->
 
+## v2.1.0 (2026-08-24)
+
+### Documentation
+
+- Add end-to-end train-and-evaluate example
+  ([#17](https://github.com/julianschelb/locisimiles/pull/17),
+  [`abf18f4`](https://github.com/julianschelb/locisimiles/commit/abf18f482d0e4db098c61e011385816f21885132))
+
+### Features
+
+- Add K-fold cross-validation utilities ([#17](https://github.com/julianschelb/locisimiles/pull/17),
+  [`abf18f4`](https://github.com/julianschelb/locisimiles/commit/abf18f482d0e4db098c61e011385816f21885132))
+
+- Add opt-in best-checkpoint selection and early stopping
+  ([#17](https://github.com/julianschelb/locisimiles/pull/17),
+  [`abf18f4`](https://github.com/julianschelb/locisimiles/commit/abf18f482d0e4db098c61e011385816f21885132))
+
+- K-fold cross-validation, checkpoint selection, and a worked training example
+  ([#17](https://github.com/julianschelb/locisimiles/pull/17),
+  [`abf18f4`](https://github.com/julianschelb/locisimiles/commit/abf18f482d0e4db098c61e011385816f21885132))
+
+
 ## v2.0.0 (2026-08-24)
 
 ### Bug Fixes
