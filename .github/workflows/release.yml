@@ -37,7 +37,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
-          if semantic-release version; then
+          semantic-release version
+          if ls dist/*.whl dist/*.tar.gz 2>/dev/null | grep -q .; then
             echo "released=true" >> "$GITHUB_OUTPUT"
           else
             echo "released=false" >> "$GITHUB_OUTPUT"
