@@ -20,6 +20,10 @@ from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 from locisimiles.pipeline._types import CandidateJudge, CandidateJudgeOutput
 
+# =============================================================================
+# Data model
+# =============================================================================
+
 
 @dataclass
 class ThresholdSet:
@@ -66,6 +70,11 @@ class ThresholdSet:
         )
 
 
+# =============================================================================
+# Threshold tuning
+# =============================================================================
+
+
 def _f1(tp: int, fp: int, fn: int) -> float:
     precision = tp / (tp + fp) if (tp + fp) else 0.0
     recall = tp / (tp + fn) if (tp + fn) else 0.0
@@ -85,6 +94,7 @@ def _best_threshold_for_class(
     class_probs = [row[class_id] for row in probabilities]
     is_positive_gold = [label == class_label for label in gold_labels]
 
+    # score every candidate threshold and keep the best one
     best_threshold = 0.5
     best_score = -1.0
     for threshold in thresholds:
@@ -133,6 +143,7 @@ def tune_threshold(
     if method not in {"max_f1", "youden"}:
         raise ValueError(f"Unknown threshold-tuning method: {method!r}")
 
+    # tune one threshold per positive class, skipping the negative class
     positive_class_ids = [
         class_id for class_id, label in id_to_label.items() if label != negative_label
     ]
@@ -147,6 +158,11 @@ def tune_threshold(
             method=method,
         )
     return ThresholdSet(thresholds=thresholds, method=method)
+
+
+# =============================================================================
+# Threshold application
+# =============================================================================
 
 
 def apply_thresholds(
@@ -207,6 +223,7 @@ def apply_thresholds_to_judgments(
     for query_id, items in judgments.items():
         new_items: List[CandidateJudge] = []
         for item in items:
+            # nothing to re-decide without class probabilities
             if not item.class_probabilities:
                 new_items.append(item)
                 continue

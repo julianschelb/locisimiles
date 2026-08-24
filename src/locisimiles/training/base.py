@@ -7,6 +7,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+# =============================================================================
+# Config
+# =============================================================================
+
 
 @dataclass(frozen=True)
 class TrainerConfig:
@@ -21,6 +25,11 @@ class TrainerConfig:
     seed: int = 42
     lowercase: bool = True
     normalize_ij_uv: bool = True
+
+
+# =============================================================================
+# BaseTrainer
+# =============================================================================
 
 
 class BaseTrainer(ABC):

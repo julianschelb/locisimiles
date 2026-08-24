@@ -8,7 +8,9 @@ import pandas as pd
 
 ID = Union[str, int]
 
-# =================== TEXT SEGMENT ===================
+# =============================================================================
+# TextSegment
+# =============================================================================
 
 
 class TextSegment:
@@ -54,7 +56,9 @@ class TextSegment:
         return f"TextSegment(id={self.id!r}, row_id={self.row_id}, len={len(self.text)})"
 
 
-# =================== DOCUMENT ===================
+# =============================================================================
+# Document
+# =============================================================================
 
 
 class Document:
@@ -114,7 +118,7 @@ class Document:
             else:
                 self._load_plain(segment_delimiter)
 
-    # ---------- DUNDER HELPERS ----------
+    # ---------- Dunder helpers ----------
 
     def __len__(self) -> int:
         return len(self._segments)
@@ -131,7 +135,7 @@ class Document:
             f"author={self.author!r}, meta={self.meta})"
         )
 
-    # ---------- CONVENIENCE ----------
+    # ---------- Convenience ----------
 
     _QUOTE_TRANSLATION = str.maketrans(
         {
@@ -177,7 +181,7 @@ class Document:
             return []
         return list(self)[:n]
 
-    # ---------- PUBLIC API ----------
+    # ---------- Public API ----------
     @property
     def segments(self) -> Dict[ID, TextSegment]:
         return self._segments
@@ -428,7 +432,7 @@ class Document:
         self._segments = new_segments
         return self
 
-    # ---------- SENTENCIZATION ----------
+    # ---------- Sentencization ----------
 
     # Type alias for the offset map entries used during sentencization.
     # Each tuple is (start_char, end_char, original_segment).
@@ -607,7 +611,7 @@ class Document:
         self._segments = new_segments
         return self
 
-    # ---------- INTERNAL LOADERS ----------
+    # ---------- Internal loaders ----------
 
     def _load_plain(self, delimiter: str) -> None:
         """Load from plain-text file split by delimiter."""
@@ -625,7 +629,7 @@ class Document:
             for row_id, row in enumerate(reader):
                 self.add_segment(row["text"], row["seg_id"], row_id=row_id)
 
-    # ---------- EXPORT ----------
+    # ---------- Export ----------
 
     def save_plain(self, path: str | Path, *, delimiter: str = "\n") -> Path:
         """Write all segment texts to a plain-text file."""
@@ -649,7 +653,9 @@ class Document:
         return path
 
 
-# =================== MAIN DEMO ===================
+# =============================================================================
+# Demo
+# =============================================================================
 
 if __name__ == "__main__":
     doc_txt = Document("../data/hieronymus_samples.txt")

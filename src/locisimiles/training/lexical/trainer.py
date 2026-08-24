@@ -12,6 +12,10 @@ from locisimiles.training.base import BaseTrainer, TrainerConfig
 from locisimiles.training.data import TrainingData
 from locisimiles.training.lexical.features import build_feature_matrix, fit_vectorizers
 
+# =============================================================================
+# Config
+# =============================================================================
+
 
 @dataclass(frozen=True)
 class LexicalClassifierTrainerConfig(TrainerConfig):
@@ -40,6 +44,11 @@ class LexicalClassifierTrainerConfig(TrainerConfig):
     label_names: dict[int, str] | None = field(default=None)
 
 
+# =============================================================================
+# Trainer
+# =============================================================================
+
+
 class LexicalClassifierTrainer(BaseTrainer):
     """Train a TF-IDF/Jaccard/overlap feature-based LogReg or GBDT classifier."""
 
@@ -57,7 +66,10 @@ class LexicalClassifierTrainer(BaseTrainer):
         """Ensure the output directory exists; ``fit()`` validates its ``TrainingData``."""
         self.config.output_dir.mkdir(parents=True, exist_ok=True)
 
+    # ---------- Data loading ----------
+
     def _load_rows(self, data: TrainingData) -> tuple[list[str], list[str], list[str]]:
+        """Resolve a TrainingData into parallel query/corpus text and label lists."""
         query_texts: list[str] = []
         corpus_texts: list[str] = []
         labels: list[str] = []
@@ -68,6 +80,8 @@ class LexicalClassifierTrainer(BaseTrainer):
         if not query_texts:
             raise ValueError("No training rows found in TrainingData")
         return query_texts, corpus_texts, labels
+
+    # ---------- Model construction ----------
 
     def _build_classifier(self) -> Any:
         if self.cfg.classifier == "logreg":
@@ -91,15 +105,19 @@ class LexicalClassifierTrainer(BaseTrainer):
             )
         raise ValueError(f"Unknown classifier: {self.cfg.classifier!r}")
 
+    # ---------- Training ----------
+
     def fit(self, *, data: TrainingData, **kwargs: Any) -> Any:  # type: ignore[override]
         """Fit TF-IDF vectorizers and the configured classifier on paired training data."""
         self.validate_data()
         query_texts, corpus_texts, labels = self._load_rows(data)
 
+        # sort labels for a deterministic label_to_id mapping across runs
         sorted_labels = sorted(set(labels))
         self._label_to_id = {label: idx for idx, label in enumerate(sorted_labels)}
         y = [self._label_to_id[label] for label in labels]
 
+        # fit TF-IDF vectorizers over both sides of the pair, then build features
         pooled_texts = query_texts + corpus_texts
         self.vectorizers = fit_vectorizers(
             pooled_texts, lemmatize=self.cfg.lemmatize, lowercase=self.cfg.lowercase
@@ -115,6 +133,8 @@ class LexicalClassifierTrainer(BaseTrainer):
         self.model = self._build_classifier()
         self.model.fit(X, y, **kwargs)
         return self.model
+
+    # ---------- Persistence ----------
 
     def save(self, **kwargs: Any) -> Path:
         """Persist vectorizers, classifier, and label mapping to one joblib artifact."""

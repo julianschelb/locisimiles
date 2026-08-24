@@ -17,6 +17,10 @@ from locisimiles.training.classification.tokenizer_utils import (
 )
 from locisimiles.training.data import TrainingData
 
+# =============================================================================
+# Config
+# =============================================================================
+
 
 @dataclass(frozen=True)
 class ClassificationTrainerConfig(TrainerConfig):
@@ -51,6 +55,11 @@ class ClassificationTrainerConfig(TrainerConfig):
     early_stopping_patience: Optional[int] = None
 
 
+# =============================================================================
+# Trainer
+# =============================================================================
+
+
 class ClassificationTrainer(BaseTrainer):
     """Fine-tune a transformer sequence-classification model on labeled pairs.
 
@@ -79,12 +88,16 @@ class ClassificationTrainer(BaseTrainer):
         """Ensure the output directory exists; ``fit()`` validates its ``TrainingData``."""
         self.config.output_dir.mkdir(parents=True, exist_ok=True)
 
+    # ---------- Model construction ----------
+
     @staticmethod
     def _resolve_labels(data: TrainingData) -> Dict[str, int]:
+        """Map each distinct label seen in ``data`` to a stable class id."""
         labels = sorted({str(label) for _, _, label in data})
         return {label: idx for idx, label in enumerate(labels)}
 
     def _build_classifier(self, num_labels: int) -> Any:
+        """Load the pretrained backbone and reinitialize its classification head."""
         from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
         self.tokenizer = AutoTokenizer.from_pretrained(self.cfg.model_name)
@@ -93,16 +106,20 @@ class ClassificationTrainer(BaseTrainer):
             num_labels=num_labels,
             ignore_mismatched_sizes=True,
         )
+
+        # backbone-specific quirks
         if self.cfg.apply_roberta_separator_fix:
             add_roberta_separators(self.tokenizer)
         if self.cfg.disable_compile:
             model_config = getattr(self.model, "config", None)
             if model_config is not None and hasattr(model_config, "reference_compile"):
                 model_config.reference_compile = False
+
         self.model.to(self.cfg.device)
         return self.model
 
     def _class_weights(self, label_ids: List[int], num_labels: int) -> Any:
+        """Return inverse-frequency class weights for a balanced cross-entropy loss."""
         import torch
 
         counts = [0] * num_labels
@@ -111,6 +128,8 @@ class ClassificationTrainer(BaseTrainer):
         n = len(label_ids)
         weights = [n / (num_labels * count) if count > 0 else 0.0 for count in counts]
         return torch.tensor(weights, dtype=torch.float32, device=self.cfg.device)
+
+    # ---------- Training ----------
 
     def _eval_loss(self, eval_data: TrainingData) -> float:
         """Mean cross-entropy loss on ``eval_data``, for checkpoint selection."""
@@ -148,6 +167,7 @@ class ClassificationTrainer(BaseTrainer):
         from torch.optim import AdamW
         from torch.utils.data import DataLoader, Dataset
 
+        # checkpoint-selection options only make sense together with eval_data
         if self.cfg.select_best_checkpoint and eval_data is None:
             raise ValueError("select_best_checkpoint=True requires eval_data")
         if self.cfg.early_stopping_patience is not None and not self.cfg.select_best_checkpoint:
@@ -160,6 +180,7 @@ class ClassificationTrainer(BaseTrainer):
         if not rows:
             raise ValueError("No training rows found in TrainingData")
 
+        # resolve labels and build the classifier before touching any batches
         self._label_to_id = self._resolve_labels(data)
         label_to_id = self._label_to_id
         num_labels = len(label_to_id)
@@ -167,6 +188,8 @@ class ClassificationTrainer(BaseTrainer):
         tokenizer = self.tokenizer
         max_len = self.cfg.max_length
 
+        # dataset/collate close over tokenizer/max_len/label_to_id so each
+        # batch is pair-truncated and tokenized the same way as inference
         class _PairDataset(Dataset):
             def __init__(self_inner, rows: List[Tuple[str, str, Any]]):
                 self_inner.rows = rows
@@ -208,11 +231,14 @@ class ClassificationTrainer(BaseTrainer):
 
         optimizer = AdamW(self.model.parameters(), lr=self.cfg.learning_rate)
 
+        # tracks the best-so-far eval-loss checkpoint, used only when
+        # select_best_checkpoint is enabled
         best_eval_loss = float("inf")
         best_state_dict: Optional[Dict[str, Any]] = None
         epochs_without_improvement = 0
 
         for _epoch in range(self.cfg.epochs):
+            # one pass over the training batches
             self.model.train()
             for encoding, labels in loader:
                 encoding = {key: value.to(self.cfg.device) for key, value in encoding.items()}
@@ -235,6 +261,7 @@ class ClassificationTrainer(BaseTrainer):
                 loss.backward()
                 optimizer.step()
 
+            # after each epoch: track the best checkpoint and check early stopping
             if eval_data is not None:
                 eval_loss = self._eval_loss(eval_data)
                 if self.cfg.select_best_checkpoint:
@@ -253,13 +280,17 @@ class ClassificationTrainer(BaseTrainer):
                         ):
                             break
 
+        # restore the best epoch's weights, if checkpoint selection is on
         if self.cfg.select_best_checkpoint and best_state_dict is not None:
             self.model.load_state_dict(best_state_dict)
 
         self.model.eval()
         return self.model
 
+    # ---------- Inference ----------
+
     def _predict_probabilities(self, data: TrainingData) -> Tuple[List[List[float]], List[str]]:
+        """Return per-class softmax probabilities and gold labels for every row in ``data``."""
         import torch
         import torch.nn.functional as F
 
@@ -326,6 +357,8 @@ class ClassificationTrainer(BaseTrainer):
         )
         return self.threshold_set
 
+    # ---------- Persistence ----------
+
     def save(self, **kwargs: Any) -> Path:
         """Persist the fine-tuned model, tokenizer, and (if tuned) thresholds.
 
@@ -337,6 +370,8 @@ class ClassificationTrainer(BaseTrainer):
         if self.model is None or self.tokenizer is None or self._label_to_id is None:
             raise ValueError("No trained model available. Call fit() first.")
 
+        # bake the label names into the model config so a fresh save is
+        # immediately usable by ClassificationJudge, no manual step needed
         label_names = self.cfg.label_names or {
             idx: label for label, idx in self._label_to_id.items()
         }

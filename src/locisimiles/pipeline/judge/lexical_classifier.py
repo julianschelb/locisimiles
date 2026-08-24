@@ -100,6 +100,7 @@ class LexicalClassifierJudge(CandidateJudgeBase):
         )
 
     def _label_for_class_id(self, class_id: int) -> str:
+        """Return a stable label for a class id."""
         return self.label_names.get(class_id, f"LABEL_{class_id}")
 
     def judge(

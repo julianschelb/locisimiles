@@ -25,7 +25,9 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 from locisimiles.document import TextSegment
 
-# ============== DATACLASSES ==============
+# =============================================================================
+# Dataclasses
+# =============================================================================
 
 
 @dataclass
@@ -90,7 +92,9 @@ class CandidateJudge:
     class_probabilities: Optional[Dict[str, float]] = None
 
 
-# ============== TYPE ALIASES — new names ==============
+# =============================================================================
+# Type aliases
+# =============================================================================
 
 CandidateGeneratorOutput = Dict[str, List[Candidate]]
 """Mapping from query segment IDs → ranked lists of ``Candidate`` objects.
@@ -110,7 +114,9 @@ CandidateJudgeInput = CandidateGeneratorOutput
 """Alias: the judge receives exactly what the generator produced."""
 
 
-# ============== BACKWARD-COMPATIBLE ALIASES (deprecated) ==============
+# =============================================================================
+# Deprecated aliases
+# =============================================================================
 
 Judgment = CandidateJudge
 """*Deprecated* — use ``CandidateJudge`` instead."""
@@ -137,7 +143,9 @@ FullDict = Dict[str, List[FullPair]]
 """*Deprecated* — kept for type-checker backward compatibility."""
 
 
-# ============== UTILITY HELPERS ==============
+# =============================================================================
+# Utility helpers
+# =============================================================================
 
 
 def pretty_print(results: CandidateJudgeOutput) -> None:

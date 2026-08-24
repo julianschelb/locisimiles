@@ -13,6 +13,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Callable, Dict, List, Sequence
 
+# =============================================================================
+# Label normalisation
+# =============================================================================
+
 DEFAULT_NEGATIVE_LABELS = {
     "0",
     "label_0",
@@ -31,6 +35,11 @@ DEFAULT_NEGATIVE_LABELS = {
 def normalise_label(label: object) -> str:
     """Canonicalise class labels for matching user/model metadata."""
     return str(label).strip().lower().replace("-", "_").replace(" ", "_").rstrip(".")
+
+
+# =============================================================================
+# Positive-class resolution
+# =============================================================================
 
 
 @dataclass(frozen=True)

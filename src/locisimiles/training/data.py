@@ -38,6 +38,8 @@ class TrainingData:
     source_doc: Document
     ground_truth: GroundTruth
 
+    # ---------- Container protocol ----------
+
     def __len__(self) -> int:
         return len(self.ground_truth)
 
@@ -60,7 +62,7 @@ class TrainingData:
             return NotImplemented
         return TrainingData(self.query_doc, self.source_doc, self.ground_truth + other.ground_truth)
 
-    # ---------- negative sampling ----------
+    # ---------- Negative sampling ----------
 
     def sample_random_pairs(
         self, *, n_per_query: int = 1, seed: int = 42, label: LabelValue = "no_match"

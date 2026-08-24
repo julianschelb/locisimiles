@@ -24,6 +24,11 @@ LabelValue = Union[int, str]
 REQUIRED_COLUMNS = {"query_id", "source_id", "label"}
 
 
+# =============================================================================
+# Data model
+# =============================================================================
+
+
 @dataclass
 class GroundTruthEntry:
     """One labeled relationship between a query segment and a source segment.
@@ -49,6 +54,11 @@ def _native(value: Any) -> Any:
     if isinstance(value, np.floating):
         return float(value)
     return value
+
+
+# =============================================================================
+# GroundTruth
+# =============================================================================
 
 
 class GroundTruth:
@@ -88,10 +98,12 @@ class GroundTruth:
     ):
         self._entries: List[GroundTruthEntry] = self._load(source) if source is not None else []
 
-    # ---------- loading ----------
+    # ---------- Loading ----------
 
     @staticmethod
     def _coerce_entry(row: Mapping[str, Any]) -> GroundTruthEntry:
+        """Build one entry from a dict-like row, validating required columns."""
+        # every row must carry query_id/source_id/label; meta is optional
         missing = REQUIRED_COLUMNS - set(row.keys())
         if missing:
             raise ValueError(f"Ground-truth row is missing required columns: {sorted(missing)}")
@@ -117,22 +129,30 @@ class GroundTruth:
             GroundTruth,
         ],
     ) -> List[GroundTruthEntry]:
+        """Dispatch on source type and return the loaded entries."""
+        # another GroundTruth: copy its entries rather than alias them
         if isinstance(source, GroundTruth):
             return [
                 GroundTruthEntry(entry.query_id, entry.source_id, entry.label, dict(entry.meta))
                 for entry in source
             ]
+
+        # in-memory table
         if isinstance(source, pd.DataFrame):
             missing = REQUIRED_COLUMNS - set(source.columns)
             if missing:
                 raise ValueError(f"Ground-truth DataFrame is missing columns: {sorted(missing)}")
             return [cls._coerce_entry(row) for row in source.to_dict(orient="records")]
+
+        # CSV/TSV path
         if isinstance(source, (str, Path)):
             df = pd.read_csv(source)
             missing = REQUIRED_COLUMNS - set(df.columns)
             if missing:
                 raise ValueError(f"Ground-truth CSV is missing columns: {sorted(missing)}")
             return [cls._coerce_entry(row) for row in df.to_dict(orient="records")]
+
+        # list of dicts or GroundTruthEntry objects
         if isinstance(source, Iterable):
             entries: List[GroundTruthEntry] = []
             for item in source:
@@ -147,7 +167,7 @@ class GroundTruth:
             return entries
         raise TypeError(f"Unsupported GroundTruth source type: {type(source)!r}")
 
-    # ---------- container protocol ----------
+    # ---------- Container protocol ----------
 
     def __iter__(self) -> Iterator[GroundTruthEntry]:
         return iter(self._entries)
@@ -169,7 +189,7 @@ class GroundTruth:
         combined._entries = list(self._entries) + list(other._entries)
         return combined
 
-    # ---------- conveniences ----------
+    # ---------- Conveniences ----------
 
     def append(self, entry: GroundTruthEntry) -> None:
         """Append one entry in place."""
@@ -203,6 +223,8 @@ class GroundTruth:
             entry for entry in self._entries if labels is None or entry.label in labels
         ]
         return filtered
+
+    # ---------- Export ----------
 
     def to_dataframe(self) -> pd.DataFrame:
         """Return entries as a pandas DataFrame with ``query_id``/``source_id``/``label``/``meta``."""

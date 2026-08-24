@@ -43,9 +43,9 @@ DEFAULT_MULTICLASS_LABEL_MAP: Dict[LabelValue, str] = {
 
 NEGATIVE_LABEL_NAMES = {"0", "label_0", "negative", "none", "no_match", "no match", "no-match"}
 
-# ────────────────────────────────
-# Metric helpers (scalar, no deps)
-# ────────────────────────────────
+# =============================================================================
+# Metric helpers
+# =============================================================================
 
 
 def _precision(tp: int, fp: int) -> float:
@@ -78,9 +78,9 @@ def _fn_rate(tp: int, fp: int, fn: int, tn: int) -> float:
     return fn / total
 
 
-# ────────────────────────────────
-# Evaluation Pipeline
-# ────────────────────────────────
+# =============================================================================
+# Evaluator
+# =============================================================================
 
 
 class IntertextEvaluator:
@@ -144,7 +144,8 @@ class IntertextEvaluator:
         ```
     """
 
-    # ─────────── CONSTRUCTOR ───────────
+    # ---------- Construction ----------
+
     def __init__(
         self,
         *,
@@ -164,10 +165,10 @@ class IntertextEvaluator:
         self._auto_threshold_metric = auto_threshold_metric
         self._threshold_is_auto = threshold == "auto"
 
-        # 1) LOAD GOLD LABELS ────────────────────────────────────────────
+        # Load gold labels
         self.gold_labels = self._load_gold_labels(ground_truth)
 
-        # 2) RUN PIPELINE ONCE ──────────────────────────────────────────
+        # Run pipeline once
         self.predictions: CandidateJudgeOutput = pipeline.run(
             query=query_doc,
             source=source_doc,
@@ -183,7 +184,7 @@ class IntertextEvaluator:
                 "will be treated as negatives."
             )
 
-        # 3) AUTO-THRESHOLD ─────────────────────────────────────────────
+        # Auto-threshold: find and cache the best threshold before storing it
         if self._threshold_is_auto:
             # Temporarily set a default threshold to allow find_best_threshold to run
             self.threshold = 0.5
@@ -200,7 +201,7 @@ class IntertextEvaluator:
         self._per_sentence_df: pd.DataFrame | None = None
         self._conf_matrix_cache: Dict[str, Tuple[int, int, int, int]] = {}
 
-    # ─────────── PUBLIC: EVALUATION ───────────
+    # ---------- Public API ----------
 
     def evaluate_single_query(self, query_id: str) -> Dict[str, float]:
         """Compute metrics for one query sentence."""
@@ -255,7 +256,6 @@ class IntertextEvaluator:
         """Return query IDs that have ground truth labels."""
         return list({q_id for q_id, _ in self.gold_labels})
 
-    # ALL QUERIES EVALUATION
     def evaluate_all_queries(self, with_match_only: bool = False) -> pd.DataFrame:
         """Compute metrics for every query sentence (cached)."""
         # if self._per_sentence_df is not None:
@@ -269,7 +269,6 @@ class IntertextEvaluator:
         self._per_sentence_df = pd.DataFrame(records)
         return self._per_sentence_df.copy()
 
-    # EVALUATE AND REPORT METRICS
     def evaluate(
         self, *, average: str = "macro", with_match_only: bool = False
     ) -> Dict[str, float]:
@@ -308,7 +307,7 @@ class IntertextEvaluator:
         if average not in ["macro", "micro"]:
             raise ValueError("average must be 'macro' or 'micro'")
 
-        # ────────── MACRO (uniform) ──────────
+        # Macro: uniform average across per-query metrics
         if average == "macro":
             # TP-dependent metrics from queries with matches
             precision = float(df_with_match["precision"].mean()) if len(df_with_match) else 0.0
@@ -335,7 +334,7 @@ class IntertextEvaluator:
                 "tn": tn_all,
             }
 
-        # ────────── MICRO (pooled) ───────────
+        # Micro: pooled counts across queries
         if average == "micro":
             # TP-dependent metrics from queries with matches
             precision = _precision(tp_match, fp_match)
@@ -458,7 +457,7 @@ class IntertextEvaluator:
         tp, fp, fn, tn = self._conf_matrix_cache[query_id]
         return np.array([[tp, fp], [fn, tn]], dtype=int)
 
-    # ─────────── THRESHOLD OPTIMIZATION ───────────
+    # ---------- Threshold optimization ----------
 
     def find_best_threshold(
         self,
@@ -521,7 +520,7 @@ class IntertextEvaluator:
 
         return best_result, results_df
 
-    # ─────────── TOP-K EVALUATION ───────────
+    # ---------- Top-k evaluation ----------
 
     def evaluate_k_values(
         self,
@@ -566,7 +565,7 @@ class IntertextEvaluator:
 
         return results
 
-    # ─────────── INTERNAL HELPERS ───────────
+    # ---------- Label helpers ----------
 
     def _load_gold_labels(
         self, ground_truth: Union[str, Path, pd.DataFrame, GroundTruth]
@@ -694,7 +693,10 @@ class IntertextEvaluator:
         return link_set
 
 
-# ─────────── QUICK DEMO ───────────
+# =============================================================================
+# Demo
+# =============================================================================
+
 if __name__ == "__main__":
     qdoc = Document("../data/vergil_samples.csv")
     sdoc = Document("../data/hieronymus_samples.csv")
