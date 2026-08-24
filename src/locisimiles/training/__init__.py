@@ -2,6 +2,14 @@
 
 from locisimiles.training.artifacts import resolve_model_output_path
 from locisimiles.training.base import BaseTrainer, TrainerConfig
+from locisimiles.training.cross_validation import (
+    CVFold,
+    CVResult,
+    cross_validate,
+    evaluate_with_pipeline,
+    make_cv_folds,
+    split_ground_truth_by_query,
+)
 from locisimiles.training.data import TrainingData
 from locisimiles.training.sampling import (
     sample_hard_negatives,
@@ -17,4 +25,10 @@ __all__ = [
     "sample_random_pairs",
     "sample_random_negatives",
     "sample_hard_negatives",
+    "CVFold",
+    "CVResult",
+    "cross_validate",
+    "evaluate_with_pipeline",
+    "make_cv_folds",
+    "split_ground_truth_by_query",
 ]
