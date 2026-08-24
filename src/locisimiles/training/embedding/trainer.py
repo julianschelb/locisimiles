@@ -73,12 +73,14 @@ class EmbeddingTrainer(BaseTrainer):
         return Dataset.from_dict(rows)
 
     def _build_loss(self, model: Any) -> Any:
-        from sentence_transformers import losses
-
         if self.cfg.loss_type == "online_contrastive":
-            return losses.OnlineContrastiveLoss(model)
+            from sentence_transformers.losses import OnlineContrastiveLoss
+
+            return OnlineContrastiveLoss(model)
         if self.cfg.loss_type == "contrastive":
-            return losses.ContrastiveLoss(model)
+            from sentence_transformers.losses import ContrastiveLoss
+
+            return ContrastiveLoss(model)
         raise ValueError(f"Unknown loss_type: {self.cfg.loss_type!r}")
 
     def fit(  # type: ignore[override]
