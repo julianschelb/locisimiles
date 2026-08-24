@@ -1,12 +1,14 @@
 # evaluator.py
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any, Dict, List, Mapping, Tuple, Union
 
 import numpy as np
 import pandas as pd
 
 from locisimiles.document import Document
+from locisimiles.ground_truth import GroundTruth
 from locisimiles.pipeline import (
     CandidateJudge,
     CandidateJudgeOutput,
@@ -122,7 +124,7 @@ class IntertextEvaluator:
         evaluator = IntertextEvaluator(
             query_doc=query_doc,
             source_doc=source_doc,
-            ground_truth_csv="ground_truth.csv",
+            ground_truth="ground_truth.csv",
             pipeline=pipeline,
             top_k=10,
             threshold="auto",  # Automatically find best threshold
@@ -148,7 +150,7 @@ class IntertextEvaluator:
         *,
         query_doc: Document,
         source_doc: Document,
-        ground_truth_csv: str | pd.DataFrame,
+        ground_truth: str | Path | pd.DataFrame | GroundTruth,
         pipeline: Pipeline,
         top_k: int = 5,
         threshold: float | str = "auto",
@@ -163,7 +165,7 @@ class IntertextEvaluator:
         self._threshold_is_auto = threshold == "auto"
 
         # 1) LOAD GOLD LABELS ────────────────────────────────────────────
-        self.gold_labels = self._load_gold_labels(ground_truth_csv)
+        self.gold_labels = self._load_gold_labels(ground_truth)
 
         # 2) RUN PIPELINE ONCE ──────────────────────────────────────────
         self.predictions: CandidateJudgeOutput = pipeline.run(
@@ -567,28 +569,16 @@ class IntertextEvaluator:
     # ─────────── INTERNAL HELPERS ───────────
 
     def _load_gold_labels(
-        self, ground_truth_csv: Union[str, pd.DataFrame]
+        self, ground_truth: Union[str, Path, pd.DataFrame, GroundTruth]
     ) -> Dict[Tuple[str, str], LabelValue]:
-        """Load ground truth labels from a CSV file or DataFrame."""
+        """Load ground truth labels from a path, DataFrame, or ``GroundTruth``."""
 
-        # If a DataFrame is provided, use it directly; otherwise, read from CSV
-        if isinstance(ground_truth_csv, pd.DataFrame):
-            gold_df = ground_truth_csv
-        else:
-            gold_df = pd.read_csv(ground_truth_csv)
-
-        # Ensure required columns are present
-        req_cols = {"query_id", "source_id", "label"}
-        if req_cols - set(gold_df.columns):
-            raise ValueError(f"ground-truth file must contain columns {req_cols}")
+        gt = ground_truth if isinstance(ground_truth, GroundTruth) else GroundTruth(ground_truth)
 
         # Create a dictionary mapping (query_id, source_id) to label.
         # Numeric binary labels remain ints for backward compatibility;
         # string labels such as ``cit.``/``cf.`` are preserved.
-        return {
-            (row.query_id, row.source_id): self._coerce_label(row.label)  # type: ignore[misc]
-            for row in gold_df.itertuples(index=False)
-        }
+        return {(entry.query_id, entry.source_id): self._coerce_label(entry.label) for entry in gt}
 
     @staticmethod
     def _coerce_label(label: Any) -> LabelValue:
@@ -713,7 +703,7 @@ if __name__ == "__main__":
     evaluator = IntertextEvaluator(
         query_doc=qdoc,
         source_doc=sdoc,
-        ground_truth_csv="../data/ground_truth_links.csv",
+        ground_truth="../data/ground_truth_links.csv",
         pipeline=pipe,
         top_k=5,
         threshold=0.5,

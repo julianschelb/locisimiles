@@ -107,4 +107,5 @@ nav:
     - Generators: api/generators.md
     - Judges: api/judges.md
     - Evaluator: api/evaluator.md
+    - Training: api/training.md
   - Development: development.md

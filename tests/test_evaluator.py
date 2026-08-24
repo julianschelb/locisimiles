@@ -200,7 +200,7 @@ class TestIntertextEvaluatorLoadGoldLabels:
         evaluator = IntertextEvaluator(
             query_doc=query_doc,
             source_doc=source_doc,
-            ground_truth_csv=str(ground_truth_csv),
+            ground_truth=str(ground_truth_csv),
             pipeline=mock_pipeline,
             threshold=0.5,
         )
@@ -223,7 +223,7 @@ class TestIntertextEvaluatorLoadGoldLabels:
         evaluator = IntertextEvaluator(
             query_doc=query_doc,
             source_doc=source_doc,
-            ground_truth_csv=gt_df,
+            ground_truth=gt_df,
             pipeline=mock_pipeline,
             threshold=0.5,
         )
@@ -277,7 +277,7 @@ class TestIntertextEvaluatorMetrics:
         evaluator = IntertextEvaluator(
             query_doc=query_doc,
             source_doc=source_doc,
-            ground_truth_csv=str(gt_csv),
+            ground_truth=str(gt_csv),
             pipeline=mock_pipeline,
             threshold=0.5,
         )
@@ -390,7 +390,7 @@ class TestIntertextEvaluatorMulticlass:
         return IntertextEvaluator(
             query_doc=Document(query_csv),
             source_doc=Document(source_csv),
-            ground_truth_csv=str(gt_csv),
+            ground_truth=str(gt_csv),
             pipeline=mock_pipeline,
             threshold=0.5,
         )
@@ -450,7 +450,7 @@ class TestIntertextEvaluatorThreshold:
         return IntertextEvaluator(
             query_doc=Document(query_csv),
             source_doc=Document(source_csv),
-            ground_truth_csv=str(gt_csv),
+            ground_truth=str(gt_csv),
             pipeline=mock_pipeline,
             threshold=0.5,
         )
@@ -515,7 +515,7 @@ class TestIntertextEvaluatorQueryIds:
         return IntertextEvaluator(
             query_doc=Document(query_csv),
             source_doc=Document(source_csv),
-            ground_truth_csv=str(gt_csv),
+            ground_truth=str(gt_csv),
             pipeline=mock_pipeline,
             threshold=0.5,
         )

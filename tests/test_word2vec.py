@@ -222,7 +222,8 @@ class TestWord2VecRetrievalPipeline:
 
 class TestWord2VecTrainer:
     def test_fit_and_save_roundtrip(self, temp_dir, monkeypatch):
-        """Trainer should fit a model from CSV and save to configured output path."""
+        """Trainer should fit a model from Documents and save to configured output path."""
+        from locisimiles.document import Document
         from locisimiles.training.word2vec import Word2VecTrainer, Word2VecTrainerConfig
 
         train_csv = temp_dir / "train.csv"
@@ -230,6 +231,7 @@ class TestWord2VecTrainer:
             "seg_id,text\nq1,Arma virumque cano\nq2,Fato profugus Italiam venit\n",
             encoding="utf-8",
         )
+        document = Document(train_csv)
 
         model_instance = MagicMock()
 
@@ -242,11 +244,57 @@ class TestWord2VecTrainer:
         monkeypatch.setitem(sys.modules, "gensim", fake_gensim)
         monkeypatch.setitem(sys.modules, "gensim.models", fake_models)
 
-        cfg = Word2VecTrainerConfig(train_path=train_csv, output_dir=temp_dir)
+        cfg = Word2VecTrainerConfig(output_dir=temp_dir)
         trainer = Word2VecTrainer(cfg)
 
-        trainer.fit()
+        trainer.fit(documents=[document])
         out_path = trainer.save()
 
         model_instance.save.assert_called_once_with(str(out_path))
         assert out_path.name == cfg.output_filename
+
+    def test_fit_multiple_documents(self, temp_dir, monkeypatch):
+        """Trainer should pool sentences across multiple Documents."""
+        from locisimiles.document import Document
+        from locisimiles.training.word2vec import Word2VecTrainer, Word2VecTrainerConfig
+
+        query_csv = temp_dir / "query.csv"
+        query_csv.write_text("seg_id,text\nq1,Arma virumque cano\n", encoding="utf-8")
+        source_csv = temp_dir / "source.csv"
+        source_csv.write_text("seg_id,text\ns1,Fato profugus Italiam venit\n", encoding="utf-8")
+
+        model_instance = MagicMock()
+        captured = {}
+
+        def _fake_ctor(*, sentences, **kwargs):
+            captured["sentences"] = sentences
+            return model_instance
+
+        fake_models = types.SimpleNamespace(Word2Vec=_fake_ctor)
+        fake_gensim = types.SimpleNamespace(models=fake_models)
+        monkeypatch.setitem(sys.modules, "gensim", fake_gensim)
+        monkeypatch.setitem(sys.modules, "gensim.models", fake_models)
+
+        cfg = Word2VecTrainerConfig(output_dir=temp_dir)
+        trainer = Word2VecTrainer(cfg)
+        trainer.fit(documents=[Document(query_csv), Document(source_csv)])
+
+        assert len(captured["sentences"]) == 2
+
+    def test_fit_no_sentences_raises(self, temp_dir, monkeypatch):
+        """Fitting on documents with no tokenizable text should raise clearly."""
+        from locisimiles.document import Document
+        from locisimiles.training.word2vec import Word2VecTrainer, Word2VecTrainerConfig
+
+        empty_csv = temp_dir / "empty.csv"
+        empty_csv.write_text("seg_id,text\n", encoding="utf-8")
+
+        fake_models = types.SimpleNamespace(Word2Vec=MagicMock())
+        fake_gensim = types.SimpleNamespace(models=fake_models)
+        monkeypatch.setitem(sys.modules, "gensim", fake_gensim)
+        monkeypatch.setitem(sys.modules, "gensim.models", fake_models)
+
+        cfg = Word2VecTrainerConfig(output_dir=temp_dir)
+        trainer = Word2VecTrainer(cfg)
+        with pytest.raises(ValueError, match="No non-empty tokenized"):
+            trainer.fit(documents=[Document(empty_csv)])

@@ -8,16 +8,55 @@ must build byte-identical features for a saved artifact to score correctly).
 
 from __future__ import annotations
 
+import csv
+
 import pytest
 
 pytest.importorskip("cltk", reason="cltk has no release supporting this Python version")
 
+from locisimiles.document import Document
+from locisimiles.ground_truth import GroundTruth
+from locisimiles.training.data import TrainingData
 
-def _write_training_csv(path, rows):
-    lines = ["query_text,corpus_text,label"]
-    for query_text, corpus_text, label in rows:
-        lines.append(f'"{query_text}","{corpus_text}",{label}')
-    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+def _build_training_data(temp_dir, rows) -> TrainingData:
+    """Build a TrainingData from (query_text, corpus_text, label) rows.
+
+    Assigns stable segment ids to each distinct query/corpus text and writes
+    them as Document CSVs, mirroring how a real caller would already have
+    query/source corpora loaded separately from their labels.
+    """
+    query_texts: list[str] = []
+    corpus_texts: list[str] = []
+    for query_text, corpus_text, _label in rows:
+        if query_text not in query_texts:
+            query_texts.append(query_text)
+        if corpus_text not in corpus_texts:
+            corpus_texts.append(corpus_text)
+    query_id = {text: f"q{i}" for i, text in enumerate(query_texts)}
+    corpus_id = {text: f"c{i}" for i, text in enumerate(corpus_texts)}
+
+    query_csv = temp_dir / "query_corpus.csv"
+    with query_csv.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["seg_id", "text"])
+        for text in query_texts:
+            writer.writerow([query_id[text], text])
+
+    source_csv = temp_dir / "source_corpus.csv"
+    with source_csv.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["seg_id", "text"])
+        for text in corpus_texts:
+            writer.writerow([corpus_id[text], text])
+
+    ground_truth = GroundTruth(
+        [
+            {"query_id": query_id[query_text], "source_id": corpus_id[corpus_text], "label": label}
+            for query_text, corpus_text, label in rows
+        ]
+    )
+    return TrainingData(Document(query_csv), Document(source_csv), ground_truth)
 
 
 BINARY_ROWS = [
@@ -70,14 +109,10 @@ class TestLexicalClassifierTrainer:
             LexicalClassifierTrainerConfig,
         )
 
-        train_csv = temp_dir / "train.csv"
-        _write_training_csv(train_csv, BINARY_ROWS)
-
-        cfg = LexicalClassifierTrainerConfig(
-            train_path=train_csv, output_dir=temp_dir, classifier="logreg"
-        )
+        data = _build_training_data(temp_dir, BINARY_ROWS)
+        cfg = LexicalClassifierTrainerConfig(output_dir=temp_dir, classifier="logreg")
         trainer = LexicalClassifierTrainer(cfg)
-        model = trainer.fit()
+        model = trainer.fit(data=data)
         assert model is not None
 
         out_path = trainer.save()
@@ -90,29 +125,24 @@ class TestLexicalClassifierTrainer:
             LexicalClassifierTrainerConfig,
         )
 
-        train_csv = temp_dir / "train.csv"
-        _write_training_csv(train_csv, BINARY_ROWS)
-
-        cfg = LexicalClassifierTrainerConfig(
-            train_path=train_csv, output_dir=temp_dir, classifier="gbdt"
-        )
+        data = _build_training_data(temp_dir, BINARY_ROWS)
+        cfg = LexicalClassifierTrainerConfig(output_dir=temp_dir, classifier="gbdt")
         trainer = LexicalClassifierTrainer(cfg)
-        trainer.fit()
+        trainer.fit(data=data)
         out_path = trainer.save()
         assert out_path.exists()
 
-    def test_missing_columns_raises(self, temp_dir):
+    def test_empty_training_data_raises(self, temp_dir):
         from locisimiles.training.lexical import (
             LexicalClassifierTrainer,
             LexicalClassifierTrainerConfig,
         )
 
-        train_csv = temp_dir / "bad.csv"
-        train_csv.write_text("a,b,c\n1,2,3\n", encoding="utf-8")
-        cfg = LexicalClassifierTrainerConfig(train_path=train_csv, output_dir=temp_dir)
+        empty_data = _build_training_data(temp_dir, [])
+        cfg = LexicalClassifierTrainerConfig(output_dir=temp_dir)
         trainer = LexicalClassifierTrainer(cfg)
-        with pytest.raises(ValueError, match="missing required columns"):
-            trainer.fit()
+        with pytest.raises(ValueError, match="No training rows found"):
+            trainer.fit(data=empty_data)
 
 
 class TestLexicalClassifierJudge:
@@ -124,11 +154,10 @@ class TestLexicalClassifierJudge:
             LexicalClassifierTrainerConfig,
         )
 
-        train_csv = temp_dir / "train.csv"
-        _write_training_csv(train_csv, BINARY_ROWS)
-        cfg = LexicalClassifierTrainerConfig(train_path=train_csv, output_dir=temp_dir)
+        data = _build_training_data(temp_dir, BINARY_ROWS)
+        cfg = LexicalClassifierTrainerConfig(output_dir=temp_dir)
         trainer = LexicalClassifierTrainer(cfg)
-        trainer.fit()
+        trainer.fit(data=data)
         artifact_path = trainer.save()
 
         candidates = BM25CandidateGenerator().generate(
@@ -154,16 +183,14 @@ class TestLexicalClassifierJudge:
             LexicalClassifierTrainerConfig,
         )
 
-        train_csv = temp_dir / "train_3class.csv"
-        _write_training_csv(train_csv, THREE_CLASS_ROWS)
+        data = _build_training_data(temp_dir, THREE_CLASS_ROWS)
         cfg = LexicalClassifierTrainerConfig(
-            train_path=train_csv,
             output_dir=temp_dir,
             output_filename="lexical_3class.joblib",
             label_names={0: "cf", 1: "match", 2: "no_match"},
         )
         trainer = LexicalClassifierTrainer(cfg)
-        trainer.fit()
+        trainer.fit(data=data)
         artifact_path = trainer.save()
 
         candidates = BM25CandidateGenerator().generate(
@@ -195,11 +222,10 @@ class TestLexicalClassifierJudge:
             LexicalClassifierTrainerConfig,
         )
 
-        train_csv = temp_dir / "train.csv"
-        _write_training_csv(train_csv, BINARY_ROWS)
-        cfg = LexicalClassifierTrainerConfig(train_path=train_csv, output_dir=temp_dir)
+        data = _build_training_data(temp_dir, BINARY_ROWS)
+        cfg = LexicalClassifierTrainerConfig(output_dir=temp_dir)
         trainer = LexicalClassifierTrainer(cfg)
-        trainer.fit()
+        trainer.fit(data=data)
         artifact_path = trainer.save()
 
         judge = LexicalClassifierJudge(artifact_path=str(artifact_path))
@@ -216,11 +242,10 @@ class TestBM25LexicalTwoStagePipeline:
             LexicalClassifierTrainerConfig,
         )
 
-        train_csv = temp_dir / "train.csv"
-        _write_training_csv(train_csv, BINARY_ROWS)
-        cfg = LexicalClassifierTrainerConfig(train_path=train_csv, output_dir=temp_dir)
+        data = _build_training_data(temp_dir, BINARY_ROWS)
+        cfg = LexicalClassifierTrainerConfig(output_dir=temp_dir)
         trainer = LexicalClassifierTrainer(cfg)
-        trainer.fit()
+        trainer.fit(data=data)
         artifact_path = trainer.save()
 
         pipeline = BM25LexicalTwoStagePipeline(artifact_path=str(artifact_path))

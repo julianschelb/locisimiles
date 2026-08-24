@@ -181,6 +181,38 @@ When a multiclass classifier returns class metadata, the CLI also writes
 `predicted_class_id`, `predicted_label`, and `class_probabilities`.
 
 
+## Training
+
+LociSimiles also ships trainers for every trainable approach in the
+benchmark: `LexicalClassifierTrainer`, `Word2VecTrainer`,
+`ClassificationTrainer`, and `EmbeddingTrainer`. The three pair/label
+trainers share one input type, `TrainingData`, which bundles a query/source
+`Document` pair with a `GroundTruth` of labeled pairs and offers all four of
+the paper's negative-sampling methods as chainable methods:
+
+```python
+from locisimiles.document import Document
+from locisimiles.ground_truth import GroundTruth
+from locisimiles.training.data import TrainingData
+from locisimiles.training.classification import ClassificationTrainer, ClassificationTrainerConfig
+
+query_doc = Document("query.csv")
+source_doc = Document("source.csv")
+positives = GroundTruth("known_positives.csv")
+
+data = TrainingData(query_doc, source_doc, positives).sample_random_negatives(n_per_query=5)
+
+config = ClassificationTrainerConfig(
+    output_dir="models/classifier",
+    label_names={0: "no_match", 1: "cit", 2: "cf"},
+)
+trainer = ClassificationTrainer(config)
+trainer.fit(data=data)
+model_path = trainer.save()
+```
+
+See the [Training module docs](https://julianschelb.github.io/locisimiles/api/training/) for the full API, including threshold tuning/application for the classifier and all four negative-sampling methods.
+
 ## Optional Gradio GUI
 
 Install the optional GUI extra to experiment with a minimal Gradio front end:

@@ -9,18 +9,17 @@ Example:
 
     query = load_example_query()       # Hieronymus passages
     source = load_example_source()     # Vergil passages
-    ground_truth = load_example_ground_truth()  # list of (query_id, source_id, label) dicts
+    ground_truth = load_example_ground_truth()  # GroundTruth of (query_id, source_id, label)
     ```
 """
 
 from __future__ import annotations
 
-import csv
 import importlib.resources
 from pathlib import Path
-from typing import Any, Dict, List
 
 from locisimiles.document import Document
+from locisimiles.ground_truth import GroundTruth
 
 # ---------------------------------------------------------------------------
 # Internal helpers
@@ -92,33 +91,20 @@ def load_example_source(*, author: str | None = "Vergil") -> Document:
     return Document(_example_path("vergil_samples.csv"), author=author)
 
 
-def load_example_ground_truth() -> List[Dict[str, Any]]:
+def load_example_ground_truth() -> GroundTruth:
     """Load the example ground-truth labels.
 
     Each entry maps a ``query_id`` / ``source_id`` pair to a binary
     ``label`` (``1`` = true intertext, ``0`` = no intertext).
 
     Returns:
-        A list of dictionaries with keys ``query_id``, ``source_id``, and
-        ``label`` (int).
+        A ``GroundTruth`` collection of labeled query/source pairs.
 
     Example:
         ```python
         gt = load_example_ground_truth()
-        for row in gt:
-            print(row["query_id"], "->", row["source_id"], ":", row["label"])
+        for entry in gt:
+            print(entry.query_id, "->", entry.source_id, ":", entry.label)
         ```
     """
-    path = _example_path("ground_truth.csv")
-    rows: List[Dict[str, Any]] = []
-    with open(path, newline="", encoding="utf-8") as fh:
-        reader = csv.DictReader(fh)
-        for row in reader:
-            rows.append(
-                {
-                    "query_id": row["query_id"],
-                    "source_id": row["source_id"],
-                    "label": int(row["label"]),
-                }
-            )
-    return rows
+    return GroundTruth(_example_path("ground_truth.csv"))
