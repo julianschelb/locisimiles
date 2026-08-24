@@ -1094,8 +1094,9 @@ approach in the benchmark:</p>
 <li><code>TrainingData</code> - Bundles a query/source <code>Document</code> pair with a <code>GroundTruth</code>, with negative-sampling methods</li>
 <li><code>LexicalClassifierTrainer</code> - Trains the LogReg/GBDT lexical classifier</li>
 <li><code>Word2VecTrainer</code> - Trains the Burns-style Word2Vec retrieval model</li>
-<li><code>ClassificationTrainer</code> - Fine-tunes the transformer sequence classifier, plus threshold tuning/application</li>
-<li><code>EmbeddingTrainer</code> - Fine-tunes the SentenceTransformer bi-encoder</li>
+<li><code>ClassificationTrainer</code> - Fine-tunes the transformer sequence classifier, plus threshold tuning/application and optional best-checkpoint/early-stopping selection</li>
+<li><code>EmbeddingTrainer</code> - Fine-tunes the SentenceTransformer bi-encoder, plus optional best-checkpoint/early-stopping selection</li>
+<li><code>cross_validate</code> - Reproduces the paper's mean±std-across-folds evaluation protocol</li>
 </ul>
 <h2 id="quick-reference">Quick Reference<a class="headerlink" href="#quick-reference" title="Permanent link">&para;</a></h2>
 <h3 id="loading-documents">Loading Documents<a class="headerlink" href="#loading-documents" title="Permanent link">&para;</a></h3>
