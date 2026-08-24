@@ -113,12 +113,35 @@ model_path = trainer.save()
 Fine-tunes the transformer sequence-classification model consumed by
 [`ClassificationJudge`](judges.md) — binary (`no_match`/`match`) or
 multiclass (`no_match`/`cit`/`cf`), inferred from the distinct labels in
-`data`. Mirrors the paper's recipe: a fixed epoch count with no early
-stopping, optional balanced class-weighting or focal loss, and the same
-pair-truncation strategy `ClassificationJudge` uses at inference time.
-`model.config.id2label`/`label2id` are set automatically before saving, so a
-freshly trained model is immediately usable by `ClassificationJudge` — no
-manual upload/labeling step.
+`data`. Mirrors the paper's recipe by default: a fixed epoch count with no
+checkpoint selection, optional balanced class-weighting or focal loss, and
+the same pair-truncation strategy `ClassificationJudge` uses at inference
+time. `model.config.id2label`/`label2id` are set automatically before
+saving, so a freshly trained model is immediately usable by
+`ClassificationJudge` — no manual upload/labeling step.
+
+Pass `eval_data` to `fit()` to compute eval-set loss after every epoch. By
+default this is purely for visibility (the paper's fixed-epoch-then-save
+recipe); set `select_best_checkpoint=True` to instead keep the epoch with
+the lowest eval loss, optionally with `early_stopping_patience` to stop
+once that loss stops improving:
+
+```python
+trainer.fit(
+    data=data,
+    eval_data=eval_data,
+)  # select_best_checkpoint=False (default): eval_data is logged only
+```
+
+```python
+config = ClassificationTrainerConfig(
+    output_dir="models/classifier",
+    select_best_checkpoint=True,
+    early_stopping_patience=2,
+)
+trainer = ClassificationTrainer(config)
+trainer.fit(data=data, eval_data=eval_data)  # keeps the best-loss epoch
+```
 
 ```python
 from locisimiles.training.classification import ClassificationTrainer, ClassificationTrainerConfig
@@ -200,10 +223,91 @@ trainer.fit(data=data, eval_data=eval_data)  # eval_data is optional
 model_path = trainer.save()
 ```
 
+As with `ClassificationTrainer`, `eval_data` alone (via a
+`BinaryClassificationEvaluator` run once per epoch) is purely for
+visibility by default; set `select_best_checkpoint=True` — optionally with
+`early_stopping_patience` — to keep the epoch with the best eval score
+instead of the last one:
+
+```python
+config = EmbeddingTrainerConfig(
+    output_dir="models/embedding",
+    select_best_checkpoint=True,
+    early_stopping_patience=2,
+)
+trainer = EmbeddingTrainer(config)
+trainer.fit(data=data, eval_data=eval_data)
+```
+
 ::: locisimiles.training.embedding.trainer.EmbeddingTrainerConfig
     options:
       heading_level: 3
 ::: locisimiles.training.embedding.trainer.EmbeddingTrainer
+    options:
+      heading_level: 3
+
+## Cross-validation
+
+The paper reports mean±std across folds rather than a single train/test
+split. `cross_validate` reproduces that protocol: it splits a
+`GroundTruth` into folds grouped by `query_id` (via
+`split_ground_truth_by_query` — a query's positives and negatives never
+straddle a train/eval boundary), then for each fold calls a `train_fn`
+(trains and returns a model/pipeline from that fold's training data) and an
+`evaluate_fn` (evaluates it on the held-out fold, returning a flat metrics
+dict), aggregating the results into a `CVResult` with per-fold, mean, and
+std metrics.
+
+`cross_validate` is deliberately generic — `train_fn`/`evaluate_fn` are
+plain callables, so it works the same way across all four trainers rather
+than hardcoding one. `evaluate_with_pipeline` is a convenience wrapper for
+the common case of evaluating with `IntertextEvaluator`:
+
+```python
+from locisimiles.training.cross_validation import cross_validate, evaluate_with_pipeline
+from locisimiles.training.classification import ClassificationTrainer, ClassificationTrainerConfig
+from locisimiles.pipeline import Pipeline
+from locisimiles.pipeline.generator import ExhaustiveCandidateGenerator
+from locisimiles.pipeline.judge import ClassificationJudge
+
+def train_fn(fold_train_data):
+    trainer = ClassificationTrainer(ClassificationTrainerConfig(output_dir="models/cv"))
+    trainer.fit(data=fold_train_data)
+    return trainer.save()
+
+def evaluate_fn(model_path, fold_eval_data):
+    judge = ClassificationJudge(classification_name=str(model_path))
+    pipeline = Pipeline(generator=ExhaustiveCandidateGenerator(), judge=judge)
+    return evaluate_with_pipeline(pipeline, fold_eval_data)
+
+result = cross_validate(
+    query_doc=query_doc,
+    source_doc=source_doc,
+    ground_truth=ground_truth,
+    n_folds=5,
+    train_fn=train_fn,
+    evaluate_fn=evaluate_fn,
+)
+print(result.mean, result.std)
+print(result.to_dataframe())  # per-fold rows + mean/std summary rows
+```
+
+::: locisimiles.training.cross_validation.CVFold
+    options:
+      heading_level: 3
+::: locisimiles.training.cross_validation.CVResult
+    options:
+      heading_level: 3
+::: locisimiles.training.cross_validation.cross_validate
+    options:
+      heading_level: 3
+::: locisimiles.training.cross_validation.evaluate_with_pipeline
+    options:
+      heading_level: 3
+::: locisimiles.training.cross_validation.make_cv_folds
+    options:
+      heading_level: 3
+::: locisimiles.training.cross_validation.split_ground_truth_by_query
     options:
       heading_level: 3
 
