@@ -2,6 +2,29 @@
 
 <!-- version list -->
 
+## v2.0.0 (2026-08-24)
+
+### Bug Fixes
+
+- Declare datasets as a core dependency for EmbeddingTrainer
+  ([#16](https://github.com/julianschelb/locisimiles/pull/16),
+  [`2ea92aa`](https://github.com/julianschelb/locisimiles/commit/2ea92aa4d96715a3e43294022551a5fbc5ea8bee))
+
+- Import loss classes directly from sentence_transformers.losses
+  ([#16](https://github.com/julianschelb/locisimiles/pull/16),
+  [`2ea92aa`](https://github.com/julianschelb/locisimiles/commit/2ea92aa4d96715a3e43294022551a5fbc5ea8bee))
+
+- Use ExhaustiveCandidateGenerator in classification-judge tests
+  ([#16](https://github.com/julianschelb/locisimiles/pull/16),
+  [`2ea92aa`](https://github.com/julianschelb/locisimiles/commit/2ea92aa4d96715a3e43294022551a5fbc5ea8bee))
+
+### Features
+
+- Add ClassificationTrainer and EmbeddingTrainer, unify training API
+  ([#16](https://github.com/julianschelb/locisimiles/pull/16),
+  [`2ea92aa`](https://github.com/julianschelb/locisimiles/commit/2ea92aa4d96715a3e43294022551a5fbc5ea8bee))
+
+
 ## v1.8.0 (2026-08-23)
 
 ### Features
