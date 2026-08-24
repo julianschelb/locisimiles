@@ -11,6 +11,10 @@ from locisimiles.training.artifacts import resolve_model_output_path
 from locisimiles.training.base import BaseTrainer, TrainerConfig
 from locisimiles.training.preprocess import tokenize_latin_text
 
+# =============================================================================
+# Config
+# =============================================================================
+
 
 @dataclass(frozen=True)
 class Word2VecTrainerConfig(TrainerConfig):
@@ -23,6 +27,11 @@ class Word2VecTrainerConfig(TrainerConfig):
     workers: int = 1
     epochs: int = 10
     output_filename: str = "latin_w2v.model"
+
+
+# =============================================================================
+# Trainer
+# =============================================================================
 
 
 class Word2VecTrainer(BaseTrainer):
@@ -45,7 +54,10 @@ class Word2VecTrainer(BaseTrainer):
         """Ensure the output directory exists; ``fit()`` validates its documents."""
         self.config.output_dir.mkdir(parents=True, exist_ok=True)
 
+    # ---------- Data loading ----------
+
     def _load_sentences(self, documents: Sequence[Document]) -> list[list[str]]:
+        """Tokenize every segment across the given documents into one sentence each."""
         sentences: list[list[str]] = []
         for document in documents:
             for segment in document:
@@ -60,6 +72,8 @@ class Word2VecTrainer(BaseTrainer):
         if not sentences:
             raise ValueError("No non-empty tokenized training rows found")
         return sentences
+
+    # ---------- Training ----------
 
     def fit(self, *, documents: Sequence[Document], **kwargs: Any) -> Any:  # type: ignore[override]
         """Train a gensim Word2Vec model from tokenized segments across the given documents."""
@@ -84,6 +98,8 @@ class Word2VecTrainer(BaseTrainer):
             **kwargs,
         )
         return self.model
+
+    # ---------- Persistence ----------
 
     def save(self, **kwargs: Any) -> Path:
         """Persist the trained model and return its path."""

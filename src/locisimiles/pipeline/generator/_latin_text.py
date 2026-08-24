@@ -17,6 +17,11 @@ _tokenizer_cache: dict[str, Any] = {}
 _lemmatizer_cache: dict[str, Any] = {}
 
 
+# =============================================================================
+# Tokenization helpers
+# =============================================================================
+
+
 def _load_latin_word_tokenizer() -> Any:
     """Load CLTK's Latin word tokenizer, trying known import paths."""
     if "tokenizer" in _tokenizer_cache:
@@ -92,6 +97,11 @@ def preprocess(text: str, *, lemmatize: bool, lowercase: bool) -> list[str]:
     if lemmatize:
         tokens = lemmatize_tokens(tokens)
     return tokens
+
+
+# =============================================================================
+# N-gram expansion
+# =============================================================================
 
 
 class NgramAnalyzer:

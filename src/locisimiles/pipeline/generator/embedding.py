@@ -74,7 +74,7 @@ class EmbeddingCandidateGenerator(CandidateGeneratorBase):
             prompt_name=prompt_name if prompt_name else None,
         ).astype("float32")
 
-    # ---------- Index Building ----------
+    # ---------- Index building ----------
 
     def build_source_index(
         self,

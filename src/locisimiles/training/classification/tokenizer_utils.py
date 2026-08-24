@@ -50,9 +50,9 @@ def add_roberta_separators(tokenizer: Any) -> None:
 
     from tokenizers.processors import TemplateProcessing
 
+    # rebuild the post-processor with an explicit RoBERTa pair template
     cls_token, sep_token = tokenizer.cls_token, tokenizer.sep_token
     cls_id, sep_id = tokenizer.cls_token_id, tokenizer.sep_token_id
-
     tokenizer.backend_tokenizer.post_processor = TemplateProcessing(
         single=f"{cls_token} $A {sep_token}",
         pair=f"{cls_token} $A {sep_token} {sep_token} $B {sep_token}",

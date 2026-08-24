@@ -60,6 +60,7 @@ class TfidfCandidateGenerator(CandidateGeneratorBase):
         self._fitted_source_doc_id: int | None = None
 
     def _preprocess(self, text: str) -> list[str]:
+        """Tokenize (and optionally lemmatize) one segment using this generator's settings."""
         return preprocess(text, lemmatize=self.lemmatize, lowercase=self.lowercase)
 
     def _fit_source(self, source_segments: list[TextSegment]) -> None:

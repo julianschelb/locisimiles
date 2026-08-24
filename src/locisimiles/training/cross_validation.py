@@ -30,6 +30,11 @@ if TYPE_CHECKING:
     from locisimiles.pipeline import Pipeline
 
 
+# =============================================================================
+# Fold splitting
+# =============================================================================
+
+
 def split_ground_truth_by_query(
     ground_truth: GroundTruth,
     n_folds: int,
@@ -54,11 +59,13 @@ def split_ground_truth_by_query(
     if n_folds < 2:
         raise ValueError("n_folds must be at least 2")
 
+    # shuffle query ids, then assign them round-robin to folds
     query_ids = sorted(ground_truth.query_ids(), key=str)
     rng = random.Random(seed)
     rng.shuffle(query_ids)
-
     fold_of_query = {query_id: i % n_folds for i, query_id in enumerate(query_ids)}
+
+    # route every entry into its query's fold
     fold_entries: List[list] = [[] for _ in range(n_folds)]
     for entry in ground_truth:
         fold_entries[fold_of_query[entry.query_id]].append(entry)
@@ -107,6 +114,7 @@ def make_cv_folds(
     """
     fold_ground_truths = split_ground_truth_by_query(ground_truth, n_folds, seed=seed)
 
+    # for each fold, its eval set is that fold and its train set is every other fold
     folds: List[CVFold] = []
     for i, eval_gt in enumerate(fold_ground_truths):
         train_gt = GroundTruth()
@@ -123,9 +131,15 @@ def make_cv_folds(
     return folds
 
 
+# =============================================================================
+# Aggregation
+# =============================================================================
+
+
 def _aggregate(
     fold_metrics: Sequence[Dict[str, float]],
 ) -> Tuple[Dict[str, float], Dict[str, float]]:
+    """Compute per-metric mean and standard deviation across folds."""
     if not fold_metrics:
         return {}, {}
     keys = fold_metrics[0].keys()
@@ -163,6 +177,11 @@ class CVResult:
         df.insert(0, "fold", range(len(self.fold_metrics)))
         summary = pd.DataFrame([{"fold": "mean", **self.mean}, {"fold": "std", **self.std}])
         return pd.concat([df, summary], ignore_index=True)
+
+
+# =============================================================================
+# Cross-validation
+# =============================================================================
 
 
 def cross_validate(
@@ -236,11 +255,14 @@ def cross_validate(
         n_folds=n_folds,
         seed=seed,
     )
+
+    # train and evaluate one model per fold, collecting each fold's metrics
     fold_metrics: List[Dict[str, float]] = []
     for fold in folds:
         model = train_fn(fold.train_data)
         metrics = evaluate_fn(model, fold.eval_data)
         fold_metrics.append(dict(metrics))
+
     return CVResult(fold_metrics=fold_metrics)
 
 

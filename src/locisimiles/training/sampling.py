@@ -20,6 +20,11 @@ from locisimiles.ground_truth import GroundTruth, GroundTruthEntry, LabelValue
 DEFAULT_HARD_NEGATIVE_MODEL_NAME = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
 
 
+# =============================================================================
+# Helpers
+# =============================================================================
+
+
 def _seed_for(base_seed: int, key: str) -> int:
     """Deterministic per-key seed derived from a base seed."""
     digest = hashlib.sha256(f"{base_seed}:{key}".encode()).hexdigest()
@@ -27,10 +32,16 @@ def _seed_for(base_seed: int, key: str) -> int:
 
 
 def _positives_by_query(positives: GroundTruth) -> Dict[object, Set[object]]:
+    """Group known positive source ids by their query id."""
     grouped: Dict[object, Set[object]] = {}
     for entry in positives:
         grouped.setdefault(entry.query_id, set()).add(entry.source_id)
     return grouped
+
+
+# =============================================================================
+# Sampling methods
+# =============================================================================
 
 
 def sample_random_pairs(
@@ -63,12 +74,14 @@ def sample_random_pairs(
     Returns:
         A ``GroundTruth`` of newly sampled negative pairs.
     """
+    # pairs to skip: already-known positives and pairs already drawn this call
     known_pairs = {(entry.query_id, entry.source_id) for entry in positives}
     query_ids = list(query_doc.ids())
     source_ids = list(source_doc.ids())
     if not query_ids or not source_ids:
         return GroundTruth()
 
+    # draw random (query, source) pairs until we hit the target count or give up
     total = max(0, int(n_per_query)) * len(query_ids)
     rng = random.Random(seed)
     entries: List[GroundTruthEntry] = []
@@ -118,6 +131,7 @@ def sample_random_negatives(
     positives_by_query = _positives_by_query(positives)
     source_ids = list(source_doc.ids())
 
+    # sample independently per query, so results don't depend on iteration order
     entries: List[GroundTruthEntry] = []
     for query_segment in query_doc:
         q_id = query_segment.id
@@ -173,10 +187,12 @@ def sample_hard_negatives(
     if n == 0 or len(query_doc) == 0 or len(source_doc) == 0:
         return GroundTruth()
 
+    # over-fetch so n non-positive candidates survive filtering below
     max_positives = max((len(v) for v in positives_by_query.values()), default=0)
     top_k = min(n + max_positives, len(source_doc))
     top_k = max(top_k, 1)
 
+    # rank every source segment by embedding similarity to each query
     generator = EmbeddingCandidateGenerator(
         embedding_model_name=embedding_model_name, device=device
     )
@@ -190,6 +206,7 @@ def sample_hard_negatives(
         source_prompt_name="",
     )
 
+    # keep the top n non-positive candidates per query as hard negatives
     entries: List[GroundTruthEntry] = []
     for q_id, candidates in ranked.items():
         excluded = positives_by_query.get(q_id, set())

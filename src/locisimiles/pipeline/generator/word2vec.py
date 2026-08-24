@@ -15,6 +15,11 @@ DEFAULT_WORD2VEC_MODEL_PATH = (
 )
 
 
+# =============================================================================
+# Model loading
+# =============================================================================
+
+
 class _KeyedVectorsLike(Protocol):
     """Protocol for the subset of KeyedVectors used by this generator."""
 
@@ -40,6 +45,11 @@ def _load_word2vec_model(model_path: Path) -> _Word2VecLike:
         ) from exc
 
     return Word2Vec.load(str(model_path))
+
+
+# =============================================================================
+# Candidate generator
+# =============================================================================
 
 
 class Word2VecCandidateGenerator(CandidateGeneratorBase):
@@ -77,6 +87,8 @@ class Word2VecCandidateGenerator(CandidateGeneratorBase):
 
         self.model = _load_word2vec_model(self.model_path)
 
+    # ---------- Tokenization ----------
+
     @staticmethod
     def _normalize_text(text: str) -> str:
         """Apply lightweight Latin-oriented normalization for token matching."""
@@ -86,10 +98,13 @@ class Word2VecCandidateGenerator(CandidateGeneratorBase):
         return re.sub(r"\s+", " ", text).strip()
 
     def _tokenize(self, text: str) -> list[str]:
+        """Normalize and split text into tokens."""
         normalized = self._normalize_text(text)
         if not normalized:
             return []
         return [token for token in normalized.split(" ") if token]
+
+    # ---------- Bigram similarity ----------
 
     def _build_bigrams(self, tokens: Sequence[str], interval: int) -> list[tuple[str, str]]:
         """Build interval-constrained bigrams from tokens."""
@@ -174,6 +189,8 @@ class Word2VecCandidateGenerator(CandidateGeneratorBase):
             tokens = self._tokenize(segment.text)
             precomputed[str(segment.id)] = self._build_bigrams(tokens, interval)
         return precomputed
+
+    # ---------- CandidateGeneratorBase ----------
 
     def generate(
         self,

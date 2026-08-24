@@ -271,6 +271,8 @@ CSV Format:
             print("Initializing pipeline...")
             print(f"  Pipeline type: {args.pipeline}")
 
+        # Reject an ambiguous config: a local model path together with a
+        # non-default HF model name for the same contextual retrieval stage
         if (
             args.pipeline in {"latin-bert-retrieval", "latin-bert-two-stage"}
             and args.latin_bert_model_path is not None
@@ -377,6 +379,7 @@ CSV Format:
                 b=args.bm25_b,
             )
         else:
+            # Only remaining --pipeline choice: bm25-lexical-two-stage
             if args.lexical_classifier_path is None:
                 print(
                     "Error: --pipeline bm25-lexical-two-stage requires --lexical-classifier-path.",
@@ -422,6 +425,8 @@ CSV Format:
         if args.verbose:
             print(f"Writing results to {args.output}...")
 
+        # Only add classifier-metadata columns when at least one judgment
+        # actually carries them (e.g. multiclass classification pipelines)
         include_classifier_metadata = any(
             any(
                 getattr(judgment, "predicted_label", None) is not None

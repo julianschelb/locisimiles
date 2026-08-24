@@ -30,7 +30,6 @@ All exports are available at the package level::
 
 from __future__ import annotations
 
-# --- Types ---
 from locisimiles.pipeline._types import (
     # New dataclasses & type aliases
     Candidate,
@@ -61,8 +60,6 @@ from locisimiles.pipeline.classification import (
 )
 from locisimiles.pipeline.contextual_retrieval import LatinBertRetrievalPipeline
 from locisimiles.pipeline.contextual_two_stage import LatinBertTwoStagePipeline
-
-# --- Modular components: generators ---
 from locisimiles.pipeline.generator import (
     DEFAULT_CONTEXTUAL_BERT_MODEL_NAME,
     DEFAULT_WORD2VEC_MODEL_PATH,
@@ -75,8 +72,6 @@ from locisimiles.pipeline.generator import (
     TfidfCandidateGenerator,
     Word2VecCandidateGenerator,
 )
-
-# --- Modular components: judges ---
 from locisimiles.pipeline.judge import (
     CandidateJudgeBase,
     ClassificationJudge,
@@ -85,16 +80,10 @@ from locisimiles.pipeline.judge import (
     LexicalClassifierJudge,
     ThresholdJudge,
 )
-
-# --- Pipeline composer ---
 from locisimiles.pipeline.pipeline import Pipeline
 from locisimiles.pipeline.retrieval import RetrievalPipeline
-
-# --- Rule-based pipeline ---
 from locisimiles.pipeline.rule_based import RuleBasedPipeline
 from locisimiles.pipeline.tfidf import TfidfRetrievalPipeline
-
-# --- Preconfigured pipelines ---
 from locisimiles.pipeline.two_stage import (
     ClassificationPipelineWithCandidateGeneration,  # correctly-cased alias
     ClassificationPipelineWithCandidategeneration,  # backward-compat alias (old typo)

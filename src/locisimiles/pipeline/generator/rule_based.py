@@ -53,7 +53,9 @@ except ImportError:
     SPACY_AVAILABLE = False
 
 
-# ============== DEFAULT CONFIGURATION ==============
+# =============================================================================
+# Default configuration
+# =============================================================================
 
 DEFAULT_CONFIG = {
     "min_shared_words": 2,  # Minimum non-stopword matches required
@@ -65,7 +67,9 @@ DEFAULT_CONFIG = {
 }
 
 
-# ============== STOPWORDS ==============
+# =============================================================================
+# Stopwords
+# =============================================================================
 
 # Default Latin stopwords (common function words)
 DEFAULT_STOPWORDS = {
@@ -266,7 +270,7 @@ class RuleBasedCandidateGenerator(CandidateGeneratorBase):
                 "Install with: pip install spacy && python -m spacy download la_core_web_lg"
             )
 
-    # ============== CandidateGeneratorBase ==============
+    # ---------- CandidateGeneratorBase ----------
 
     def generate(
         self,
@@ -328,7 +332,7 @@ class RuleBasedCandidateGenerator(CandidateGeneratorBase):
 
         return results
 
-    # ============== PUBLIC HELPERS ==============
+    # ---------- Public helpers ----------
 
     def load_stopwords(self, filepath: Union[str, Path]) -> None:
         """Load stopwords from a file (one word per line).
@@ -343,7 +347,7 @@ class RuleBasedCandidateGenerator(CandidateGeneratorBase):
                 if row:
                     self.stopwords.add(row[0].strip().lower())
 
-    # ============== DOCUMENT CONVERSION ==============
+    # ---------- Document conversion ----------
 
     def _document_to_list(self, doc: Document) -> List[List[str]]:
         """Convert Document to internal list format [[id, text], ...]."""
@@ -382,7 +386,7 @@ class RuleBasedCandidateGenerator(CandidateGeneratorBase):
     # Backward-compatible alias
     _matches_to_fulldict = _matches_to_candidates
 
-    # ============== TEXT PREPROCESSING ==============
+    # ---------- Text preprocessing ----------
 
     def _preprocess(
         self,
@@ -470,7 +474,7 @@ class RuleBasedCandidateGenerator(CandidateGeneratorBase):
                 break
         return token
 
-    # ============== PHRASING ==============
+    # ---------- Phrasing ----------
 
     def _normalize_quotation_marks(self, text_list: List[List[str]]) -> List[List[str]]:
         """Normalize quotation marks to standard apostrophe."""
@@ -523,7 +527,7 @@ class RuleBasedCandidateGenerator(CandidateGeneratorBase):
         text_list = self._cleanup(text_list)
         return text_list
 
-    # ============== TEXT MATCHING ==============
+    # ---------- Text matching ----------
 
     def _compare_texts(
         self,
@@ -721,7 +725,7 @@ class RuleBasedCandidateGenerator(CandidateGeneratorBase):
 
         return result.replace("****", "**").strip()
 
-    # ============== FILTERS ==============
+    # ---------- Filters ----------
 
     def _apply_distance_criterion(self, matches: List[List[Any]]) -> List[List[Any]]:
         """Filter matches where shared words are too far apart."""
@@ -837,7 +841,7 @@ class RuleBasedCandidateGenerator(CandidateGeneratorBase):
 
         return combined
 
-    # ============== OPTIONAL FILTERS ==============
+    # ---------- Optional filters ----------
 
     def _load_pos_model(self) -> None:
         """Load the POS tagging model (lazy loading)."""

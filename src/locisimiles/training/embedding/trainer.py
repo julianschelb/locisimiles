@@ -16,6 +16,11 @@ def _default_prompts() -> Dict[str, str]:
     return {"query": "query: ", "match": "passage: "}
 
 
+# =============================================================================
+# Config
+# =============================================================================
+
+
 @dataclass(frozen=True)
 class EmbeddingTrainerConfig(TrainerConfig):
     """Configuration for the SentenceTransformer bi-encoder trainer.
@@ -48,6 +53,11 @@ class EmbeddingTrainerConfig(TrainerConfig):
     early_stopping_patience: Optional[int] = None
 
 
+# =============================================================================
+# Trainer
+# =============================================================================
+
+
 class EmbeddingTrainer(BaseTrainer):
     """Fine-tune a SentenceTransformer bi-encoder on labeled query/source pairs.
 
@@ -71,7 +81,10 @@ class EmbeddingTrainer(BaseTrainer):
         """Ensure the output directory exists; ``fit()`` validates its ``TrainingData``."""
         self.config.output_dir.mkdir(parents=True, exist_ok=True)
 
+    # ---------- Model construction ----------
+
     def _build_dataset(self, data: TrainingData) -> Any:
+        """Project a TrainingData into a datasets.Dataset with query/match/label columns."""
         from datasets import Dataset
 
         query_key, match_key = "query", "match"
@@ -92,6 +105,8 @@ class EmbeddingTrainer(BaseTrainer):
 
             return ContrastiveLoss(model)
         raise ValueError(f"Unknown loss_type: {self.cfg.loss_type!r}")
+
+    # ---------- Training ----------
 
     def fit(  # type: ignore[override]
         self,
@@ -118,6 +133,7 @@ class EmbeddingTrainer(BaseTrainer):
             SentenceTransformerTrainingArguments,
         )
 
+        # checkpoint-selection options only make sense together with eval_data
         if self.cfg.select_best_checkpoint and eval_data is None:
             raise ValueError("select_best_checkpoint=True requires eval_data")
         if self.cfg.early_stopping_patience is not None and not self.cfg.select_best_checkpoint:
@@ -130,6 +146,7 @@ class EmbeddingTrainer(BaseTrainer):
         if len(train_dataset) == 0:
             raise ValueError("No training rows found in TrainingData")
 
+        # build the model and its loss
         self.model = SentenceTransformer(self.cfg.model_name, device=self.cfg.device)
         # `SentenceTransformerTrainingArguments(prompts=...)` below only controls
         # how prompts are *applied to training inputs*; it does not persist onto
@@ -139,8 +156,9 @@ class EmbeddingTrainer(BaseTrainer):
         self.model.prompts = dict(self.cfg.prompts)
         loss = self._build_loss(self.model)
 
-        # Name fixed to "dev" (not "eval") so the metric key HF's Trainer
-        # tracks ("eval_dev_cosine_ap") doesn't collide with its own "eval_"
+        # build the eval-set evaluator, if given. Name fixed to "dev" (not
+        # "eval") so the metric key HF's Trainer tracks
+        # ("eval_dev_cosine_ap") doesn't collide with its own "eval_"
         # logging prefix.
         eval_metric_name = "dev_cosine_ap"
         evaluator = None
@@ -160,6 +178,7 @@ class EmbeddingTrainer(BaseTrainer):
                 similarity_fn_names=["cosine"],
             )
 
+        # HF TrainingArguments/callbacks needed for evaluation and checkpoint selection
         checkpoint_kwargs: Dict[str, Any] = {}
         callbacks: list[Any] = []
         if evaluator is not None:
@@ -207,6 +226,8 @@ class EmbeddingTrainer(BaseTrainer):
         trainer.train()
         self.model = trainer.model
         return self.model
+
+    # ---------- Persistence ----------
 
     def save(self, **kwargs: Any) -> Path:
         """Persist the fine-tuned SentenceTransformer directory.

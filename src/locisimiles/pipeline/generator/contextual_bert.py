@@ -97,6 +97,8 @@ class LatinBertContextualCandidateGenerator(CandidateGeneratorBase):
         self._source_cache: dict[str, np.ndarray] | None = None
         self._source_cache_doc_id: int | None = None
 
+    # ---------- Model resolution ----------
+
     @staticmethod
     def _resolve_model_reference(*, model_name: str, model_path: str | Path | None) -> str:
         """Resolve a single model reference from name/path inputs."""
@@ -110,6 +112,8 @@ class LatinBertContextualCandidateGenerator(CandidateGeneratorBase):
             return str(path_obj)
 
         return model_name
+
+    # ---------- Word embeddings ----------
 
     @staticmethod
     def _word_spans(text: str) -> list[tuple[str, int, int]]:
@@ -160,6 +164,8 @@ class LatinBertContextualCandidateGenerator(CandidateGeneratorBase):
 
         vectors: list[np.ndarray] = []
         for _tok, start, end in spans:
+            # Map the word's character span back to the wordpiece indices
+            # covering it, via the tokenizer's offset mapping.
             indices = [
                 i
                 for i, (sub_start, sub_end) in enumerate(offsets)
@@ -168,6 +174,8 @@ class LatinBertContextualCandidateGenerator(CandidateGeneratorBase):
             if not indices:
                 continue
 
+            # Mean-pool subword states into one word vector and L2-normalize
+            # so later scoring is a plain cosine dot product.
             pooled = hidden[indices].mean(dim=0)
             norm = torch.linalg.norm(pooled)
             if float(norm) <= 0.0:
@@ -198,6 +206,8 @@ class LatinBertContextualCandidateGenerator(CandidateGeneratorBase):
             )
         return cache
 
+    # ---------- Similarity ----------
+
     @staticmethod
     def _segment_similarity(query_tokens: np.ndarray, source_tokens: np.ndarray) -> float:
         """Best token-token cosine mapped from ``[-1, 1]`` to ``[0, 1]``."""
@@ -207,6 +217,8 @@ class LatinBertContextualCandidateGenerator(CandidateGeneratorBase):
         cosine_matrix = query_tokens @ source_tokens.T
         max_cosine = float(np.max(cosine_matrix))
         return max(0.0, min(1.0, (max_cosine + 1.0) / 2.0))
+
+    # ---------- CandidateGeneratorBase ----------
 
     def generate(
         self,
