@@ -2,6 +2,21 @@
 
 <!-- version list -->
 
+## v2.1.1 (2026-08-24)
+
+### Bug Fixes
+
+- Don't trigger PyPI publish when no new release is built
+  ([#19](https://github.com/julianschelb/locisimiles/pull/19),
+  [`f8a323b`](https://github.com/julianschelb/locisimiles/commit/f8a323b9e619107fad42db856f6b0c364b288b2b))
+
+### Chores
+
+- Apply two-tier section-banner convention across the codebase
+  ([#18](https://github.com/julianschelb/locisimiles/pull/18),
+  [`fc149b1`](https://github.com/julianschelb/locisimiles/commit/fc149b1dab8ae7c0d0b8e56f1d6a9286fa32e163))
+
+
 ## v2.1.0 (2026-08-24)
 
 ### Documentation
