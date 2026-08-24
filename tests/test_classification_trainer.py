@@ -137,7 +137,7 @@ class TestClassificationTrainerFitSave:
     def test_saved_model_directly_loadable_by_classification_judge(
         self, temp_dir, tiny_config, query_document, source_document
     ):
-        from locisimiles.pipeline.generator.bm25 import BM25CandidateGenerator
+        from locisimiles.pipeline.generator.exhaustive import ExhaustiveCandidateGenerator
         from locisimiles.pipeline.judge.classification import ClassificationJudge
         from locisimiles.training.classification import ClassificationTrainer
 
@@ -146,8 +146,10 @@ class TestClassificationTrainerFitSave:
         trainer.fit(data=data)
         out_path = trainer.save()
 
-        candidates = BM25CandidateGenerator().generate(
-            query=query_document, source=source_document, top_k=2
+        # Exhaustive (not BM25/TF-IDF) so this test doesn't need CLTK, which
+        # has no release supporting Python 3.13.
+        candidates = ExhaustiveCandidateGenerator().generate(
+            query=query_document, source=source_document
         )
         judge = ClassificationJudge(classification_name=str(out_path))
         results = judge.judge(query=query_document, candidates=candidates)
@@ -160,7 +162,7 @@ class TestClassificationTrainerFitSave:
     def test_three_class_saved_model_emits_class_metadata_via_judge(
         self, temp_dir, query_document, source_document
     ):
-        from locisimiles.pipeline.generator.bm25 import BM25CandidateGenerator
+        from locisimiles.pipeline.generator.exhaustive import ExhaustiveCandidateGenerator
         from locisimiles.pipeline.judge.classification import ClassificationJudge
         from locisimiles.training.classification import (
             ClassificationTrainer,
@@ -179,8 +181,10 @@ class TestClassificationTrainerFitSave:
         trainer.fit(data=data)
         out_path = trainer.save()
 
-        candidates = BM25CandidateGenerator().generate(
-            query=query_document, source=source_document, top_k=2
+        # Exhaustive (not BM25/TF-IDF) so this test doesn't need CLTK, which
+        # has no release supporting Python 3.13.
+        candidates = ExhaustiveCandidateGenerator().generate(
+            query=query_document, source=source_document
         )
         judge = ClassificationJudge(classification_name=str(out_path))
         results = judge.judge(query=query_document, candidates=candidates)
