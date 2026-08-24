@@ -210,6 +210,106 @@ class TestClassificationTrainerFitSave:
             trainer.save()
 
 
+EVAL_ROWS = [
+    ("Arma virumque cano.", "Arma virumque cano qui primus.", "match"),
+    ("Litora multum iactatus.", "Something else about finance entirely.", "no_match"),
+]
+
+
+class TestClassificationTrainerCheckpointSelection:
+    def test_select_best_checkpoint_without_eval_data_raises(self, temp_dir, tiny_config):
+        from locisimiles.training.classification import (
+            ClassificationTrainer,
+            ClassificationTrainerConfig,
+        )
+
+        data = _build_training_data(temp_dir, BINARY_ROWS)
+        cfg = ClassificationTrainerConfig(
+            output_dir=temp_dir,
+            model_name=TINY_MODEL,
+            epochs=2,
+            batch_size=4,
+            max_length=32,
+            select_best_checkpoint=True,
+        )
+        trainer = ClassificationTrainer(cfg)
+        with pytest.raises(ValueError, match="select_best_checkpoint=True requires eval_data"):
+            trainer.fit(data=data)
+
+    def test_early_stopping_without_select_best_checkpoint_raises(self, temp_dir):
+        from locisimiles.training.classification import (
+            ClassificationTrainer,
+            ClassificationTrainerConfig,
+        )
+
+        data = _build_training_data(temp_dir, BINARY_ROWS)
+        cfg = ClassificationTrainerConfig(
+            output_dir=temp_dir,
+            model_name=TINY_MODEL,
+            epochs=2,
+            batch_size=4,
+            max_length=32,
+            early_stopping_patience=1,
+        )
+        trainer = ClassificationTrainer(cfg)
+        with pytest.raises(ValueError, match="early_stopping_patience requires"):
+            trainer.fit(data=data)
+
+    def test_eval_data_alone_is_purely_visibility(self, temp_dir, tiny_config):
+        """eval_data without select_best_checkpoint should just run without error."""
+        from locisimiles.training.classification import ClassificationTrainer
+
+        data = _build_training_data(temp_dir, BINARY_ROWS)
+        eval_data = _build_training_data(temp_dir, EVAL_ROWS, name="eval")
+        trainer = ClassificationTrainer(tiny_config)
+        model = trainer.fit(data=data, eval_data=eval_data)
+        assert model is not None
+
+    def test_select_best_checkpoint_runs_and_saves(self, temp_dir):
+        from locisimiles.training.classification import (
+            ClassificationTrainer,
+            ClassificationTrainerConfig,
+        )
+
+        data = _build_training_data(temp_dir, BINARY_ROWS)
+        eval_data = _build_training_data(temp_dir, EVAL_ROWS, name="eval")
+        cfg = ClassificationTrainerConfig(
+            output_dir=temp_dir,
+            model_name=TINY_MODEL,
+            epochs=2,
+            batch_size=4,
+            max_length=32,
+            select_best_checkpoint=True,
+        )
+        trainer = ClassificationTrainer(cfg)
+        model = trainer.fit(data=data, eval_data=eval_data)
+        assert model is not None
+
+        out_path = trainer.save()
+        assert out_path.exists()
+
+    def test_early_stopping_runs(self, temp_dir):
+        from locisimiles.training.classification import (
+            ClassificationTrainer,
+            ClassificationTrainerConfig,
+        )
+
+        data = _build_training_data(temp_dir, BINARY_ROWS)
+        eval_data = _build_training_data(temp_dir, EVAL_ROWS, name="eval")
+        cfg = ClassificationTrainerConfig(
+            output_dir=temp_dir,
+            model_name=TINY_MODEL,
+            epochs=3,
+            batch_size=4,
+            max_length=32,
+            select_best_checkpoint=True,
+            early_stopping_patience=1,
+        )
+        trainer = ClassificationTrainer(cfg)
+        model = trainer.fit(data=data, eval_data=eval_data)
+        assert model is not None
+
+
 class TestClassificationTrainerLossVariants:
     def test_balanced_class_weight_runs(self, temp_dir):
         from locisimiles.training.classification import (

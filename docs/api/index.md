@@ -63,8 +63,9 @@ approach in the benchmark:
 - `TrainingData` - Bundles a query/source `Document` pair with a `GroundTruth`, with negative-sampling methods
 - `LexicalClassifierTrainer` - Trains the LogReg/GBDT lexical classifier
 - `Word2VecTrainer` - Trains the Burns-style Word2Vec retrieval model
-- `ClassificationTrainer` - Fine-tunes the transformer sequence classifier, plus threshold tuning/application
-- `EmbeddingTrainer` - Fine-tunes the SentenceTransformer bi-encoder
+- `ClassificationTrainer` - Fine-tunes the transformer sequence classifier, plus threshold tuning/application and optional best-checkpoint/early-stopping selection
+- `EmbeddingTrainer` - Fine-tunes the SentenceTransformer bi-encoder, plus optional best-checkpoint/early-stopping selection
+- `cross_validate` - Reproduces the paper's mean±std-across-folds evaluation protocol
 
 ## Quick Reference
 

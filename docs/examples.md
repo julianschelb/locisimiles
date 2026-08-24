@@ -26,6 +26,12 @@ For contextual token-level retrieval (Gong-style), see the [Latin BERT notebook]
 
 For multiclass classifier inference with `cit`/`cf` evaluation, see the [multiclass classification notebook](https://github.com/julianschelb/locisimiles/blob/main/examples/example_multiclass_classification.ipynb).
 
+For the full train-your-own-models loop — training a classifier and an
+embedding model, combining them into a two-stage pipeline, threshold
+tuning, and K-fold cross-validation — see
+[example_train_and_evaluate.py](https://github.com/julianschelb/locisimiles/blob/main/examples/example_train_and_evaluate.py)
+and the [Training module docs](api/training.md).
+
 The notebook covers:
 
 1. **Loading Documents** - Creating Document objects from CSV files

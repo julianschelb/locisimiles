@@ -208,6 +208,82 @@ class TestEmbeddingTrainerEvalData:
         assert model is not None
 
 
+class TestEmbeddingTrainerCheckpointSelection:
+    @staticmethod
+    def _eval_data(query_doc_2, source_doc_4) -> TrainingData:
+        eval_gt = GroundTruth(
+            [
+                {"query_id": "q1", "source_id": "s1", "label": "match"},
+                {"query_id": "q2", "source_id": "s4", "label": "no_match"},
+            ]
+        )
+        return TrainingData(query_doc_2, source_doc_4, eval_gt)
+
+    def test_select_best_checkpoint_without_eval_data_raises(self, temp_dir, train_data):
+        from locisimiles.training.embedding import EmbeddingTrainer, EmbeddingTrainerConfig
+
+        cfg = EmbeddingTrainerConfig(
+            output_dir=temp_dir,
+            model_name=TINY_MODEL,
+            epochs=2,
+            batch_size=2,
+            select_best_checkpoint=True,
+        )
+        trainer = EmbeddingTrainer(cfg)
+        with pytest.raises(ValueError, match="select_best_checkpoint=True requires eval_data"):
+            trainer.fit(data=train_data)
+
+    def test_early_stopping_without_select_best_checkpoint_raises(self, temp_dir, train_data):
+        from locisimiles.training.embedding import EmbeddingTrainer, EmbeddingTrainerConfig
+
+        cfg = EmbeddingTrainerConfig(
+            output_dir=temp_dir,
+            model_name=TINY_MODEL,
+            epochs=2,
+            batch_size=2,
+            early_stopping_patience=1,
+        )
+        trainer = EmbeddingTrainer(cfg)
+        with pytest.raises(ValueError, match="early_stopping_patience requires"):
+            trainer.fit(data=train_data)
+
+    def test_select_best_checkpoint_runs_and_saves(
+        self, temp_dir, query_doc_2, source_doc_4, train_data
+    ):
+        from locisimiles.training.embedding import EmbeddingTrainer, EmbeddingTrainerConfig
+
+        eval_data = self._eval_data(query_doc_2, source_doc_4)
+        cfg = EmbeddingTrainerConfig(
+            output_dir=temp_dir,
+            model_name=TINY_MODEL,
+            epochs=2,
+            batch_size=2,
+            select_best_checkpoint=True,
+        )
+        trainer = EmbeddingTrainer(cfg)
+        model = trainer.fit(data=train_data, eval_data=eval_data)
+        assert model is not None
+
+        out_path = trainer.save()
+        assert out_path.exists()
+
+    def test_early_stopping_runs(self, temp_dir, query_doc_2, source_doc_4, train_data):
+        from locisimiles.training.embedding import EmbeddingTrainer, EmbeddingTrainerConfig
+
+        eval_data = self._eval_data(query_doc_2, source_doc_4)
+        cfg = EmbeddingTrainerConfig(
+            output_dir=temp_dir,
+            model_name=TINY_MODEL,
+            epochs=3,
+            batch_size=2,
+            select_best_checkpoint=True,
+            early_stopping_patience=1,
+        )
+        trainer = EmbeddingTrainer(cfg)
+        model = trainer.fit(data=train_data, eval_data=eval_data)
+        assert model is not None
+
+
 class TestEmbeddingTrainerLoadArtifacts:
     def test_load_artifacts_round_trip(self, tiny_config, train_data):
         from locisimiles.training.embedding import EmbeddingTrainer

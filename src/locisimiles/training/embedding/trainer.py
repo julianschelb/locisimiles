@@ -38,6 +38,14 @@ class EmbeddingTrainerConfig(TrainerConfig):
     negative_label: str = "no_match"
     device: str = "cpu"
     output_filename: str = "embedding_model"
+    #: Select the epoch with the best ``eval_data`` score (average precision
+    #: over cosine similarity) instead of always keeping the last epoch.
+    #: Requires ``eval_data`` at ``fit()``. Off by default, matching the
+    #: paper's fixed-epoch-then-save recipe.
+    select_best_checkpoint: bool = False
+    #: Stop training early if the ``eval_data`` score hasn't improved for
+    #: this many evaluations. Requires ``select_best_checkpoint=True``.
+    early_stopping_patience: Optional[int] = None
 
 
 class EmbeddingTrainer(BaseTrainer):
@@ -45,8 +53,10 @@ class EmbeddingTrainer(BaseTrainer):
 
     Uses ``OnlineContrastiveLoss`` (the paper's production loss) by default;
     triplet-loss variants tried in the experiments were superseded and are
-    not ported. No early stopping/checkpoint selection — matches the
-    experiment recipe of saving after the configured epoch count.
+    not ported. By default, trains for a fixed epoch count with no
+    checkpoint selection, matching the experiment recipe; pass
+    ``select_best_checkpoint=True`` (and ``eval_data``) to opt into
+    best-epoch selection and, optionally, early stopping.
     """
 
     def __init__(self, config: EmbeddingTrainerConfig):
@@ -92,10 +102,14 @@ class EmbeddingTrainer(BaseTrainer):
     ) -> Any:
         """Fine-tune the embedding model on resolved ``(query_text, source_text, label)`` pairs.
 
-        ``eval_data``, if given, runs a ``BinaryClassificationEvaluator``
-        during training purely for visibility — it is not used for
-        checkpoint selection, matching the experiment's fixed-epoch-then-save
-        behavior.
+        ``eval_data``, if given, runs a ``BinaryClassificationEvaluator`` once
+        per epoch. By default (``select_best_checkpoint=False``) this is
+        purely for visibility — the final epoch's weights are what get
+        returned/saved, matching the paper's fixed-epoch-then-save recipe. Set
+        ``select_best_checkpoint=True`` to instead keep the epoch with the
+        best ``eval_data`` score (average precision over cosine similarity),
+        optionally with ``early_stopping_patience`` to stop early once that
+        score stops improving.
         """
         import torch
         from sentence_transformers import (
@@ -103,6 +117,11 @@ class EmbeddingTrainer(BaseTrainer):
             SentenceTransformerTrainer,
             SentenceTransformerTrainingArguments,
         )
+
+        if self.cfg.select_best_checkpoint and eval_data is None:
+            raise ValueError("select_best_checkpoint=True requires eval_data")
+        if self.cfg.early_stopping_patience is not None and not self.cfg.select_best_checkpoint:
+            raise ValueError("early_stopping_patience requires select_best_checkpoint=True")
 
         self.validate_data()
         torch.manual_seed(self.cfg.seed)
@@ -120,6 +139,10 @@ class EmbeddingTrainer(BaseTrainer):
         self.model.prompts = dict(self.cfg.prompts)
         loss = self._build_loss(self.model)
 
+        # Name fixed to "dev" (not "eval") so the metric key HF's Trainer
+        # tracks ("eval_dev_cosine_ap") doesn't collide with its own "eval_"
+        # logging prefix.
+        eval_metric_name = "dev_cosine_ap"
         evaluator = None
         if eval_data is not None:
             from sentence_transformers.evaluation import BinaryClassificationEvaluator
@@ -130,8 +153,31 @@ class EmbeddingTrainer(BaseTrainer):
                 eval_match.append(source_text)
                 eval_labels.append(0 if str(label) == self.cfg.negative_label else 1)
             evaluator = BinaryClassificationEvaluator(
-                sentences1=eval_query, sentences2=eval_match, labels=eval_labels
+                sentences1=eval_query,
+                sentences2=eval_match,
+                labels=eval_labels,
+                name="dev",
+                similarity_fn_names=["cosine"],
             )
+
+        checkpoint_kwargs: Dict[str, Any] = {}
+        callbacks: list[Any] = []
+        if evaluator is not None:
+            checkpoint_kwargs["eval_strategy"] = "epoch"
+        if self.cfg.select_best_checkpoint:
+            checkpoint_kwargs.update(
+                save_strategy="epoch",
+                load_best_model_at_end=True,
+                metric_for_best_model=eval_metric_name,
+                greater_is_better=True,
+                save_total_limit=2,
+            )
+            if self.cfg.early_stopping_patience is not None:
+                from transformers import EarlyStoppingCallback
+
+                callbacks.append(
+                    EarlyStoppingCallback(early_stopping_patience=self.cfg.early_stopping_patience)
+                )
 
         args = SentenceTransformerTrainingArguments(
             output_dir=str(self.cfg.output_dir / "_trainer_output"),
@@ -146,6 +192,7 @@ class EmbeddingTrainer(BaseTrainer):
             # HF's Trainer auto-detects CUDA/MPS regardless of the model's own
             # device unless explicitly told not to; honor `cfg.device="cpu"`.
             use_cpu=(self.cfg.device == "cpu"),
+            **checkpoint_kwargs,
             **kwargs,
         )
 
@@ -155,8 +202,10 @@ class EmbeddingTrainer(BaseTrainer):
             train_dataset=train_dataset,
             loss=loss,
             evaluator=evaluator,
+            callbacks=callbacks or None,
         )
         trainer.train()
+        self.model = trainer.model
         return self.model
 
     def save(self, **kwargs: Any) -> Path:
