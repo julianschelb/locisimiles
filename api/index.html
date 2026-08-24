@@ -554,6 +554,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#training-module" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Training Module
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -786,6 +797,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -913,6 +952,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#training-module" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Training Module
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -996,6 +1046,8 @@
 <ul>
 <li><code>TextSegment</code> - Individual text unit with ID and content</li>
 <li><code>Document</code> - Container for text segments</li>
+<li><code>GroundTruthEntry</code> - One labeled query/source relationship</li>
+<li><code>GroundTruth</code> - Container for labeled query/source pairs</li>
 </ul>
 <h3 id="pipeline-module">Pipeline Module<a class="headerlink" href="#pipeline-module" title="Permanent link">&para;</a></h3>
 <p>The <a href="pipelines/">Pipelines</a> module provides the main processing pipelines:</p>
@@ -1034,6 +1086,16 @@
 <p>The <a href="evaluator/">Evaluator</a> module provides tools for assessing detection quality:</p>
 <ul>
 <li><code>IntertextEvaluator</code> - Main evaluation class</li>
+</ul>
+<h3 id="training-module">Training Module<a class="headerlink" href="#training-module" title="Permanent link">&para;</a></h3>
+<p>The <a href="training/">Training</a> module provides trainers for every trainable
+approach in the benchmark:</p>
+<ul>
+<li><code>TrainingData</code> - Bundles a query/source <code>Document</code> pair with a <code>GroundTruth</code>, with negative-sampling methods</li>
+<li><code>LexicalClassifierTrainer</code> - Trains the LogReg/GBDT lexical classifier</li>
+<li><code>Word2VecTrainer</code> - Trains the Burns-style Word2Vec retrieval model</li>
+<li><code>ClassificationTrainer</code> - Fine-tunes the transformer sequence classifier, plus threshold tuning/application</li>
+<li><code>EmbeddingTrainer</code> - Fine-tunes the SentenceTransformer bi-encoder</li>
 </ul>
 <h2 id="quick-reference">Quick Reference<a class="headerlink" href="#quick-reference" title="Permanent link">&para;</a></h2>
 <h3 id="loading-documents">Loading Documents<a class="headerlink" href="#loading-documents" title="Permanent link">&para;</a></h3>

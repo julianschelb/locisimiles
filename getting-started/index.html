@@ -952,6 +952,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1381,11 +1409,12 @@ candidate pair with a fine-tuned transformer model.</p>
 <a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="n">results</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="n">query</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="multiclass-classifier-inference">Multiclass Classifier Inference<a class="headerlink" href="#multiclass-classifier-inference" title="Permanent link">&para;</a></h3>
-<p>Classifier training is not part of the package API, but inference works with
-both binary and already-trained multiclass sequence classifiers.  For binary
-models, <code>judgment_score</code> is the positive-class probability, as before.  For
-multiclass models, configure the label names and positive labels so the same
-score remains usable for thresholding links.</p>
+<p>Both binary and multiclass sequence classifiers are supported at inference
+time, whether trained with <a href="../api/training/"><code>ClassificationTrainer</code></a> or
+uploaded from elsewhere.  For binary models, <code>judgment_score</code> is the
+positive-class probability, as before.  For multiclass models, configure the
+label names and positive labels so the same score remains usable for
+thresholding links.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">ClassificationPipelineWithCandidateGeneration</span><span class="p">,</span> <span class="n">Document</span>
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
 <a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="n">query</span> <span class="o">=</span> <span class="n">Document</span><span class="p">(</span><span class="s2">"query.csv"</span><span class="p">)</span>

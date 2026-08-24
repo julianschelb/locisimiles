@@ -16,7 +16,7 @@
         <link rel="prev" href="../judges/">
       
       
-        <link rel="next" href="../../development/">
+        <link rel="next" href="../training/">
       
       
         
@@ -786,6 +786,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1020,7 +1048,7 @@ for custom class names.</p>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="o">*</span><span class="p">,</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">query_doc</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            locisimiles.document.Document" href="../document/#locisimiles.document.Document">Document</a></span><span class="p">,</span>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">source_doc</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            locisimiles.document.Document" href="../document/#locisimiles.document.Document">Document</a></span><span class="p">,</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">ground_truth_csv</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">|</span> <span class="n"><span title="pandas.DataFrame">DataFrame</span></span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">ground_truth</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">|</span> <span class="n"><span title="pathlib.Path">Path</span></span> <span class="o">|</span> <span class="n"><span title="pandas.DataFrame">DataFrame</span></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="            locisimiles.ground_truth.GroundTruth" href="../document/#locisimiles.ground_truth.GroundTruth">GroundTruth</a></span><span class="p">,</span>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">pipeline</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            locisimiles.pipeline.pipeline.Pipeline (locisimiles.pipeline.Pipeline)" href="../custom-pipelines/#locisimiles.pipeline.pipeline.Pipeline">Pipeline</a></span><span class="p">,</span>
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">top_k</span><span class="p">:</span> <span class="n"><span title="int">int</span></span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
 <a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">threshold</span><span class="p">:</span> <span class="n"><span title="float">float</span></span> <span class="o">|</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s2">"auto"</span><span class="p">,</span>
@@ -1138,7 +1166,7 @@ the results for efficient metric computation across different thresholds.</p>
 <a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="n">evaluator</span> <span class="o">=</span> <span class="n">IntertextEvaluator</span><span class="p">(</span>
 <a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="n">query_doc</span><span class="o">=</span><span class="n">query_doc</span><span class="p">,</span>
 <a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    <span class="n">source_doc</span><span class="o">=</span><span class="n">source_doc</span><span class="p">,</span>
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="n">ground_truth_csv</span><span class="o">=</span><span class="s2">"ground_truth.csv"</span><span class="p">,</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="n">ground_truth</span><span class="o">=</span><span class="s2">"ground_truth.csv"</span><span class="p">,</span>
 <a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>    <span class="n">pipeline</span><span class="o">=</span><span class="n">pipeline</span><span class="p">,</span>
 <a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>    <span class="n">top_k</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
 <a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>    <span class="n">threshold</span><span class="o">=</span><span class="s2">"auto"</span><span class="p">,</span>  <span class="c1"># Automatically find best threshold</span>
