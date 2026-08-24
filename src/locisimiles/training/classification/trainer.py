@@ -41,15 +41,25 @@ class ClassificationTrainerConfig(TrainerConfig):
     disable_compile: bool = False
     device: str = "cpu"
     output_filename: str = "classifier"
+    #: Keep the epoch with the lowest ``eval_data`` cross-entropy loss
+    #: instead of always keeping the last epoch. Requires ``eval_data`` at
+    #: ``fit()``. Off by default, matching the paper's fixed-epoch-then-save
+    #: recipe.
+    select_best_checkpoint: bool = False
+    #: Stop training early if the ``eval_data`` loss hasn't improved for
+    #: this many epochs. Requires ``select_best_checkpoint=True``.
+    early_stopping_patience: Optional[int] = None
 
 
 class ClassificationTrainer(BaseTrainer):
     """Fine-tune a transformer sequence-classification model on labeled pairs.
 
     Mirrors the experiment recipe: a hand-rolled ``AdamW`` loop, no LR
-    scheduler, a fixed epoch count (no early stopping/checkpoint selection —
-    the model is saved after the last epoch), with optional balanced
-    class-weighting or focal loss. Pair truncation reuses the exact strategy
+    scheduler, a fixed epoch count by default (the model is saved after the
+    last epoch), with optional balanced class-weighting or focal loss. Pass
+    ``select_best_checkpoint=True`` (and ``eval_data``) to instead keep the
+    epoch with the lowest eval loss, optionally with early stopping. Pair
+    truncation reuses the exact strategy
     :class:`~locisimiles.pipeline.judge.classification.ClassificationJudge`
     uses at inference time, so train/inference tokenization matches.
     """
@@ -102,12 +112,46 @@ class ClassificationTrainer(BaseTrainer):
         weights = [n / (num_labels * count) if count > 0 else 0.0 for count in counts]
         return torch.tensor(weights, dtype=torch.float32, device=self.cfg.device)
 
-    def fit(self, *, data: TrainingData, **kwargs: Any) -> Any:  # type: ignore[override]
-        """Fine-tune the classifier on resolved ``(query_text, source_text, label)`` pairs."""
+    def _eval_loss(self, eval_data: TrainingData) -> float:
+        """Mean cross-entropy loss on ``eval_data``, for checkpoint selection."""
+        import math
+
+        assert self._label_to_id is not None
+        probabilities, gold_labels = self._predict_probabilities(eval_data)
+        if not probabilities:
+            return math.inf
+        losses = [
+            -math.log(max(row[self._label_to_id[label]], 1e-12))
+            for row, label in zip(probabilities, gold_labels)
+        ]
+        return sum(losses) / len(losses)
+
+    def fit(  # type: ignore[override]
+        self,
+        *,
+        data: TrainingData,
+        eval_data: Optional[TrainingData] = None,
+        **kwargs: Any,
+    ) -> Any:
+        """Fine-tune the classifier on resolved ``(query_text, source_text, label)`` pairs.
+
+        ``eval_data``, if given, has its cross-entropy loss computed after
+        every epoch — purely for visibility by default
+        (``select_best_checkpoint=False``, matching the paper's
+        fixed-epoch-then-save recipe). Set ``select_best_checkpoint=True`` to
+        instead keep the epoch with the lowest ``eval_data`` loss, optionally
+        with ``early_stopping_patience`` to stop early once that loss stops
+        improving.
+        """
         import torch
         import torch.nn.functional as F
         from torch.optim import AdamW
         from torch.utils.data import DataLoader, Dataset
+
+        if self.cfg.select_best_checkpoint and eval_data is None:
+            raise ValueError("select_best_checkpoint=True requires eval_data")
+        if self.cfg.early_stopping_patience is not None and not self.cfg.select_best_checkpoint:
+            raise ValueError("early_stopping_patience requires select_best_checkpoint=True")
 
         self.validate_data()
         torch.manual_seed(self.cfg.seed)
@@ -163,8 +207,13 @@ class ClassificationTrainer(BaseTrainer):
             class_weights = self._class_weights(label_ids, num_labels)
 
         optimizer = AdamW(self.model.parameters(), lr=self.cfg.learning_rate)
-        self.model.train()
+
+        best_eval_loss = float("inf")
+        best_state_dict: Optional[Dict[str, Any]] = None
+        epochs_without_improvement = 0
+
         for _epoch in range(self.cfg.epochs):
+            self.model.train()
             for encoding, labels in loader:
                 encoding = {key: value.to(self.cfg.device) for key, value in encoding.items()}
                 labels = labels.to(self.cfg.device)
@@ -185,6 +234,27 @@ class ClassificationTrainer(BaseTrainer):
 
                 loss.backward()
                 optimizer.step()
+
+            if eval_data is not None:
+                eval_loss = self._eval_loss(eval_data)
+                if self.cfg.select_best_checkpoint:
+                    if eval_loss < best_eval_loss:
+                        best_eval_loss = eval_loss
+                        best_state_dict = {
+                            key: value.detach().clone()
+                            for key, value in self.model.state_dict().items()
+                        }
+                        epochs_without_improvement = 0
+                    else:
+                        epochs_without_improvement += 1
+                        if (
+                            self.cfg.early_stopping_patience is not None
+                            and epochs_without_improvement >= self.cfg.early_stopping_patience
+                        ):
+                            break
+
+        if self.cfg.select_best_checkpoint and best_state_dict is not None:
+            self.model.load_state_dict(best_state_dict)
 
         self.model.eval()
         return self.model
