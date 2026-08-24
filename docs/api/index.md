@@ -10,6 +10,8 @@ The [Document](document.md) module provides classes for representing and loading
 
 - `TextSegment` - Individual text unit with ID and content
 - `Document` - Container for text segments
+- `GroundTruthEntry` - One labeled query/source relationship
+- `GroundTruth` - Container for labeled query/source pairs
 
 ### Pipeline Module
 
@@ -52,6 +54,17 @@ The [Judges](judges.md) module provides scoring/classification components:
 The [Evaluator](evaluator.md) module provides tools for assessing detection quality:
 
 - `IntertextEvaluator` - Main evaluation class
+
+### Training Module
+
+The [Training](training.md) module provides trainers for every trainable
+approach in the benchmark:
+
+- `TrainingData` - Bundles a query/source `Document` pair with a `GroundTruth`, with negative-sampling methods
+- `LexicalClassifierTrainer` - Trains the LogReg/GBDT lexical classifier
+- `Word2VecTrainer` - Trains the Burns-style Word2Vec retrieval model
+- `ClassificationTrainer` - Fine-tunes the transformer sequence classifier, plus threshold tuning/application
+- `EmbeddingTrainer` - Fine-tunes the SentenceTransformer bi-encoder
 
 ## Quick Reference
 

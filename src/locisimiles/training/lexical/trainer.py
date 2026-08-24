@@ -3,13 +3,13 @@
 
 from __future__ import annotations
 
-import csv
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Literal
 
 from locisimiles.training.artifacts import resolve_model_output_path
 from locisimiles.training.base import BaseTrainer, TrainerConfig
+from locisimiles.training.data import TrainingData
 from locisimiles.training.lexical.features import build_feature_matrix, fit_vectorizers
 
 
@@ -17,10 +17,10 @@ from locisimiles.training.lexical.features import build_feature_matrix, fit_vect
 class LexicalClassifierTrainerConfig(TrainerConfig):
     """Configuration for the lexical classifier trainer.
 
-    ``train_path`` must point to a CSV with ``query_text``, ``corpus_text``,
-    and ``label`` columns (``label`` may be an integer class id or a string
-    class name, e.g. ``no_match`` / ``cit`` / ``cf`` for the three-class
-    setup, or any two-class scheme for binary training).
+    ``fit()`` takes a ``TrainingData`` whose ground truth ``label`` may be an
+    integer class id or a string class name, e.g. ``no_match`` / ``cit`` /
+    ``cf`` for the three-class setup, or any two-class scheme for binary
+    training.
     """
 
     classifier: Literal["logreg", "gbdt"] = "logreg"
@@ -53,22 +53,20 @@ class LexicalClassifierTrainer(BaseTrainer):
     def cfg(self) -> LexicalClassifierTrainerConfig:
         return self.config  # type: ignore[return-value]
 
-    def _load_rows(self) -> tuple[list[str], list[str], list[str]]:
+    def validate_data(self) -> None:
+        """Ensure the output directory exists; ``fit()`` validates its ``TrainingData``."""
+        self.config.output_dir.mkdir(parents=True, exist_ok=True)
+
+    def _load_rows(self, data: TrainingData) -> tuple[list[str], list[str], list[str]]:
         query_texts: list[str] = []
         corpus_texts: list[str] = []
         labels: list[str] = []
-        with self.cfg.train_path.open("r", encoding="utf-8", newline="") as handle:
-            reader = csv.DictReader(handle)
-            required = {"query_text", "corpus_text", "label"}
-            missing = required - set(reader.fieldnames or [])
-            if missing:
-                raise ValueError(f"Training CSV is missing required columns: {sorted(missing)}")
-            for row in reader:
-                query_texts.append(row["query_text"])
-                corpus_texts.append(row["corpus_text"])
-                labels.append(str(row["label"]))
+        for query_text, corpus_text, label in data:
+            query_texts.append(query_text)
+            corpus_texts.append(corpus_text)
+            labels.append(str(label))
         if not query_texts:
-            raise ValueError("No training rows found")
+            raise ValueError("No training rows found in TrainingData")
         return query_texts, corpus_texts, labels
 
     def _build_classifier(self) -> Any:
@@ -93,10 +91,10 @@ class LexicalClassifierTrainer(BaseTrainer):
             )
         raise ValueError(f"Unknown classifier: {self.cfg.classifier!r}")
 
-    def fit(self, **kwargs: Any) -> Any:
+    def fit(self, *, data: TrainingData, **kwargs: Any) -> Any:  # type: ignore[override]
         """Fit TF-IDF vectorizers and the configured classifier on paired training data."""
         self.validate_data()
-        query_texts, corpus_texts, labels = self._load_rows()
+        query_texts, corpus_texts, labels = self._load_rows(data)
 
         sorted_labels = sorted(set(labels))
         self._label_to_id = {label: idx for idx, label in enumerate(sorted_labels)}

@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import csv
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Sequence
 
+from locisimiles.document import Document
 from locisimiles.training.artifacts import resolve_model_output_path
 from locisimiles.training.base import BaseTrainer, TrainerConfig
 from locisimiles.training.preprocess import tokenize_latin_text
@@ -26,7 +26,12 @@ class Word2VecTrainerConfig(TrainerConfig):
 
 
 class Word2VecTrainer(BaseTrainer):
-    """Train a local gensim Word2Vec model from ``seg_id,text`` CSV data."""
+    """Train a local gensim Word2Vec model from one or more ``Document``s.
+
+    Word2Vec is unsupervised (it learns word embeddings from raw sentences,
+    not labeled pairs), so unlike the pair/label trainers it takes plain
+    ``Document``s rather than a ``TrainingData``.
+    """
 
     def __init__(self, config: Word2VecTrainerConfig):
         super().__init__(config)
@@ -36,17 +41,16 @@ class Word2VecTrainer(BaseTrainer):
     def cfg(self) -> Word2VecTrainerConfig:
         return self.config  # type: ignore[return-value]
 
-    def _load_sentences(self) -> list[list[str]]:
-        sentences: list[list[str]] = []
-        with self.cfg.train_path.open("r", encoding="utf-8", newline="") as handle:
-            reader = csv.DictReader(handle)
-            if "text" not in (reader.fieldnames or []):
-                raise ValueError("Training CSV must include a 'text' column")
+    def validate_data(self) -> None:
+        """Ensure the output directory exists; ``fit()`` validates its documents."""
+        self.config.output_dir.mkdir(parents=True, exist_ok=True)
 
-            for row in reader:
-                text = row.get("text", "")
+    def _load_sentences(self, documents: Sequence[Document]) -> list[list[str]]:
+        sentences: list[list[str]] = []
+        for document in documents:
+            for segment in document:
                 tokens = tokenize_latin_text(
-                    text,
+                    segment.text,
                     lowercase=self.cfg.lowercase,
                     normalize_ij_uv=self.cfg.normalize_ij_uv,
                 )
@@ -57,8 +61,8 @@ class Word2VecTrainer(BaseTrainer):
             raise ValueError("No non-empty tokenized training rows found")
         return sentences
 
-    def fit(self, **kwargs: Any) -> Any:
-        """Train a gensim Word2Vec model from tokenized training rows."""
+    def fit(self, *, documents: Sequence[Document], **kwargs: Any) -> Any:  # type: ignore[override]
+        """Train a gensim Word2Vec model from tokenized segments across the given documents."""
         self.validate_data()
         try:
             from gensim.models import Word2Vec
@@ -67,7 +71,7 @@ class Word2VecTrainer(BaseTrainer):
                 "Word2Vec training requires gensim. Install with: pip install 'locisimiles[word2vec]'"
             ) from exc
 
-        sentences = self._load_sentences()
+        sentences = self._load_sentences(documents)
         self.model = Word2Vec(
             sentences=sentences,
             vector_size=self.cfg.vector_size,

@@ -6,6 +6,7 @@ from locisimiles.datasets import (
     load_example_source,
 )
 from locisimiles.document import Document
+from locisimiles.ground_truth import GroundTruth
 
 # ── Query document ──────────────────────────────────────────────
 
@@ -66,34 +67,29 @@ class TestLoadExampleSource:
 
 
 class TestLoadExampleGroundTruth:
-    def test_returns_list(self) -> None:
+    def test_returns_ground_truth(self) -> None:
         gt = load_example_ground_truth()
-        assert isinstance(gt, list)
+        assert isinstance(gt, GroundTruth)
 
     def test_row_count(self) -> None:
         gt = load_example_ground_truth()
         assert len(gt) == 10
 
-    def test_row_keys(self) -> None:
-        gt = load_example_ground_truth()
-        for row in gt:
-            assert set(row.keys()) == {"query_id", "source_id", "label"}
-
     def test_label_is_int(self) -> None:
         gt = load_example_ground_truth()
-        for row in gt:
-            assert isinstance(row["label"], int)
-            assert row["label"] in (0, 1)
+        for entry in gt:
+            assert isinstance(entry.label, int)
+            assert entry.label in (0, 1)
 
     def test_query_ids_reference_hieronymus(self) -> None:
         gt = load_example_ground_truth()
-        for row in gt:
-            assert row["query_id"].startswith("hier.")
+        for entry in gt:
+            assert entry.query_id.startswith("hier.")
 
     def test_source_ids_reference_vergil(self) -> None:
         gt = load_example_ground_truth()
-        for row in gt:
-            assert row["source_id"].startswith("verg.")
+        for entry in gt:
+            assert entry.source_id.startswith("verg.")
 
 
 # ── Top-level import ────────────────────────────────────────────

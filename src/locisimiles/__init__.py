@@ -9,6 +9,7 @@ from locisimiles.datasets import (
 )
 from locisimiles.document import Document, TextSegment
 from locisimiles.evaluator import IntertextEvaluator
+from locisimiles.ground_truth import GroundTruth, GroundTruthEntry
 from locisimiles.pipeline import (
     DEFAULT_CONTEXTUAL_BERT_MODEL_NAME,
     DEFAULT_WORD2VEC_MODEL_PATH,
@@ -52,6 +53,8 @@ from locisimiles.pipeline import (
 __all__ = [
     "Document",
     "TextSegment",
+    "GroundTruth",
+    "GroundTruthEntry",
     # Preconfigured pipelines
     "TwoStagePipeline",
     "ExhaustiveClassificationPipeline",

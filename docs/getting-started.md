@@ -85,11 +85,12 @@ results = pipeline.run(query=query, source=source, top_k=10)
 
 ### Multiclass Classifier Inference
 
-Classifier training is not part of the package API, but inference works with
-both binary and already-trained multiclass sequence classifiers.  For binary
-models, `judgment_score` is the positive-class probability, as before.  For
-multiclass models, configure the label names and positive labels so the same
-score remains usable for thresholding links.
+Both binary and multiclass sequence classifiers are supported at inference
+time, whether trained with [`ClassificationTrainer`](api/training.md) or
+uploaded from elsewhere.  For binary models, `judgment_score` is the
+positive-class probability, as before.  For multiclass models, configure the
+label names and positive labels so the same score remains usable for
+thresholding links.
 
 ```python
 from locisimiles import ClassificationPipelineWithCandidateGeneration, Document

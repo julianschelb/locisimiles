@@ -10,9 +10,13 @@ from typing import Any
 
 @dataclass(frozen=True)
 class TrainerConfig:
-    """Common configuration used by all trainers."""
+    """Common configuration used by all trainers.
 
-    train_path: Path
+    Trainers take their training data as arguments to ``fit()`` (a
+    ``TrainingData``/``Document`` collection, not a config-held path), so
+    this base only holds the knobs genuinely common to every trainer.
+    """
+
     output_dir: Path
     seed: int = 42
     lowercase: bool = True
@@ -26,9 +30,12 @@ class BaseTrainer(ABC):
         self.config = config
 
     def validate_data(self) -> None:
-        """Validate input paths and basic training preconditions."""
-        if not self.config.train_path.exists():
-            raise FileNotFoundError(f"Training data not found: {self.config.train_path}")
+        """Validate basic training preconditions common to all trainers.
+
+        Subclasses that take structured data (``Document``/``TrainingData``)
+        via ``fit()`` should override this to validate those arguments where
+        they're actually available, rather than relying on this base method.
+        """
         self.config.output_dir.mkdir(parents=True, exist_ok=True)
 
     @abstractmethod
