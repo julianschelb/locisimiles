@@ -2,6 +2,27 @@
 
 <!-- version list -->
 
+## v2.1.2 (2026-08-25)
+
+### Bug Fixes
+
+- Correct binary-classifier positive-class resolution in ClassificationJudge
+  ([#20](https://github.com/julianschelb/locisimiles/pull/20),
+  [`785e2ea`](https://github.com/julianschelb/locisimiles/commit/785e2eac055502bc55e6157ed375e471d31a6975))
+
+- Pin CUDA visibility in EmbeddingTrainer to avoid DataParallel crash
+  ([#20](https://github.com/julianschelb/locisimiles/pull/20),
+  [`785e2ea`](https://github.com/julianschelb/locisimiles/commit/785e2eac055502bc55e6157ed375e471d31a6975))
+
+- Support non-numeric positive labels in IntertextEvaluator.evaluate()
+  ([#20](https://github.com/julianschelb/locisimiles/pull/20),
+  [`785e2ea`](https://github.com/julianschelb/locisimiles/commit/785e2eac055502bc55e6157ed375e471d31a6975))
+
+- Three defects found by real-data/real-hardware validation
+  ([#20](https://github.com/julianschelb/locisimiles/pull/20),
+  [`785e2ea`](https://github.com/julianschelb/locisimiles/commit/785e2eac055502bc55e6157ed375e471d31a6975))
+
+
 ## v2.1.1 (2026-08-24)
 
 ### Bug Fixes
