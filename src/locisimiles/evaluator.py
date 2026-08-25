@@ -208,8 +208,15 @@ class IntertextEvaluator:
         source_ids = self.source_doc.ids()
         predicted_links = self._predicted_link_set()
 
+        # gold_labels may hold non-numeric positive labels (e.g. "match", "cit")
+        # alongside legacy numeric 0/1 ones -- route through _is_positive_label
+        # (already used by the multiclass path) instead of assuming every value
+        # is already an int, which used to crash on string labels.
         gold_vec: np.ndarray = np.array(
-            [self.gold_labels.get((query_id, s_id), 0) for s_id in source_ids],
+            [
+                1 if self._is_positive_label(self.gold_labels.get((query_id, s_id), 0)) else 0
+                for s_id in source_ids
+            ],
             dtype=int,
         )
         pred_vec: np.ndarray = np.array(

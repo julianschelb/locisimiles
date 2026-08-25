@@ -72,6 +72,21 @@ def resolve_positive_class_ids(
             if normalise_label(label_for_class_id(idx)) in positive_labels
         ]
 
+    if num_labels == 2:
+        # A binary model's label_to_id mapping isn't guaranteed to put the
+        # positive class at pos_class_idx -- e.g. ClassificationTrainer
+        # assigns ids by sorting whatever label strings appear in the
+        # training data, so "1"/"no_match" sorts to {0: "1", 1: "no_match"},
+        # inverting the conventional index-1-is-positive assumption. Prefer
+        # name-based resolution when exactly one class is recognizably
+        # negative; only fall back to pos_class_idx when the labels are
+        # generic (e.g. LABEL_0/LABEL_1) and carry no such information.
+        is_negative = [
+            normalise_label(label_for_class_id(idx)) in negative_labels for idx in (0, 1)
+        ]
+        if is_negative.count(True) == 1:
+            return [1 - is_negative.index(True)]
+
     if num_labels <= 2:
         return [pos_class_idx] if 0 <= pos_class_idx < num_labels else []
 

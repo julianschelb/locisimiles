@@ -126,6 +126,8 @@ class EmbeddingTrainer(BaseTrainer):
         optionally with ``early_stopping_patience`` to stop early once that
         score stops improving.
         """
+        import os
+
         import torch
         from sentence_transformers import (
             SentenceTransformer,
@@ -138,6 +140,17 @@ class EmbeddingTrainer(BaseTrainer):
             raise ValueError("select_best_checkpoint=True requires eval_data")
         if self.cfg.early_stopping_patience is not None and not self.cfg.select_best_checkpoint:
             raise ValueError("early_stopping_patience requires select_best_checkpoint=True")
+
+        # HF's Trainer auto-wraps the model in nn.DataParallel whenever more than
+        # one CUDA device is visible, which crashes newer sentence-transformers
+        # loss classes (their forward pass returns non-tensor batch items that
+        # DataParallel's gather() can't merge). This trainer is single-device by
+        # design (see `device` config), so pin CUDA visibility to exactly the
+        # requested device to prevent that wrapping. Must happen before any CUDA
+        # call in this process establishes a device count, so do it first.
+        if self.cfg.device.startswith("cuda") and torch.cuda.device_count() > 1:
+            device_index = self.cfg.device.split(":", 1)[1] if ":" in self.cfg.device else "0"
+            os.environ["CUDA_VISIBLE_DEVICES"] = device_index
 
         self.validate_data()
         torch.manual_seed(self.cfg.seed)
