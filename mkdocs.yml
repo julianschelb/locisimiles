@@ -99,6 +99,7 @@ nav:
   - Getting Started: getting-started.md
   - Examples: examples.md
   - CLI Reference: cli.md
+  - Latin BERT Tokenizer: latin-bert-tokenizer.md
   - API Reference:
     - Overview: api/index.md
     - Document: api/document.md

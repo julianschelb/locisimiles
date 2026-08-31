@@ -19,8 +19,19 @@ from transformers import AutoModel, AutoTokenizer
 from locisimiles.document import Document, TextSegment
 from locisimiles.pipeline._types import Candidate, CandidateGeneratorOutput
 from locisimiles.pipeline.generator._base import CandidateGeneratorBase
+from locisimiles.tokenization.latin_bert import (
+    CLS_ID,
+    NUM_SPECIAL_TOKENS,
+    SEP_ID,
+    LatinBertSubwordTokenizer,
+    unk_rate,
+)
 
 DEFAULT_CONTEXTUAL_BERT_MODEL_NAME = "xlm-roberta-base"
+
+#: Above this share of [UNK] words on a Latin probe sentence, a tokenizer is
+#: treated as unable to segment the language rather than merely lossy.
+MAX_ACCEPTABLE_UNK_RATE = 0.20
 
 # Compact stopword list to suppress high-frequency Latin function words.
 LATIN_STOPWORDS = {
@@ -70,8 +81,21 @@ class LatinBertContextualCandidateGenerator(CandidateGeneratorBase):
         model_path: Local path to a model directory.
         device: Torch device string.
         max_length: Maximum tokenizer length per segment.
-        min_token_length: Minimum word length to keep during filtering.
-        use_stopword_filter: Whether to remove common Latin stopwords.
+        min_token_length: Minimum word length to keep during filtering. The
+            Loci Similes paper reports this baseline with ``1``; the default of
+            ``2`` here is a mild filter for interactive use.
+        use_stopword_filter: Whether to remove common Latin stopwords. The
+            paper reports this baseline with ``False``.
+        subword_encoder_path: Path to a ``tensor2tensor`` subword vocabulary
+            (``latin.subword.encoder``). Required for Latin BERT checkpoints,
+            whose HuggingFace conversions ship no tokenizer configuration.
+        check_tokenizer: Whether to reject a tokenizer that cannot segment
+            Latin. Disable only if you knowingly accept the loss.
+
+    Raises:
+        ValueError: If the resolved tokenizer maps more than
+            :data:`MAX_ACCEPTABLE_UNK_RATE` of a Latin probe sentence to
+            ``[UNK]`` and ``check_tokenizer`` is enabled.
     """
 
     def __init__(
@@ -83,6 +107,8 @@ class LatinBertContextualCandidateGenerator(CandidateGeneratorBase):
         max_length: int = 256,
         min_token_length: int = 2,
         use_stopword_filter: bool = True,
+        subword_encoder_path: str | Path | None = None,
+        check_tokenizer: bool = True,
     ):
         self.device = device if device is not None else "cpu"
         self.max_length = max(16, int(max_length))
@@ -90,12 +116,44 @@ class LatinBertContextualCandidateGenerator(CandidateGeneratorBase):
         self.use_stopword_filter = bool(use_stopword_filter)
 
         model_ref = self._resolve_model_reference(model_name=model_name, model_path=model_path)
-        self.tokenizer = AutoTokenizer.from_pretrained(model_ref)
+
+        # Latin BERT ships a tensor2tensor vocabulary, which AutoTokenizer
+        # cannot segment; use the original encoder when one is supplied.
+        self.subword_tokenizer: LatinBertSubwordTokenizer | None = None
+        if subword_encoder_path is not None:
+            self.subword_tokenizer = LatinBertSubwordTokenizer.from_vocab_file(subword_encoder_path)
+            self.tokenizer = None
+        else:
+            self.tokenizer = AutoTokenizer.from_pretrained(model_ref)
+            if check_tokenizer:
+                self._assert_tokenizer_segments_latin(self.tokenizer, model_ref)
+
         self.model = AutoModel.from_pretrained(model_ref)
         self.model.to(self.device).eval()
 
         self._source_cache: dict[str, np.ndarray] | None = None
         self._source_cache_doc_id: int | None = None
+
+    # ---------- Tokenizer validation ----------
+
+    @staticmethod
+    def _assert_tokenizer_segments_latin(tokenizer: Any, model_ref: str) -> None:
+        """Reject a tokenizer that maps most Latin words to ``[UNK]``.
+
+        A WordPiece tokenizer built from a ``tensor2tensor`` vocabulary produces
+        no error, only ``[UNK]``, so this check is the only signal a user gets.
+        """
+        rate = unk_rate(tokenizer)
+        if rate <= MAX_ACCEPTABLE_UNK_RATE:
+            return
+        raise ValueError(
+            f"The tokenizer loaded for {model_ref!r} maps {rate:.0%} of Latin words to [UNK]. "
+            "This happens when a checkpoint ships a tensor2tensor SubwordTextEncoder "
+            "vocabulary (subtokens ending in '_') but no tokenizer configuration, so "
+            "AutoTokenizer falls back to WordPiece. Pass subword_encoder_path=<path to "
+            "latin.subword.encoder> to use the model's original encoder, or set "
+            "check_tokenizer=False to proceed anyway."
+        )
 
     # ---------- Model resolution ----------
 
@@ -140,13 +198,57 @@ class LatinBertContextualCandidateGenerator(CandidateGeneratorBase):
         if not text:
             return np.empty((0, 0), dtype=np.float32)
 
+        if self.subword_tokenizer is not None:
+            hidden, spans = self._encode_with_subword_tokenizer(
+                text,
+                max_length=max_length,
+                min_token_length=min_token_length,
+                use_stopword_filter=use_stopword_filter,
+            )
+        else:
+            hidden, spans = self._encode_with_hf_tokenizer(
+                text,
+                max_length=max_length,
+                min_token_length=min_token_length,
+                use_stopword_filter=use_stopword_filter,
+            )
+
+        if hidden is None or not spans:
+            return np.empty((0, 0), dtype=np.float32)
+
+        vectors: list[np.ndarray] = []
+        for indices in spans:
+            if not indices:
+                continue
+            # Mean-pool subword states into one word vector and L2-normalize
+            # so later scoring is a plain cosine dot product.
+            pooled = hidden[indices].mean(dim=0)
+            norm = torch.linalg.norm(pooled)
+            if float(norm) <= 0.0:
+                continue
+            vectors.append((pooled / norm).detach().cpu().numpy().astype(np.float32))
+
+        if not vectors:
+            return np.empty((0, 0), dtype=np.float32)
+
+        return np.vstack(vectors)
+
+    def _encode_with_hf_tokenizer(
+        self,
+        text: str,
+        *,
+        max_length: int,
+        min_token_length: int,
+        use_stopword_filter: bool,
+    ) -> tuple[torch.Tensor | None, list[list[int]]]:
+        """Encode with a HuggingFace tokenizer, grouping subwords by offsets."""
         spans = [
             (tok, start, end)
             for tok, start, end in self._word_spans(text)
             if self._keep_token(tok, min_token_length, use_stopword_filter)
         ]
         if not spans:
-            return np.empty((0, 0), dtype=np.float32)
+            return None, []
 
         encoded = self.tokenizer(
             text,
@@ -162,30 +264,55 @@ class LatinBertContextualCandidateGenerator(CandidateGeneratorBase):
         with torch.no_grad():
             hidden = self.model(**encoded).last_hidden_state[0]
 
-        vectors: list[np.ndarray] = []
-        for _tok, start, end in spans:
-            # Map the word's character span back to the wordpiece indices
-            # covering it, via the tokenizer's offset mapping.
-            indices = [
+        # Map each word's character span back to the wordpiece indices covering
+        # it, via the tokenizer's offset mapping.
+        grouped = [
+            [
                 i
                 for i, (sub_start, sub_end) in enumerate(offsets)
                 if sub_end > sub_start and not (sub_end <= start or sub_start >= end)
             ]
-            if not indices:
-                continue
+            for _tok, start, end in spans
+        ]
+        return hidden, grouped
 
-            # Mean-pool subword states into one word vector and L2-normalize
-            # so later scoring is a plain cosine dot product.
-            pooled = hidden[indices].mean(dim=0)
-            norm = torch.linalg.norm(pooled)
-            if float(norm) <= 0.0:
-                continue
-            vectors.append((pooled / norm).detach().cpu().numpy().astype(np.float32))
+    def _encode_with_subword_tokenizer(
+        self,
+        text: str,
+        *,
+        max_length: int,
+        min_token_length: int,
+        use_stopword_filter: bool,
+    ) -> tuple[torch.Tensor | None, list[list[int]]]:
+        """Encode with the model's original subword encoder.
 
-        if not vectors:
-            return np.empty((0, 0), dtype=np.float32)
+        The tensor2tensor vocabulary provides no offset mapping, so subwords are
+        grouped by construction: each word contributes a known id range.
+        """
+        tokenizer = self.subword_tokenizer
+        assert tokenizer is not None
 
-        return np.vstack(vectors)
+        words = tokenizer.words(text)
+        keep = [self._keep_token(w, min_token_length, use_stopword_filter) for w in words]
+        if not any(keep):
+            return None, []
+
+        ids: list[int] = [CLS_ID]
+        grouped: list[list[int]] = []
+        for word, keep_word in zip(words, keep):
+            word_ids = [i + NUM_SPECIAL_TOKENS for i in tokenizer.encoder.encode_word(word)]
+            if len(ids) + len(word_ids) + 1 > max_length:
+                break
+            if keep_word:
+                grouped.append(list(range(len(ids), len(ids) + len(word_ids))))
+            ids.extend(word_ids)
+        ids.append(SEP_ID)
+
+        input_ids = torch.tensor([ids], dtype=torch.long, device=self.device)
+        attention_mask = torch.ones_like(input_ids)
+        with torch.no_grad():
+            hidden = self.model(input_ids=input_ids, attention_mask=attention_mask).last_hidden_state[0]
+        return hidden, grouped
 
     def _build_source_cache(
         self,
