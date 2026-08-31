@@ -2,6 +2,25 @@
 
 <!-- version list -->
 
+## v2.1.3 (2026-08-31)
+
+### Bug Fixes
+
+- Use Latin BERT's own subword encoder instead of WordPiece
+  ([#21](https://github.com/julianschelb/locisimiles/pull/21),
+  [`c5643ce`](https://github.com/julianschelb/locisimiles/commit/c5643ce58e68c548ee4d71eaaf4e5a636405b84d))
+
+### Code Style
+
+- Apply ruff format to the new modules and tests
+  ([#21](https://github.com/julianschelb/locisimiles/pull/21),
+  [`c5643ce`](https://github.com/julianschelb/locisimiles/commit/c5643ce58e68c548ee4d71eaaf4e5a636405b84d))
+
+- Satisfy ruff and mypy in the new tokenizer and diagnostics modules
+  ([#21](https://github.com/julianschelb/locisimiles/pull/21),
+  [`c5643ce`](https://github.com/julianschelb/locisimiles/commit/c5643ce58e68c548ee4d71eaaf4e5a636405b84d))
+
+
 ## v2.1.2 (2026-08-25)
 
 ### Bug Fixes
