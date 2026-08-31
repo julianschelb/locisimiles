@@ -10,29 +10,31 @@
       
       
       
-        <link rel="canonical" href="https://julianschelb.github.io/locisimiles/">
+        <link rel="canonical" href="https://julianschelb.github.io/locisimiles/latin-bert-tokenizer/">
       
       
+        <link rel="prev" href="../cli/">
       
-        <link rel="next" href="getting-started/">
+      
+        <link rel="next" href="../api/">
       
       
         
       
       
-      <link rel="icon" href="assets/images/favicon.png">
+      <link rel="icon" href="../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
-        <title>LociSimiles</title>
+        <title>Latin BERT Tokenizer - LociSimiles</title>
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
       
         
-        <link rel="stylesheet" href="assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -51,11 +53,11 @@
       
     
     
-      <link rel="stylesheet" href="assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
     
-      <link rel="stylesheet" href="stylesheets/extra.css">
+      <link rel="stylesheet" href="../stylesheets/extra.css">
     
-    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -80,7 +82,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#locisimiles" class="md-skip">
+        <a href="#latin-bert-and-its-tokenizer" class="md-skip">
           Skip to content
         </a>
       
@@ -96,7 +98,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="." title="LociSimiles" class="md-header__button md-logo" aria-label="LociSimiles" data-md-component="logo">
+    <a href=".." title="LociSimiles" class="md-header__button md-logo" aria-label="LociSimiles" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -116,7 +118,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Home
+              Latin BERT Tokenizer
             
           </span>
         </div>
@@ -234,7 +236,7 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="." title="LociSimiles" class="md-nav__button md-logo" aria-label="LociSimiles" data-md-component="logo">
+    <a href=".." title="LociSimiles" class="md-nav__button md-logo" aria-label="LociSimiles" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -261,37 +263,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Home
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="." class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
         
   
   
@@ -307,109 +282,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#quick-start" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Quick Start
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Quick Start">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#installation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Installation
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#basic-usage" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Basic Usage
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#documentation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Documentation
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#authors" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Authors
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#citation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Citation
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#license" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        License
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -421,7 +293,7 @@
   
   
     <li class="md-nav__item">
-      <a href="getting-started/" class="md-nav__link">
+      <a href="../getting-started/" class="md-nav__link">
         
   
   
@@ -448,7 +320,7 @@
   
   
     <li class="md-nav__item">
-      <a href="examples/" class="md-nav__link">
+      <a href="../examples/" class="md-nav__link">
         
   
   
@@ -475,7 +347,7 @@
   
   
     <li class="md-nav__item">
-      <a href="cli/" class="md-nav__link">
+      <a href="../cli/" class="md-nav__link">
         
   
   
@@ -499,10 +371,37 @@
       
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="latin-bert-tokenizer/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Latin BERT Tokenizer
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -518,6 +417,70 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-this-package-does" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this package does
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-latin-bert-correctly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using Latin BERT correctly
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-it-matters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why it matters
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a-related-trap-word-vectors-and-orthography" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A related trap: word vectors and orthography
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -583,7 +546,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/" class="md-nav__link">
+      <a href="../api/" class="md-nav__link">
         
   
   
@@ -611,7 +574,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/document/" class="md-nav__link">
+      <a href="../api/document/" class="md-nav__link">
         
   
   
@@ -639,7 +602,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/pipelines/" class="md-nav__link">
+      <a href="../api/pipelines/" class="md-nav__link">
         
   
   
@@ -667,7 +630,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/custom-pipelines/" class="md-nav__link">
+      <a href="../api/custom-pipelines/" class="md-nav__link">
         
   
   
@@ -695,7 +658,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/generators/" class="md-nav__link">
+      <a href="../api/generators/" class="md-nav__link">
         
   
   
@@ -723,7 +686,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/judges/" class="md-nav__link">
+      <a href="../api/judges/" class="md-nav__link">
         
   
   
@@ -751,7 +714,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/evaluator/" class="md-nav__link">
+      <a href="../api/evaluator/" class="md-nav__link">
         
   
   
@@ -779,7 +742,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/training/" class="md-nav__link">
+      <a href="../api/training/" class="md-nav__link">
         
   
   
@@ -814,7 +777,7 @@
   
   
     <li class="md-nav__item">
-      <a href="development/" class="md-nav__link">
+      <a href="../development/" class="md-nav__link">
         
   
   
@@ -861,49 +824,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#quick-start" class="md-nav__link">
+  <a href="#what-this-package-does" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Quick Start
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Quick Start">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#installation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Installation
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#basic-usage" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Basic Usage
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#documentation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Documentation
+        What this package does
       
     </span>
   </a>
@@ -911,10 +835,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#authors" class="md-nav__link">
+  <a href="#using-latin-bert-correctly" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Authors
+        Using Latin BERT correctly
       
     </span>
   </a>
@@ -922,10 +846,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#citation" class="md-nav__link">
+  <a href="#why-it-matters" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Citation
+        Why it matters
       
     </span>
   </a>
@@ -933,10 +857,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#license" class="md-nav__link">
+  <a href="#a-related-trap-word-vectors-and-orthography" class="md-nav__link">
     <span class="md-ellipsis">
       
-        License
+        A related trap: word vectors and orthography
       
     </span>
   </a>
@@ -963,53 +887,92 @@
   
 
 
-<h1 id="locisimiles">LociSimiles<a class="headerlink" href="#locisimiles" title="Permanent link">&para;</a></h1>
-<p><strong>A Python package for extracting intertextualities in Latin literature using pre-trained language models.</strong></p>
-<p>LociSimiles enables researchers to detect textual reuse, quotations, and allusions between Latin texts, from verbatim citations to subtle paraphrases and thematic echoes.</p>
-<h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
-<h3 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span>locisimiles
+<h1 id="latin-bert-and-its-tokenizer">Latin BERT and its tokenizer<a class="headerlink" href="#latin-bert-and-its-tokenizer" title="Permanent link">&para;</a></h1>
+<p>Latin BERT (<a href="https://arxiv.org/abs/2009.10053">Bamman and Burns, 2020</a>) was
+trained with a <code>tensor2tensor</code> <code>SubwordTextEncoder</code>. The public HuggingFace
+conversions ship the model weights and that encoder's vocabulary as
+<code>vocab.txt</code>, but <strong>no tokenizer configuration</strong>.</p>
+<p>This combination fails quietly. <code>AutoTokenizer.from_pretrained</code> sees a
+<code>vocab.txt</code> and builds a <strong>WordPiece</strong> tokenizer, but the vocabulary is not a
+WordPiece vocabulary: its subtokens mark word endings with a trailing
+underscore (<code>et_</code>, <code>que_</code>, <code>faucibus_</code>) and carry no <code>##</code> continuation prefix.
+WordPiece cannot segment against it, so it falls back to <code>[UNK]</code> — for about
+<strong>60–70 % of Latin words</strong>. No error is raised, and the model still produces
+scores that look plausible.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>obstipui steteruntque comae et uox faucibus haesit
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>AutoTokenizer  →  [UNK] [UNK] [UNK] et [UNK] [UNK] haesit      # 5 of 7 words lost
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>correct        →  obsti·pui·_  steter·unt·que_  coma·e_  et_
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>                  uo·x_  faucibus_  haesit·_                    # 14 subwords, 0 [UNK]
 </code></pre></div>
-<p>Or install with development dependencies:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"locisimiles[dev]"</span>
+<h2 id="what-this-package-does">What this package does<a class="headerlink" href="#what-this-package-does" title="Permanent link">&para;</a></h2>
+<p>Constructing a contextual generator validates the tokenizer against a Latin
+probe sentence and <strong>refuses to run</strong> if it cannot segment the language:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles.pipeline.generator.contextual_bert</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    <span class="n">LatinBertContextualCandidateGenerator</span><span class="p">,</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="p">)</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="n">LatinBertContextualCandidateGenerator</span><span class="p">(</span><span class="n">model_name</span><span class="o">=</span><span class="s2">"ashleygong03/bamman-burns-latin-bert"</span><span class="p">)</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="c1"># ValueError: The tokenizer loaded for 'ashleygong03/bamman-burns-latin-bert' maps</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># 71% of Latin words to [UNK]. ... Pass subword_encoder_path=&lt;path to</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="c1"># latin.subword.encoder&gt; to use the model's original encoder ...</span>
 </code></pre></div>
-<h3 id="basic-usage">Basic Usage<a class="headerlink" href="#basic-usage" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Document</span><span class="p">,</span> <span class="n">RetrievalPipeline</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="c1"># Load your documents</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">source</span> <span class="o">=</span> <span class="n">Document</span><span class="o">.</span><span class="n">from_csv</span><span class="p">(</span><span class="s2">"source_texts.csv"</span><span class="p">)</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">target</span> <span class="o">=</span> <span class="n">Document</span><span class="o">.</span><span class="n">from_csv</span><span class="p">(</span><span class="s2">"target_texts.csv"</span><span class="p">)</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c1"># Create retrieval pipeline</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="n">pipeline</span> <span class="o">=</span> <span class="n">RetrievalPipeline</span><span class="p">()</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="c1"># Find similar passages</span>
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="n">results</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">retrieve</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<h2 id="using-latin-bert-correctly">Using Latin BERT correctly<a class="headerlink" href="#using-latin-bert-correctly" title="Permanent link">&para;</a></h2>
+<p>Download <code>latin.subword.encoder</code> from the
+<a href="https://github.com/dbamman/latin-bert">Latin BERT repository</a> (
+<code>models/subword_tokenizer_latin/latin.subword.encoder</code>) and point the generator
+at it:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">generator</span> <span class="o">=</span> <span class="n">LatinBertContextualCandidateGenerator</span><span class="p">(</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    <span class="n">model_name</span><span class="o">=</span><span class="s2">"ashleygong03/bamman-burns-latin-bert"</span><span class="p">,</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="n">subword_encoder_path</span><span class="o">=</span><span class="s2">"models/latin.subword.encoder"</span><span class="p">,</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="n">min_token_length</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>        <span class="c1"># paper-faithful: no length filter</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="n">use_stopword_filter</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="c1"># paper-faithful: no stopword filter</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="p">)</span>
 </code></pre></div>
-<h2 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h2>
-<ul>
-<li><a href="getting-started/">Getting Started</a> - Installation and first steps</li>
-<li><a href="examples/">Examples</a> - Working examples and tutorials</li>
-<li><a href="cli/">CLI Reference</a> - Command-line interface documentation</li>
-<li><a href="api/">API Reference</a> - Complete API documentation</li>
-<li><a href="development/">Development</a> - Contributing and development setup</li>
-</ul>
-<h2 id="authors">Authors<a class="headerlink" href="#authors" title="Permanent link">&para;</a></h2>
-<ul>
-<li><strong>Julian Schelb</strong> - University of Konstanz</li>
-<li><strong>Michael Wittweiler</strong> - University of Zurich</li>
-</ul>
-<h2 id="citation">Citation<a class="headerlink" href="#citation" title="Permanent link">&para;</a></h2>
-<p>If you use LociSimiles in your research, please cite our paper:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nc">@article</span><span class="p">{</span><span class="nl">schelb2026locisimiles</span><span class="p">,</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="na">title</span><span class="p">=</span><span class="s">{Loci Similes: A Benchmark for Extracting Intertextualities in Latin Literature}</span><span class="p">,</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="na">author</span><span class="p">=</span><span class="s">{Schelb, Julian and Wittweiler, Michael and Revellio, Marie and Feichtinger, Barbara and Spitz, Andreas}</span><span class="p">,</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="na">journal</span><span class="p">=</span><span class="s">{arXiv preprint arXiv:2601.07533}</span><span class="p">,</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="na">year</span><span class="p">=</span><span class="s">{2026}</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="p">}</span>
+<p>The encoder is reimplemented in pure Python
+(<code>locisimiles.tokenization.latin_bert</code>), so no TensorFlow or <code>tensor2tensor</code>
+dependency is required. It reproduces the reference segmentation exactly, and
+applies the same id layout as <code>gen_berts.py</code>: <code>[PAD] [UNK] [CLS] [SEP] [MASK]</code>
+occupy ids 0–4 and every subtoken id is shifted by <code>+5</code>, giving a vocabulary of
+32,900 that matches the checkpoint's <code>config.json</code>.</p>
+<h2 id="why-it-matters">Why it matters<a class="headerlink" href="#why-it-matters" title="Permanent link">&para;</a></h2>
+<p>Evaluated on the <em>Loci Similes</em> benchmark, the tokenizer alone accounts for the
+difference between a baseline that looks unusable and one that is competitive:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>broken tokenizer</th>
+<th>original encoder</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Retrieval, pooled Recall@100</td>
+<td>0.147</td>
+<td><strong>0.616</strong></td>
+</tr>
+<tr>
+<td>Cross-encoder, verbatim F1</td>
+<td>9.53</td>
+<td><strong>77.82</strong></td>
+</tr>
+</tbody>
+</table>
+<h2 id="a-related-trap-word-vectors-and-orthography">A related trap: word vectors and orthography<a class="headerlink" href="#a-related-trap-word-vectors-and-orthography" title="Permanent link">&para;</a></h2>
+<p>The same class of mismatch affects the static Latin word vectors. The published
+checkpoints are trained on <strong>u/i-normalized lemmas</strong> (<code>uolo</code>, <code>uel</code>, <code>ciuilis</code>),
+whereas CLTK's lemmatizer emits v/j spellings and homonym indices (<code>volo</code>,
+<code>vel</code>, <code>venus2</code>). Looking the latter up in the former simply misses.</p>
+<p><code>Word2VecCandidateGenerator</code> therefore lemmatizes with CLTK and <em>then</em>
+normalizes orthography — that order matters — and warns when few tokens are
+found in the vocabulary:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>UserWarning: Word2Vec generator (latin_w2v_bamman_lemma300_100_1.model): only
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>37.5% of tokens are in the vocabulary ... frequent OOV: volo (3165), vel (1993)
 </code></pre></div>
-<h2 id="license">License<a class="headerlink" href="#license" title="Permanent link">&para;</a></h2>
-<p>This project is licensed under the MIT License.</p>
+<p>That warning is the generic form of the check: any embedding checkpoint whose
+preprocessing disagrees with your text will show up as low coverage rather than
+as an error.</p>
 
 
 
@@ -1081,10 +1044,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>
