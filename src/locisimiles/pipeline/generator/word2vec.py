@@ -6,9 +6,14 @@ import re
 from pathlib import Path
 from typing import Any, Iterable, Optional, Protocol, Sequence
 
+from locisimiles.diagnostics import warn_on_low_coverage
 from locisimiles.document import Document, TextSegment
 from locisimiles.pipeline._types import Candidate, CandidateGeneratorOutput
 from locisimiles.pipeline.generator._base import CandidateGeneratorBase
+from locisimiles.pipeline.generator._latin_text import preprocess as _latin_preprocess
+
+#: CLTK lemmas may carry a homonym index (``venus2``); the vectors do not.
+_SENSE_DIGITS_RE = re.compile(r"\d+$")
 
 DEFAULT_WORD2VEC_MODEL_PATH = (
     Path(__file__).resolve().parents[4] / "models" / "latin_w2v_bamman_lemma300_100_1.model"
@@ -66,6 +71,12 @@ class Word2VecCandidateGenerator(CandidateGeneratorBase):
         interval: Maximum gap between two tokens inside a bigram.
             ``0`` means contiguous bigrams.
         order_free: If ``True``, sort each bigram token pair so order is ignored.
+        lemmatize: Whether to lemmatize with CLTK before vector lookup. The
+            reference checkpoints are trained on lemmatized text, so surface
+            forms miss the vocabulary; disable only for a surface-form model.
+        warn_on_low_coverage: Whether to warn when few tokens of the first
+            scored document are found in the vocabulary, which indicates a
+            tokenization or orthography mismatch.
     """
 
     def __init__(
@@ -74,10 +85,15 @@ class Word2VecCandidateGenerator(CandidateGeneratorBase):
         model_path: str | Path = DEFAULT_WORD2VEC_MODEL_PATH,
         interval: int = 0,
         order_free: bool = False,
+        lemmatize: bool = True,
+        warn_on_low_coverage: bool = True,
     ):
         self.model_path = Path(model_path)
         self.interval = max(0, int(interval))
         self.order_free = bool(order_free)
+        self.lemmatize = bool(lemmatize)
+        self.warn_on_low_coverage = bool(warn_on_low_coverage)
+        self._coverage_checked = False
 
         if not self.model_path.exists():
             raise FileNotFoundError(
@@ -90,6 +106,18 @@ class Word2VecCandidateGenerator(CandidateGeneratorBase):
     # ---------- Tokenization ----------
 
     @staticmethod
+    def _normalize_token(token: str) -> str:
+        """Map one token to the orthography of the Latin word-vector vocabularies.
+
+        The checkpoints are trained on u/i-normalized text, whereas CLTK emits
+        v/j spellings and sense-numbered lemmas (``volo``, ``jam``, ``venus2``),
+        none of which are in the vocabulary.
+        """
+        token = _SENSE_DIGITS_RE.sub("", token.lower())
+        token = token.replace("j", "i").replace("v", "u")
+        return re.sub(r"[^a-z]", "", token)
+
+    @staticmethod
     def _normalize_text(text: str) -> str:
         """Apply lightweight Latin-oriented normalization for token matching."""
         text = text.lower().replace("j", "i").replace("v", "u")
@@ -98,11 +126,33 @@ class Word2VecCandidateGenerator(CandidateGeneratorBase):
         return re.sub(r"\s+", " ", text).strip()
 
     def _tokenize(self, text: str) -> list[str]:
-        """Normalize and split text into tokens."""
-        normalized = self._normalize_text(text)
-        if not normalized:
-            return []
-        return [token for token in normalized.split(" ") if token]
+        """Tokenize, optionally lemmatize, then normalize orthography.
+
+        Normalization runs *after* lemmatization: CLTK produces ``volo`` and the
+        vocabulary holds ``uolo``, so reversing the order would miss.
+        """
+        if self.lemmatize:
+            try:
+                tokens = _latin_preprocess(text or "", lemmatize=True, lowercase=True)
+            except ImportError:
+                # CLTK is an optional extra; fall back to surface forms.
+                tokens = self._normalize_text(text).split(" ")
+        else:
+            tokens = self._normalize_text(text).split(" ")
+
+        normalized = (self._normalize_token(tok) for tok in tokens)
+        return [tok for tok in normalized if tok]
+
+    def _check_coverage(self, tokens: Sequence[str]) -> None:
+        """Warn once if the vocabulary covers few of the observed tokens."""
+        if self._coverage_checked or not self.warn_on_low_coverage or not tokens:
+            return
+        self._coverage_checked = True
+        warn_on_low_coverage(
+            list(tokens),
+            self.model.wv,
+            label=f"Word2Vec generator ({self.model_path.name})",
+        )
 
     # ---------- Bigram similarity ----------
 
@@ -214,6 +264,7 @@ class Word2VecCandidateGenerator(CandidateGeneratorBase):
         results: CandidateGeneratorOutput = {}
         for query_segment in query.segments.values():
             query_tokens = self._tokenize(query_segment.text)
+            self._check_coverage(query_tokens)
             query_bigrams = self._build_bigrams(query_tokens, eff_interval)
 
             scored: list[Candidate] = []
