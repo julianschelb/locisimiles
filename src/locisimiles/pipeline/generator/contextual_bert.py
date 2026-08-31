@@ -250,6 +250,7 @@ class LatinBertContextualCandidateGenerator(CandidateGeneratorBase):
         if not spans:
             return None, []
 
+        assert self.tokenizer is not None  # set whenever no subword encoder is used
         encoded = self.tokenizer(
             text,
             return_tensors="pt",

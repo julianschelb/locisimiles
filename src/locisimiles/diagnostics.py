@@ -10,9 +10,20 @@ from __future__ import annotations
 import warnings
 from collections import Counter
 from dataclasses import dataclass
-from typing import Container, Iterable, Sequence
+from typing import Iterable, Protocol, Sequence
 
-__all__ = ["CoverageReport", "vocab_coverage", "warn_on_low_coverage"]
+__all__ = ["CoverageReport", "SupportsContains", "vocab_coverage", "warn_on_low_coverage"]
+
+
+class SupportsContains(Protocol):
+    """Anything that answers ``token in vocabulary`` for string tokens.
+
+    Deliberately narrower than ``Container[str]``: gensim's ``KeyedVectors``
+    declares ``__contains__(self, key: str)``, which is not compatible with
+    ``Container``'s ``__contains__(self, object)``.
+    """
+
+    def __contains__(self, key: str, /) -> bool: ...
 
 #: Coverage below which :func:`warn_on_low_coverage` emits a warning.
 DEFAULT_MIN_TOKEN_COVERAGE = 0.70
@@ -56,7 +67,7 @@ class CoverageReport:
         )
 
 
-def vocab_coverage(tokens: Iterable[str], vocabulary: Container[str], *, top_n: int = 15) -> CoverageReport:
+def vocab_coverage(tokens: Iterable[str], vocabulary: SupportsContains, *, top_n: int = 15) -> CoverageReport:
     """Measure how much of ``tokens`` the ``vocabulary`` covers.
 
     Args:
@@ -83,7 +94,7 @@ def vocab_coverage(tokens: Iterable[str], vocabulary: Container[str], *, top_n: 
 
 def warn_on_low_coverage(
     tokens: Sequence[str],
-    vocabulary: Container[str],
+    vocabulary: SupportsContains,
     *,
     label: str,
     min_token_coverage: float = DEFAULT_MIN_TOKEN_COVERAGE,

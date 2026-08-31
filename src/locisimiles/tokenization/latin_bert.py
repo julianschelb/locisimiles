@@ -20,7 +20,6 @@ Reference: https://github.com/dbamman/latin-bert
 from __future__ import annotations
 
 import re
-import unicodedata
 from pathlib import Path
 
 __all__ = ["SubwordTextEncoder", "LatinBertSubwordTokenizer", "unk_rate"]
@@ -66,7 +65,7 @@ class SubwordTextEncoder:
     # ---------- Construction ----------
 
     @classmethod
-    def from_file(cls, path: str | Path) -> "SubwordTextEncoder":
+    def from_file(cls, path: str | Path) -> SubwordTextEncoder:
         """Load a ``*.subword.encoder`` vocabulary file.
 
         Lines may be wrapped in single or double quotes, as written by
@@ -146,7 +145,7 @@ class LatinBertSubwordTokenizer:
         self.lowercase = bool(lowercase)
 
     @classmethod
-    def from_vocab_file(cls, path: str | Path, *, lowercase: bool = True) -> "LatinBertSubwordTokenizer":
+    def from_vocab_file(cls, path: str | Path, *, lowercase: bool = True) -> LatinBertSubwordTokenizer:
         """Build a tokenizer from a ``latin.subword.encoder`` file."""
         return cls(SubwordTextEncoder.from_file(path), lowercase=lowercase)
 
