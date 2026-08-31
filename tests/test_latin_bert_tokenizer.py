@@ -128,7 +128,8 @@ def test_generator_rejects_a_tokenizer_that_cannot_segment_latin(monkeypatch):
     from locisimiles.pipeline.generator import contextual_bert as module
 
     monkeypatch.setattr(
-        module.AutoTokenizer, "from_pretrained",
+        module.AutoTokenizer,
+        "from_pretrained",
         classmethod(lambda cls, *a, **k: _WordPieceOverSubwordVocab()),
     )
     with pytest.raises(ValueError, match=r"\[UNK\]"):
@@ -144,11 +145,13 @@ def test_guard_can_be_disabled(monkeypatch):
     from locisimiles.pipeline.generator import contextual_bert as module
 
     monkeypatch.setattr(
-        module.AutoTokenizer, "from_pretrained",
+        module.AutoTokenizer,
+        "from_pretrained",
         classmethod(lambda cls, *a, **k: _WordPieceOverSubwordVocab()),
     )
     monkeypatch.setattr(
-        module.AutoModel, "from_pretrained",
+        module.AutoModel,
+        "from_pretrained",
         classmethod(lambda cls, *a, **k: (_ for _ in ()).throw(_ModelLoadReached())),
     )
     # Reaching the model load means the guard did not fire.

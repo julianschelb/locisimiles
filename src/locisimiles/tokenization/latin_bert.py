@@ -145,7 +145,9 @@ class LatinBertSubwordTokenizer:
         self.lowercase = bool(lowercase)
 
     @classmethod
-    def from_vocab_file(cls, path: str | Path, *, lowercase: bool = True) -> LatinBertSubwordTokenizer:
+    def from_vocab_file(
+        cls, path: str | Path, *, lowercase: bool = True
+    ) -> LatinBertSubwordTokenizer:
         """Build a tokenizer from a ``latin.subword.encoder`` file."""
         return cls(SubwordTextEncoder.from_file(path), lowercase=lowercase)
 
@@ -160,7 +162,7 @@ class LatinBertSubwordTokenizer:
 
     def words(self, text: str) -> list[str]:
         """Extract alphabetic words, lowercased when configured."""
-        source = (text or "")
+        source = text or ""
         if self.lowercase:
             source = source.lower()
         return _WORD_RE.findall(source)
@@ -171,9 +173,13 @@ class LatinBertSubwordTokenizer:
         Grouping by word is what allows word-level pooling without an offset
         mapping, which this vocabulary cannot provide.
         """
-        return [[i + NUM_SPECIAL_TOKENS for i in self.encoder.encode_word(w)] for w in self.words(text)]
+        return [
+            [i + NUM_SPECIAL_TOKENS for i in self.encoder.encode_word(w)] for w in self.words(text)
+        ]
 
-    def encode_pair(self, text_a: str, text_b: str, *, max_length: int = 512) -> tuple[list[int], list[int]]:
+    def encode_pair(
+        self, text_a: str, text_b: str, *, max_length: int = 512
+    ) -> tuple[list[int], list[int]]:
         """Encode a segment pair as ``[CLS] a [SEP] b [SEP]`` with token type ids.
 
         The longer side is truncated first, as HuggingFace's ``longest_first``
@@ -188,7 +194,9 @@ class LatinBertSubwordTokenizer:
         token_type_ids = [0] * (len(a) + 2) + [1] * (len(b) + 1)
         return ids, token_type_ids
 
-    def encode_segment(self, text: str, *, max_length: int = 256) -> tuple[list[int], list[tuple[int, int]]]:
+    def encode_segment(
+        self, text: str, *, max_length: int = 256
+    ) -> tuple[list[int], list[tuple[int, int]]]:
         """Encode one segment as ``[CLS] … [SEP]``.
 
         Returns the ids and, for each word that fits, the ``[start, end)`` span

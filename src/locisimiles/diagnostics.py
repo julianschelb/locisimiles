@@ -25,6 +25,7 @@ class SupportsContains(Protocol):
 
     def __contains__(self, key: str, /) -> bool: ...
 
+
 #: Coverage below which :func:`warn_on_low_coverage` emits a warning.
 DEFAULT_MIN_TOKEN_COVERAGE = 0.70
 
@@ -67,7 +68,9 @@ class CoverageReport:
         )
 
 
-def vocab_coverage(tokens: Iterable[str], vocabulary: SupportsContains, *, top_n: int = 15) -> CoverageReport:
+def vocab_coverage(
+    tokens: Iterable[str], vocabulary: SupportsContains, *, top_n: int = 15
+) -> CoverageReport:
     """Measure how much of ``tokens`` the ``vocabulary`` covers.
 
     Args:

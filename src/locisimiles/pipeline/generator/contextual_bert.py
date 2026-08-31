@@ -312,7 +312,9 @@ class LatinBertContextualCandidateGenerator(CandidateGeneratorBase):
         input_ids = torch.tensor([ids], dtype=torch.long, device=self.device)
         attention_mask = torch.ones_like(input_ids)
         with torch.no_grad():
-            hidden = self.model(input_ids=input_ids, attention_mask=attention_mask).last_hidden_state[0]
+            hidden = self.model(
+                input_ids=input_ids, attention_mask=attention_mask
+            ).last_hidden_state[0]
         return hidden, grouped
 
     def _build_source_cache(

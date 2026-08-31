@@ -15,13 +15,13 @@ from locisimiles.pipeline.generator.word2vec import Word2VecCandidateGenerator a
 @pytest.mark.parametrize(
     "raw,expected",
     [
-        ("volo", "uolo"),        # v -> u
-        ("Jam", "iam"),          # j -> i, lowercased
+        ("volo", "uolo"),  # v -> u
+        ("Jam", "iam"),  # j -> i, lowercased
         ("civilis", "ciuilis"),
-        ("venus2", "uenus"),     # homonym index stripped
+        ("venus2", "uenus"),  # homonym index stripped
         ("cum2", "cum"),
         ("uirumque", "uirumque"),  # already normalized
-        ("arma,", "arma"),       # punctuation removed
+        ("arma,", "arma"),  # punctuation removed
     ],
 )
 def test_normalizes_tokens_to_the_vector_vocabulary(raw, expected):
