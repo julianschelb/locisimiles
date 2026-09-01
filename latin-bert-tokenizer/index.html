@@ -434,10 +434,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#what-this-package-does" class="md-nav__link">
+  <a href="#using-latin-bert" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What this package does
+        Using Latin BERT
       
     </span>
   </a>
@@ -445,10 +445,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#using-latin-bert-correctly" class="md-nav__link">
+  <a href="#tokenizer-check" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Using Latin BERT correctly
+        Tokenizer check
       
     </span>
   </a>
@@ -456,21 +456,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#why-it-matters" class="md-nav__link">
+  <a href="#vocabulary-coverage" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Why it matters
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#a-related-trap-word-vectors-and-orthography" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        A related trap: word vectors and orthography
+        Vocabulary coverage
       
     </span>
   </a>
@@ -824,10 +813,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#what-this-package-does" class="md-nav__link">
+  <a href="#using-latin-bert" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What this package does
+        Using Latin BERT
       
     </span>
   </a>
@@ -835,10 +824,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#using-latin-bert-correctly" class="md-nav__link">
+  <a href="#tokenizer-check" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Using Latin BERT correctly
+        Tokenizer check
       
     </span>
   </a>
@@ -846,21 +835,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#why-it-matters" class="md-nav__link">
+  <a href="#vocabulary-coverage" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Why it matters
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#a-related-trap-word-vectors-and-orthography" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        A related trap: word vectors and orthography
+        Vocabulary coverage
       
     </span>
   </a>
@@ -889,90 +867,64 @@
 
 <h1 id="latin-bert-and-its-tokenizer">Latin BERT and its tokenizer<a class="headerlink" href="#latin-bert-and-its-tokenizer" title="Permanent link">&para;</a></h1>
 <p>Latin BERT (<a href="https://arxiv.org/abs/2009.10053">Bamman and Burns, 2020</a>) was
-trained with a <code>tensor2tensor</code> <code>SubwordTextEncoder</code>. The public HuggingFace
-conversions ship the model weights and that encoder's vocabulary as
-<code>vocab.txt</code>, but <strong>no tokenizer configuration</strong>.</p>
-<p>This combination fails quietly. <code>AutoTokenizer.from_pretrained</code> sees a
-<code>vocab.txt</code> and builds a <strong>WordPiece</strong> tokenizer, but the vocabulary is not a
-WordPiece vocabulary: its subtokens mark word endings with a trailing
-underscore (<code>et_</code>, <code>que_</code>, <code>faucibus_</code>) and carry no <code>##</code> continuation prefix.
-WordPiece cannot segment against it, so it falls back to <code>[UNK]</code> — for about
-<strong>60–70 % of Latin words</strong>. No error is raised, and the model still produces
-scores that look plausible.</p>
+trained with a <code>tensor2tensor</code> <code>SubwordTextEncoder</code>. The HuggingFace
+conversions of the model ship the weights and that encoder's vocabulary as
+<code>vocab.txt</code>, but no tokenizer configuration, so <code>AutoTokenizer</code> builds a
+WordPiece tokenizer instead.</p>
+<p>The two vocabularies have different shapes. Subtokens in a <code>tensor2tensor</code>
+vocabulary mark word endings with a trailing underscore (<code>et_</code>, <code>que_</code>,
+<code>faucibus_</code>) and have no <code>##</code> continuation prefix, which WordPiece cannot
+segment. Most Latin words then become <code>[UNK]</code>:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>obstipui steteruntque comae et uox faucibus haesit
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>AutoTokenizer  →  [UNK] [UNK] [UNK] et [UNK] [UNK] haesit      # 5 of 7 words lost
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>correct        →  obsti·pui·_  steter·unt·que_  coma·e_  et_
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>                  uo·x_  faucibus_  haesit·_                    # 14 subwords, 0 [UNK]
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>WordPiece  →  [UNK] [UNK] [UNK] et [UNK] [UNK] haesit      # 5 of 7 words
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>original   →  obsti·pui·_  steter·unt·que_  coma·e_  et_
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>              uo·x_  faucibus_  haesit·_                    # 14 subwords
 </code></pre></div>
-<h2 id="what-this-package-does">What this package does<a class="headerlink" href="#what-this-package-does" title="Permanent link">&para;</a></h2>
-<p>Constructing a contextual generator validates the tokenizer against a Latin
-probe sentence and <strong>refuses to run</strong> if it cannot segment the language:</p>
+<h2 id="using-latin-bert">Using Latin BERT<a class="headerlink" href="#using-latin-bert" title="Permanent link">&para;</a></h2>
+<p>Download <code>latin.subword.encoder</code> from the
+<a href="https://github.com/dbamman/latin-bert">Latin BERT repository</a>
+(<code>models/subword_tokenizer_latin/latin.subword.encoder</code>) and pass it to the
+generator:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">locisimiles.pipeline.generator.contextual_bert</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    <span class="n">LatinBertContextualCandidateGenerator</span><span class="p">,</span>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="p">)</span>
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="n">LatinBertContextualCandidateGenerator</span><span class="p">(</span><span class="n">model_name</span><span class="o">=</span><span class="s2">"ashleygong03/bamman-burns-latin-bert"</span><span class="p">)</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="c1"># ValueError: The tokenizer loaded for 'ashleygong03/bamman-burns-latin-bert' maps</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># 71% of Latin words to [UNK]. ... Pass subword_encoder_path=&lt;path to</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="c1"># latin.subword.encoder&gt; to use the model's original encoder ...</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="n">generator</span> <span class="o">=</span> <span class="n">LatinBertContextualCandidateGenerator</span><span class="p">(</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    <span class="n">model_name</span><span class="o">=</span><span class="s2">"ashleygong03/bamman-burns-latin-bert"</span><span class="p">,</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="n">subword_encoder_path</span><span class="o">=</span><span class="s2">"models/latin.subword.encoder"</span><span class="p">,</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    <span class="n">min_token_length</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>         <span class="c1"># no length filter, as in the paper</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>    <span class="n">use_stopword_filter</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>  <span class="c1"># no stopword filter, as in the paper</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="p">)</span>
 </code></pre></div>
-<h2 id="using-latin-bert-correctly">Using Latin BERT correctly<a class="headerlink" href="#using-latin-bert-correctly" title="Permanent link">&para;</a></h2>
-<p>Download <code>latin.subword.encoder</code> from the
-<a href="https://github.com/dbamman/latin-bert">Latin BERT repository</a> (
-<code>models/subword_tokenizer_latin/latin.subword.encoder</code>) and point the generator
-at it:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">generator</span> <span class="o">=</span> <span class="n">LatinBertContextualCandidateGenerator</span><span class="p">(</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    <span class="n">model_name</span><span class="o">=</span><span class="s2">"ashleygong03/bamman-burns-latin-bert"</span><span class="p">,</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="n">subword_encoder_path</span><span class="o">=</span><span class="s2">"models/latin.subword.encoder"</span><span class="p">,</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="n">min_token_length</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>        <span class="c1"># paper-faithful: no length filter</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="n">use_stopword_filter</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="c1"># paper-faithful: no stopword filter</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="p">)</span>
+<p>The encoder is implemented in pure Python
+(<code>locisimiles.tokenization.latin_bert</code>), so <code>tensor2tensor</code> and TensorFlow are
+not required. It reproduces the reference segmentation and uses the same id
+layout as <code>gen_berts.py</code>: <code>[PAD] [UNK] [CLS] [SEP] [MASK]</code> occupy ids 0–4 and
+subtoken ids are shifted by <code>+5</code>, giving the vocabulary of 32,900 declared in
+the checkpoint's <code>config.json</code>.</p>
+<h2 id="tokenizer-check">Tokenizer check<a class="headerlink" href="#tokenizer-check" title="Permanent link">&para;</a></h2>
+<p>Without <code>subword_encoder_path</code>, the generator checks the tokenizer against a
+Latin probe sentence and raises if it cannot segment the language:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">LatinBertContextualCandidateGenerator</span><span class="p">(</span><span class="n">model_name</span><span class="o">=</span><span class="s2">"ashleygong03/bamman-burns-latin-bert"</span><span class="p">)</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="c1"># ValueError: The tokenizer loaded for 'ashleygong03/bamman-burns-latin-bert' maps</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="c1"># 71% of Latin words to [UNK]. ... Pass subword_encoder_path=&lt;path to</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># latin.subword.encoder&gt; to use the model's original encoder ...</span>
 </code></pre></div>
-<p>The encoder is reimplemented in pure Python
-(<code>locisimiles.tokenization.latin_bert</code>), so no TensorFlow or <code>tensor2tensor</code>
-dependency is required. It reproduces the reference segmentation exactly, and
-applies the same id layout as <code>gen_berts.py</code>: <code>[PAD] [UNK] [CLS] [SEP] [MASK]</code>
-occupy ids 0–4 and every subtoken id is shifted by <code>+5</code>, giving a vocabulary of
-32,900 that matches the checkpoint's <code>config.json</code>.</p>
-<h2 id="why-it-matters">Why it matters<a class="headerlink" href="#why-it-matters" title="Permanent link">&para;</a></h2>
-<p>Evaluated on the <em>Loci Similes</em> benchmark, the tokenizer alone accounts for the
-difference between a baseline that looks unusable and one that is competitive:</p>
-<table>
-<thead>
-<tr>
-<th></th>
-<th>broken tokenizer</th>
-<th>original encoder</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Retrieval, pooled Recall@100</td>
-<td>0.147</td>
-<td><strong>0.616</strong></td>
-</tr>
-<tr>
-<td>Cross-encoder, verbatim F1</td>
-<td>9.53</td>
-<td><strong>77.82</strong></td>
-</tr>
-</tbody>
-</table>
-<h2 id="a-related-trap-word-vectors-and-orthography">A related trap: word vectors and orthography<a class="headerlink" href="#a-related-trap-word-vectors-and-orthography" title="Permanent link">&para;</a></h2>
-<p>The same class of mismatch affects the static Latin word vectors. The published
-checkpoints are trained on <strong>u/i-normalized lemmas</strong> (<code>uolo</code>, <code>uel</code>, <code>ciuilis</code>),
-whereas CLTK's lemmatizer emits v/j spellings and homonym indices (<code>volo</code>,
-<code>vel</code>, <code>venus2</code>). Looking the latter up in the former simply misses.</p>
-<p><code>Word2VecCandidateGenerator</code> therefore lemmatizes with CLTK and <em>then</em>
-normalizes orthography — that order matters — and warns when few tokens are
-found in the vocabulary:</p>
+<p>Pass <code>check_tokenizer=False</code> to skip the check.</p>
+<h2 id="vocabulary-coverage">Vocabulary coverage<a class="headerlink" href="#vocabulary-coverage" title="Permanent link">&para;</a></h2>
+<p>Embedding checkpoints expect text in the form they were trained on. The Latin
+word vectors, for example, are trained on u/i-normalized lemmas (<code>uolo</code>, <code>uel</code>,
+<code>ciuilis</code>), while CLTK's lemmatizer produces v/j spellings and homonym indices
+(<code>volo</code>, <code>vel</code>, <code>venus2</code>). <code>Word2VecCandidateGenerator</code> lemmatizes and then
+normalizes orthography, in that order, before looking a token up.</p>
+<p>When a checkpoint covers few of the tokens it is given, the generator reports
+it:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>UserWarning: Word2Vec generator (latin_w2v_bamman_lemma300_100_1.model): only
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>37.5% of tokens are in the vocabulary ... frequent OOV: volo (3165), vel (1993)
 </code></pre></div>
-<p>That warning is the generic form of the check: any embedding checkpoint whose
-preprocessing disagrees with your text will show up as low coverage rather than
-as an error.</p>
+<p><code>locisimiles.diagnostics.vocab_coverage</code> computes the same figures directly for
+any token stream and vocabulary.</p>
 
 
 
