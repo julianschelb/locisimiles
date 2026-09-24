@@ -51,7 +51,7 @@ _THEME = gr.themes.Soft(
 
 def build_interface() -> gr.Blocks:
     """Create the main Gradio Blocks interface."""
-    with gr.Blocks(title="Loci Similes Demo") as demo:
+    with gr.Blocks(title="Loci Similes Demo", theme=_THEME) as demo:
         # State to store pipeline results and files
         results_state = gr.State(value=None)
         query_doc_state = gr.State(value=None)
@@ -142,7 +142,7 @@ def launch(**kwargs: Any) -> None:
     kwargs.setdefault("quiet", False)  # Changed to False to show URL
 
     try:
-        demo.launch(share=False, theme=_THEME, **kwargs)
+        demo.launch(share=False, **kwargs)
     except ValueError as exc:
         msg = str(exc)
         if "shareable link must be created" in msg:
