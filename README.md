@@ -2,6 +2,11 @@
 
 **LociSimiles** is a Python package for finding intertextual links in Latin literature using pre-trained language models.
 
+**Dataset Explorer:** browse the Loci Similes benchmark in your browser at
+[julianschelb.github.io/loci-similes-demo-page](https://julianschelb.github.io/loci-similes-demo-page/): the 1,490
+expert-verified references between Latin authors, each passage beside its
+source, with word-level edit operations and English translations.
+
 ## Basic Usage
 
 ```python

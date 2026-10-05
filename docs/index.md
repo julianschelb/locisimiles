@@ -4,6 +4,11 @@
 
 LociSimiles enables researchers to detect textual reuse, quotations, and allusions between Latin texts, from verbatim citations to subtle paraphrases and thematic echoes.
 
+!!! tip "Explore the data"
+    The [Loci Similes Dataset Explorer](https://julianschelb.github.io/loci-similes-demo-page/) shows the benchmark in the browser: which authors draw on which, the
+    1,490 expert-verified references with each passage beside its source, word-level edit operations and English
+    translations.
+
 ## Quick Start
 
 ### Installation
@@ -41,6 +46,7 @@ results = pipeline.retrieve(source, target, top_k=5)
 - [CLI Reference](cli.md) - Command-line interface documentation
 - [API Reference](api/index.md) - Complete API documentation
 - [Development](development.md) - Contributing and development setup
+- [Dataset Explorer](https://julianschelb.github.io/loci-similes-demo-page/) - The benchmark's references, browsable in the browser
 
 ## Authors
 

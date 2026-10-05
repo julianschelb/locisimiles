@@ -55,6 +55,13 @@ dev = [
     "python-semantic-release (>=9.0.0)",
 ]
 
+[project.urls]
+Homepage = "https://github.com/julianschelb/locisimiles"
+Documentation = "https://julianschelb.github.io/locisimiles/"
+Repository = "https://github.com/julianschelb/locisimiles"
+"Dataset Explorer" = "https://julianschelb.github.io/loci-similes-demo-page/"
+Paper = "https://arxiv.org/abs/2601.07533"
+
 [project.scripts]
 locisimiles = "locisimiles.cli:main"
 locisimiles-gui = "locisimiles_gui.app:main"

@@ -37,6 +37,9 @@ extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/julianschelb/locisimiles
+    - icon: fontawesome/solid/diagram-project
+      link: https://julianschelb.github.io/loci-similes-demo-page/
+      name: Loci Similes Dataset Explorer
   generator: false
 
 copyright: |
